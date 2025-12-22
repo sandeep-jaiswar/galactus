@@ -22,8 +22,19 @@ df = (
     spark.read
     .option("header", "true")
     .option("inferSchema", "true")
+    .option("ignoreLeadingWhiteSpace", "true")
+    .option("ignoreTrailingWhiteSpace", "true")
     .csv(csv_path)
 )
+
+# Trim column names to remove any leading/trailing spaces
+from pyspark.sql.functions import col
+df = df.select([col(c).alias(c.strip()) for c in df.columns])
+
+# Add required columns for Hudi
+from pyspark.sql.functions import concat_ws
+df = df.withColumn("record_key", concat_ws("-", col("SYMBOL"), col("DATE1")))
+df = df.withColumn("trade_date", col("DATE1"))
 
 from conf.hudi import hudi_write_options
 hudi_options = hudi_write_options(
