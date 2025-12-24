@@ -11,3 +11,25 @@ __pycache__/
 logs/
 tmp/
 *.log
+
+# Virtual environment
+.venv/
+
+# Airflow specific
+metastore_db/
+airflow/logs/
+airflow/simple_auth_manager_passwords.json.generated
+
+# Downloaded data
+/tmp/bhavcopy/
+
+# Spark temporary files
+spark-warehouse/sec_bhavdata/
+*.parquet
+*.crc
+
+# Jupyter notebooks (if any)
+.ipynb_checkpoints/
+
+# OS specific
+Thumbs.db

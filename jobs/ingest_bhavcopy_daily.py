@@ -1,7 +1,7 @@
 import sys
 
 if len(sys.argv) != 3:
-    print("Usage: spark-submit ingest_bhavcopy.py <YYYY-MM-DD> <hudi_base_path>")
+    print("Usage: spark-submit ingest_bhavcopy_daily.py <YYYY-MM-DD> <hudi_base_path>")
     sys.exit(1)   
 SESSION_DATE = sys.argv[1]
 HUDI_BASE_PATH = sys.argv[2]
@@ -10,7 +10,7 @@ HUDI_BASE_PATH = sys.argv[2]
 from pyspark.sql import SparkSession
 spark = (
     SparkSession.builder
-    .appName(f"bhavcopy-ingest-{SESSION_DATE}")
+    .appName(f"bhavcopy-ingest-daily-{SESSION_DATE}")
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 )
@@ -48,5 +48,3 @@ df.write.format("hudi").options(**hudi_options).mode("append").save(
 )
 
 spark.stop()
-
-
