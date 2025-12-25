@@ -150,7 +150,9 @@ class HudiClickHouseSync:
                                 "Failed to parse DATE1 '%s' with formats '%%d-%%b-%%Y' and '%%Y-%%m-%%d': %s; %s",
                                 date_str, e, e2
                             )
-                            ts = datetime.now()
+                            # Set to None instead of fallback to avoid inserting incorrect timestamps.
+                            # ClickHouse will handle None appropriately based on column nullability.
+                            ts = None
 
                 # Parse trade_date -> date
                 trade_date = None
@@ -308,6 +310,7 @@ class HudiClickHouseSync:
                     params[trade_date_key] = trade_date
                 
                 if delete_conditions:
+                    # table_name is already validated by _validate_identifier, so string interpolation is safe
                     delete_query = f"DELETE FROM {table_name} WHERE {' OR '.join(delete_conditions)}"
                     try:
                         self.ch_client.command(delete_query, parameters=params)
@@ -340,6 +343,7 @@ class HudiClickHouseSync:
         while 'total_trades' maps to 'no_of_trades' from Hudi, and 'isin' maps to 'record_key'.
         """
         try:
+            # Both database and table names are validated by _validate_identifier in constructor
             full_table_name = f"{self.clickhouse_database}.{self.clickhouse_table}"
             create_sql = (
                 f"CREATE TABLE IF NOT EXISTS {full_table_name} ("
