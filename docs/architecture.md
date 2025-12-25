@@ -7,18 +7,18 @@ This project implements a containerized data pipeline for ingesting NSE (Nationa
 ## Architecture
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   NSE Website   │───▶│   Airflow DAG   │───▶│   Spark Job     │
-│                 │    │                 │    │                 │
-│  CSV Downloads  │    └─────────────────┘    │ Hudi Ingestion  │
-└─────────────────┘                           │                 │
-                                              │ Apache Hudi     │
-                                              │ Tables          │
-                                              └─────────────────┘
-                                                       │
-                                                       ▼
-                                              ┌─────────────────┐
-                                              │   Data Lake     │
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   NSE Website   │───▶│   Airflow DAG   │───▶│   Spark Job     │───▶│   Apache Hudi   │
+│                 │    │                 │    │                 │    │   Tables        │
+│  CSV Downloads  │    └─────────────────┘    │ Hudi Ingestion  │    └─────────────────┘
+└─────────────────┘                           │                 │             │
+                                              │ Apache Hudi     │             ▼
+                                              │ Tables          │    ┌─────────────────┐
+                                              └─────────────────┘    │ ClickHouse DB   │
+                                                       │             │                 │
+                                                       ▼             │ Analytics       │
+                                              ┌─────────────────┐    │ Queries         │
+                                              │   Data Lake     │    └─────────────────┘
                                               │                 │
                                               │ Parquet Files   │
                                               └─────────────────┘
@@ -43,9 +43,10 @@ This project implements a containerized data pipeline for ingesting NSE (Nationa
 
 ### Storage
 - **Apache Hudi**: Data lakehouse format for incremental updates
-- **Table Type**: Copy-on-Write (COW)
+- **ClickHouse**: Analytical database for fast queries and analytics
+- **Table Type**: Copy-on-Write (COW) for Hudi, ReplacingMergeTree for ClickHouse
 - **Keys**: Record key (symbol + date), Precombine key (date)
-- **Partitioning**: By trade_date
+- **Partitioning**: By trade_date in both systems
 
 ### Infrastructure
 - **Docker**: Containerization for all services
@@ -61,7 +62,8 @@ This project implements a containerized data pipeline for ingesting NSE (Nationa
    - Clean column names
    - Add Hudi-specific columns (record_key, trade_date)
 4. **Hudi Ingestion**: Upsert data into Hudi table
-5. **Storage**: Save as partitioned Parquet files
+5. **ClickHouse Sync**: Sync updated data from Hudi to ClickHouse
+6. **Storage**: Save as partitioned Parquet files in Hudi and analytical format in ClickHouse
 
 ## Data Schema
 
@@ -74,6 +76,12 @@ SYMBOL, SERIES, DATE1, PREV_CLOSE, OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE
 ```
 SYMBOL, SERIES, DATE1, PREV_CLOSE, OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE, CLOSE_PRICE, AVG_PRICE, TTL_TRD_QNTY, TURNOVER_LACS, NO_OF_TRDS, DELIV_QTY, DELIV_PER, record_key, trade_date
 ```
+
+## DAGs
+
+- `bhavcopy_ingestion`: Daily ingestion of NSE bhavcopy data
+  - **ingest_bhavcopy**: Downloads and processes CSV into Hudi
+  - **sync_to_clickhouse**: Syncs data from Hudi to ClickHouse for analytics
 
 ## Configuration
 

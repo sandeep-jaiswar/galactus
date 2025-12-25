@@ -16,5 +16,8 @@ COPY config/ /opt/spark/config/
 # Set PYTHONPATH
 ENV PYTHONPATH=/opt/spark/src:/opt/spark/config:$PYTHONPATH
 
+# Download ClickHouse JDBC driver
+RUN wget -P /opt/spark/jars/ https://repo1.maven.org/maven2/com/clickhouse/clickhouse-jdbc/0.6.3/clickhouse-jdbc-0.6.3.jar
+
 # Switch back to spark user
 USER spark

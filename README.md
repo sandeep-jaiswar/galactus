@@ -50,6 +50,7 @@ open http://localhost:8081
 - **Containerized**: Docker + Kubernetes deployment
 - **Scalable Processing**: Apache Spark for distributed computing
 - **Data Lakehouse**: Apache Hudi for efficient data management
+- **Analytical Database**: ClickHouse for fast analytics and queries
 - **Workflow Orchestration**: Apache Airflow for scheduling and monitoring
 - **Production Ready**: PostgreSQL metadata store, persistent storage
 
@@ -58,6 +59,7 @@ open http://localhost:8081
 - **Orchestration**: Apache Airflow
 - **Processing**: Apache Spark + PySpark
 - **Storage**: Apache Hudi + Parquet
+- **Analytics**: ClickHouse
 - **Database**: PostgreSQL
 - **Containerization**: Docker + Docker Compose
 - **Orchestration**: Kubernetes

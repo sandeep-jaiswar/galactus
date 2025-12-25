@@ -8,8 +8,10 @@ docker build -f docker/Dockerfile.spark -t bhavcopy-spark:latest .
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/airflow-configmap.yaml
 kubectl apply -f k8s/dags-configmap.yaml
+kubectl apply -f k8s/clickhouse-configmap.yaml
 kubectl apply -f k8s/data-pvc.yaml
 kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/clickhouse.yaml
 kubectl apply -f k8s/spark.yaml
 kubectl apply -f k8s/airflow-scheduler.yaml
 kubectl apply -f k8s/airflow-webserver.yaml

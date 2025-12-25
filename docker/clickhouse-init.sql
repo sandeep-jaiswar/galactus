@@ -1,0 +1,27 @@
+-- ClickHouse initialization script
+-- Create database and table for NSE bhavcopy data
+
+CREATE DATABASE IF NOT EXISTS nse;
+
+CREATE TABLE IF NOT EXISTS nse.sec_bhavdata (
+    symbol String,
+    series String,
+    date1 String,
+    prev_close Float64,
+    open_price Float64,
+    high_price Float64,
+    low_price Float64,
+    last_price Float64,
+    close_price Float64,
+    avg_price Float64,
+    ttl_trd_qnty UInt64,
+    turnover_lacs Float64,
+    no_of_trds UInt64,
+    deliv_qty UInt64,
+    deliv_per Float64,
+    record_key String,
+    trade_date String
+) ENGINE = ReplacingMergeTree()
+ORDER BY (record_key, trade_date)
+PARTITION BY toYYYYMM(toDate(trade_date))
+SETTINGS index_granularity = 8192;
