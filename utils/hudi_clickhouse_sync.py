@@ -39,8 +39,9 @@ class HudiClickHouseSync:
         self.hudi_base_path = hudi_base_path
         self.clickhouse_host = clickhouse_host
         self.clickhouse_port = clickhouse_port
-        self.clickhouse_database = clickhouse_database
-        self.clickhouse_table = clickhouse_table
+        # Validate database and table names to prevent SQL injection
+        self.clickhouse_database = self._validate_identifier(clickhouse_database, "database")
+        self.clickhouse_table = self._validate_identifier(clickhouse_table, "table")
 
         # Initialize ClickHouse client
         self.ch_client = clickhouse_connect.get_client(
@@ -53,6 +54,19 @@ class HudiClickHouseSync:
         self.spark = self._create_spark_session()
         # Ensure ClickHouse table exists (created on first sync if missing)
         self._ensure_table_exists()
+
+    def _validate_identifier(self, identifier, identifier_type):
+        """
+        Validate database/table identifiers to prevent SQL injection.
+        Only allows alphanumeric characters, underscores, and dots.
+        """
+        import re
+        if not re.match(r'^[a-zA-Z0-9_\.]+$', identifier):
+            raise ValueError(
+                f"Invalid {identifier_type} name '{identifier}'. "
+                f"Only alphanumeric characters, underscores, and dots are allowed."
+            )
+        return identifier
 
     def _create_spark_session(self):
         """Create Spark session with Hudi support"""
@@ -273,6 +287,9 @@ class HudiClickHouseSync:
         """
         if not data_batch:
             return
+
+        # Validate table_name to prevent SQL injection
+        table_name = self._validate_identifier(table_name, "table")
 
         try:
             # Delete existing rows for the symbol+trade_date pairs in batch using parameterized query
