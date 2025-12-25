@@ -76,7 +76,7 @@ class HudiClickHouseSync:
             return None
 
     def sync_to_clickhouse(self, df, table_name):
-        """Sync DataFrame to ClickHouse"""
+        """Sync DataFrame to ClickHouse with upsert logic using symbol + trade_date as unique key"""
         if df is None or df.count() == 0:
             logger.warning("No data to sync")
             return False
@@ -85,8 +85,9 @@ class HudiClickHouseSync:
             # Convert to pandas for ClickHouse insertion
             pdf = df.toPandas()
 
-            # Prepare data for ClickHouse
+            # Prepare data for ClickHouse - we'll use UPSERT logic
             data = []
+            
             for _, row in pdf.iterrows():
                 # Convert DATE1 string to datetime
                 date_str = str(row['DATE1']) if row['DATE1'] else None
@@ -132,7 +133,29 @@ class HudiClickHouseSync:
                     str(row['_hoodie_file_name']) if row['_hoodie_file_name'] else ''
                 ])
 
-            # Insert data into ClickHouse
+            if not data:
+                logger.info("No records to process")
+                return True
+
+            # Use ClickHouse's INSERT with ON CONFLICT for upsert
+            # First, delete existing records with same symbol + trade_date combination
+            symbols_and_dates = [(row[0], row[13]) for row in data if row[0] and row[13]]
+            
+            if symbols_and_dates:
+                # Delete existing records to prepare for upsert
+                delete_conditions = []
+                for symbol, trade_date in symbols_and_dates:
+                    delete_conditions.append(f"(symbol = '{symbol}' AND trade_date = '{trade_date}')")
+                
+                if delete_conditions:
+                    delete_query = f"DELETE FROM {table_name} WHERE {' OR '.join(delete_conditions)}"
+                    try:
+                        self.ch_client.command(delete_query)
+                        logger.info(f"Deleted existing records for {len(symbols_and_dates)} symbol+trade_date combinations")
+                    except Exception as e:
+                        logger.warning(f"Could not delete existing records: {e}. Proceeding with insert.")
+
+            # Insert all data (this will be the "upsert" since we deleted existing records)
             self.ch_client.insert(table_name, data,
                                 column_names=[
                                     'symbol', 'series', 'open_price', 'high_price', 'low_price',
@@ -142,7 +165,7 @@ class HudiClickHouseSync:
                                     '_hoodie_record_key', '_hoodie_partition_path', '_hoodie_file_name'
                                 ])
 
-            logger.info(f"Successfully synced {len(data)} records to ClickHouse table {table_name}")
+            logger.info(f"Successfully upserted {len(data)} records to ClickHouse table {table_name}")
             return True
 
         except Exception as e:

@@ -36,8 +36,9 @@ def hudi_write_options(
         "hoodie.datasource.write.schema.evolution.enable": "true",
 
         # ClickHouse sync configuration
-        "hoodie.meta.sync.enable": "true",
+        "hoodie.meta.sync.enable": "false",  # Disable meta sync to avoid Hive issues
         "hoodie.datasource.meta.sync.enable": "true",
+        "hoodie.meta.sync.classes": "org.apache.hudi.sync.clickhouse.ClickHouseSyncTool",  # Only sync to ClickHouse
         "hoodie.datasource.hive_sync.enable": "false",  # Disable Hive sync
         "hoodie.datasource.clickhouse_sync.enable": "true",
         "hoodie.datasource.clickhouse_sync.jdbc.url": "jdbc:clickhouse://localhost:8123/galactus",
