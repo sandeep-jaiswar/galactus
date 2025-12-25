@@ -1,0 +1,20 @@
+# Dockerfile for Spark
+FROM apache/spark:3.5.0
+
+# Install additional packages
+USER root
+RUN apt-get update && apt-get install -y \
+    curl \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy source code
+COPY src/ /opt/spark/src/
+COPY config/ /opt/spark/config/
+
+# Set PYTHONPATH
+ENV PYTHONPATH=/opt/spark/src:/opt/spark/config:$PYTHONPATH
+
+# Switch back to spark user
+USER spark

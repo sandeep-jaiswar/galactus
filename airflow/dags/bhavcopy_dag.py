@@ -22,6 +22,6 @@ dag = DAG(
 
 ingest_task = BashOperator(
     task_id='ingest_bhavcopy',
-    bash_command='cd /media/sandeep/DataDrive/datastore && export PYTHONPATH=/media/sandeep/DataDrive/datastore && /media/sandeep/DataDrive/datastore/.venv/bin/spark-submit --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 --master local[*] /media/sandeep/DataDrive/datastore/jobs/ingest_bhavcopy_daily.py {{ ds }} /media/sandeep/DataDrive/datastore/spark-warehouse',
+    bash_command='cd /opt/airflow && export PYTHONPATH=/opt/airflow/src:/opt/airflow/config && spark-submit --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 --master spark://spark:7077 /opt/airflow/src/jobs/ingest_bhavcopy_daily.py {{ ds }} /opt/airflow/data/spark-warehouse',
     dag=dag,
 )

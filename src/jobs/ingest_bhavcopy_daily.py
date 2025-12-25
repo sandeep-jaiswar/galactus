@@ -36,7 +36,7 @@ from pyspark.sql.functions import concat_ws
 df = df.withColumn("record_key", concat_ws("-", col("SYMBOL"), col("DATE1")))
 df = df.withColumn("trade_date", col("DATE1"))
 
-from conf.hudi import hudi_write_options
+from config.hudi import hudi_write_options
 hudi_options = hudi_write_options(
     table_name="sec_bhavdata",
     record_key="record_key",

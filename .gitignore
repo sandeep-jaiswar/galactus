@@ -1,35 +1,94 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.swp
 *.swo
-.DS_Store
-.env
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
 .vscode/
 .idea/
-logs/
-tmp/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
 *.log
 
-# Virtual environment
-.venv/
-
-# Airflow specific
-metastore_db/
+# Airflow
 airflow/logs/
 airflow/simple_auth_manager_passwords.json.generated
+airflow/webserver_config.py
 
-# Downloaded data
+# Data and temporary files
+data/metastore_db/
+data/spark-warehouse/
+data/derby.log
+/tmp/
 /tmp/bhavcopy/
 
-# Spark temporary files
-spark-warehouse/sec_bhavdata/
+# Docker
+.dockerignore
+
+# Spark
 *.parquet
 *.crc
+spark-warehouse/
 
-# Jupyter notebooks (if any)
+# Jupyter
 .ipynb_checkpoints/
 
-# OS specific
-Thumbs.db
+# Node.js (if any)
+node_modules/
+npm-debug.log*
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfvars
+
+# Kubernetes
+k8s/*.yaml.bak
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Local development
+.env
+.env.local
+.env.*.local
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

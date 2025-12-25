@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dags-config
+  namespace: bhavcopy-pipeline
+data:
+  bhavcopy_dag.py: |
+    from datetime import datetime, timedelta
+    from airflow import DAG
+    from airflow.operators.bash import BashOperator
+
+    default_args = {
+        'owner': 'airflow',
+        'depends_on_past': False,
+        'start_date': datetime(2025, 12, 23),
+        'email_on_failure': False,
+        'email_on_retry': False,
+        'retries': 1,
+        'retry_delay': timedelta(minutes=5),
+    }
+
+    dag = DAG(
+        'bhavcopy_ingestion',
+        default_args=default_args,
+        description='Daily ingestion of NSE bhavcopy data into Hudi',
+        schedule='@daily',  # Run daily
+        catchup=False,
+    )
+
+    ingest_task = BashOperator(
+        task_id='ingest_bhavcopy',
+        bash_command='cd /opt/airflow && export PYTHONPATH=/opt/airflow/src:/opt/airflow/config && spark-submit --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 --master spark://spark-master-service:7077 /opt/airflow/src/jobs/ingest_bhavcopy_daily.py {{ ds }} /opt/airflow/data/spark-warehouse',
+        dag=dag,
+    )
