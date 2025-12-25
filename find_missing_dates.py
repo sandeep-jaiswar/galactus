@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import pandas as pd
+import os
 
 # Read the existing trade dates from the Hudi table
 from pyspark.sql import SparkSession
@@ -10,12 +11,13 @@ spark = SparkSession.builder \
     .config("spark.sql.extensions", "org.apache.spark.sql.hudi.HoodieSparkSessionExtension") \
     .getOrCreate()
 
-# Read the Hudi table
-hudi_df = spark.read.format("hudi").load("/tmp/hudi_data")
+# Read the Hudi table from configurable path
+table_path = os.environ.get("HUDI_TABLE_PATH", "/tmp/hudi_data")
+hudi_df = spark.read.format("hudi").load(table_path)
 existing_dates = hudi_df.select("trade_date").distinct().toPandas()
 
-# Convert to datetime and sort
-existing_dates['trade_date'] = pd.to_datetime(existing_dates['trade_date'], format='%d-%b-%Y')
+# Convert to datetime and sort - use consistent format with hudi_clickhouse_sync.py
+existing_dates['trade_date'] = pd.to_datetime(existing_dates['trade_date'], format='%Y-%m-%d')
 existing_dates = existing_dates.sort_values('trade_date')
 
 print(f"Existing dates count: {len(existing_dates)}")

@@ -3,7 +3,7 @@
   <!-- Embedded Derby metastore for local testing -->
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:derby:;databaseName=/media/sandeep/DataDrive/galactus/metastore_db;create=true</value>
+    <value>jdbc:derby:;databaseName=metastore_db;create=true</value>
   </property>
 
   <property>
