@@ -3,7 +3,6 @@
 Python Hive Metastore inspector using `hmsclient`.
 This script connects to the Hive metastore Thrift service and lists databases and tables.
 """
-import subprocess
 import sys
 
 HOST = 'localhost'
@@ -33,8 +32,9 @@ def query_with_hmsclient(host=HOST, port=PORT):
     finally:
         try:
             client.close()
-        except Exception:
-            pass
+        except Exception as e:
+            # Ignore close errors but log them so resource issues are diagnosable.
+            print(f'Warning: failed to close HMSClient cleanly: {e}', file=sys.stderr)
 
 
 if __name__ == '__main__':

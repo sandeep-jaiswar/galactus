@@ -1,9 +1,12 @@
 from pyspark.sql import SparkSession
+import os
 
 spark = SparkSession.builder.appName("check-hudi-status").getOrCreate()
 
+table_path = os.environ.get("HUDI_TABLE_PATH", "/tmp/hudi_data/sec_bhavdata")
+
 try:
-    df = spark.read.format("hudi").load("/tmp/hudi_data/sec_bhavdata")
+    df = spark.read.format("hudi").load(table_path)
     total_records = df.count()
     unique_dates = df.select("trade_date").distinct().count()
     

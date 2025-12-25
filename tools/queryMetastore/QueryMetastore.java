@@ -2,7 +2,11 @@ import java.sql.*;
 
 public class QueryMetastore {
   public static void main(String[] args) {
-    String url = "jdbc:derby:/media/sandeep/DataDrive/galactus/metastore_db";
+    String metastorePath = System.getenv("DERBY_METASTORE_PATH");
+    if (metastorePath == null || metastorePath.isEmpty()) {
+      metastorePath = "metastore_db"; // Default to relative path
+    }
+    String url = "jdbc:derby:" + metastorePath;
     try {
       Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
       try (Connection conn = DriverManager.getConnection(url)) {
