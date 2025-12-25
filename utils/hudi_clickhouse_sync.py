@@ -14,15 +14,20 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit
 import clickhouse_connect
 
-# Add project root to path
-sys.path.append('/media/sandeep/DataDrive/galactus')
+# Add project root to path - use relative path or environment variable
+project_root = os.environ.get('GALACTUS_PROJECT_ROOT', os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
 
 # Configure logging
+log_dir = os.environ.get('GALACTUS_LOG_DIR', os.path.join(project_root, 'logs'))
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'hudi_clickhouse_sync.log')
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('/media/sandeep/DataDrive/galactus/logs/hudi_clickhouse_sync.log'),
+        logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
@@ -147,6 +152,8 @@ class HudiClickHouseSync:
                                 "Failed to parse trade_date '%s' with formats '%%Y-%%m-%%d' and '%%d-%%b-%%Y': %s; %s",
                                 td, e, e2
                             )
+                            # Set to None instead of fallback to avoid inserting incorrect dates.
+                            # ClickHouse will handle None appropriately based on column nullability.
                             trade_date = None
 
                 return [
@@ -339,12 +346,22 @@ def main():
     parser = argparse.ArgumentParser(description='Sync Hudi tables to ClickHouse')
     parser.add_argument('--table', required=True, help='Table name to sync')
     parser.add_argument('--hudi-path', default='/tmp/hudi_data', help='Base path for Hudi tables')
+    parser.add_argument('--clickhouse-host', default='localhost', help='ClickHouse host')
+    parser.add_argument('--clickhouse-port', type=int, default=8123, help='ClickHouse port')
+    parser.add_argument('--clickhouse-database', default='galactus', help='ClickHouse database name')
+    parser.add_argument('--clickhouse-table', default='sec_bhavdata', help='ClickHouse table name')
     parser.add_argument('--incremental', action='store_true', help='Perform incremental sync')
     parser.add_argument('--last-sync-time', help='Last sync timestamp for incremental sync')
 
     args = parser.parse_args()
 
-    sync = HudiClickHouseSync(hudi_base_path=args.hudi_path)
+    sync = HudiClickHouseSync(
+        hudi_base_path=args.hudi_path,
+        clickhouse_host=args.clickhouse_host,
+        clickhouse_port=args.clickhouse_port,
+        clickhouse_database=args.clickhouse_database,
+        clickhouse_table=args.clickhouse_table
+    )
 
     try:
         if args.incremental:
