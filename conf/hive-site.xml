@@ -1,25 +1,14 @@
 <?xml version="1.0"?>
-<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <configuration>
-  <!-- Hive Metastore Configuration -->
+  <!-- Embedded Derby metastore for local testing -->
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:postgresql://localhost:5432/metastore</value>
+    <value>jdbc:derby:;databaseName=/media/sandeep/DataDrive/galactus/metastore_db;create=true</value>
   </property>
 
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
-    <value>org.postgresql.Driver</value>
-  </property>
-
-  <property>
-    <name>javax.jdo.option.ConnectionUserName</name>
-    <value>metastore</value>
-  </property>
-
-  <property>
-    <name>javax.jdo.option.ConnectionPassword</name>
-    <value>metastore</value>
+    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
   </property>
 
   <!-- Hive Metastore Server Configuration -->
@@ -33,23 +22,11 @@
     <value>false</value>
   </property>
 
-  <!-- Hudi Configuration -->
-  <property>
-    <name>hive.metastore.client.factory.class</name>
-    <value>org.apache.hadoop.hive.metastore.DefaultMetaStoreClientFactory</value>
-  </property>
-
-  <!-- Additional Hudi settings -->
-  <property>
-    <name>hive.support.concurrency</name>
-    <value>true</value>
-  </property>
-
+  <!-- Hudi-friendly settings -->
   <property>
     <name>hive.exec.dynamic.partition.mode</name>
     <value>nonstrict</value>
   </property>
-
   <property>
     <name>hive.txn.manager</name>
     <value>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</value>

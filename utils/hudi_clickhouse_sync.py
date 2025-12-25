@@ -43,6 +43,8 @@ class HudiClickHouseSync:
 
         # Initialize Spark session
         self.spark = self._create_spark_session()
+        # Ensure ClickHouse table exists (created on first sync if missing)
+        self._ensure_table_exists()
 
     def _create_spark_session(self):
         """Create Spark session with Hudi support"""
@@ -60,15 +62,35 @@ class HudiClickHouseSync:
         logger.info(f"Reading Hudi table from: {base_path}")
 
         try:
-            df = self.spark.read.format("hudi") \
-                .load(base_path) \
-                .select(
-                    "symbol", "series", "open_price", "high_price", "low_price",
-                    "close_price", "last_price", "prev_close", "total_traded_qty",
-                    "turnover_lacs", "DATE1", "no_of_trades", "record_key",
-                    "trade_date", "_hoodie_commit_time", "_hoodie_commit_seqno",
-                    "_hoodie_record_key", "_hoodie_partition_path", "_hoodie_file_name"
-                )
+            df_raw = self.spark.read.format("hudi").load(base_path)
+
+            # normalize column names to lowercase
+            df = df_raw.select([col(c).alias(c.lower()) for c in df_raw.columns])
+
+            # canonicalize some known column name variants
+            if 'ttl_trd_qnty' in df.columns and 'total_traded_qty' not in df.columns:
+                df = df.withColumnRenamed('ttl_trd_qnty', 'total_traded_qty')
+            if 'turnover_lacs' not in df.columns and 'turnover_lac' in df.columns:
+                df = df.withColumnRenamed('turnover_lac', 'turnover_lacs')
+
+            # Ensure required columns exist (will be None if missing)
+            expected = [
+                'symbol', 'series', 'open_price', 'high_price', 'low_price',
+                'close_price', 'last_price', 'prev_close', 'total_traded_qty',
+                'turnover_lacs', 'date1', 'no_of_trades', 'record_key',
+                'trade_date', '_hoodie_commit_time', '_hoodie_commit_seqno',
+                '_hoodie_record_key', '_hoodie_partition_path', '_hoodie_file_name'
+            ]
+
+            # select existing columns, add nulls for missing ones
+            select_cols = []
+            for c in expected:
+                if c in df.columns:
+                    select_cols.append(col(c))
+                else:
+                    select_cols.append(lit(None).alias(c))
+
+            df = df.select(*select_cols)
             logger.info(f"Successfully read {df.count()} records from Hudi")
             return df
         except Exception as e:
@@ -82,94 +104,84 @@ class HudiClickHouseSync:
             return False
 
         try:
-            # Convert to pandas for ClickHouse insertion
-            pdf = df.toPandas()
+            # Stream rows from Spark to avoid building a full pandas DataFrame.
+            batch_size = 1000
+            data_batch = []
+            total = 0
 
-            # Prepare data for ClickHouse - we'll use UPSERT logic
-            data = []
-            
-            for _, row in pdf.iterrows():
-                # Convert DATE1 string to datetime
-                date_str = str(row['DATE1']) if row['DATE1'] else None
-                timestamp = None
+            def _convert_row(row):
+                # Helper: safely extract attributes from Row
+                def gv(k):
+                    return row[k] if k in row and row[k] is not None else None
+
+                # Parse DATE1 -> datetime if possible
+                date_str = gv('DATE1')
+                ts = None
                 if date_str:
                     try:
-                        # Parse date string like "23-DEC-2025" 
-                        timestamp = datetime.strptime(date_str, "%d-%b-%Y")
-                    except ValueError:
-                        # If parsing fails, use current time
-                        timestamp = datetime.now()
-                
-                # Convert trade_date string to date
-                trade_date_str = str(row['trade_date']) if row['trade_date'] else None
-                trade_date = None
-                if trade_date_str:
-                    try:
-                        # Parse date string like "2025-12-23"
-                        trade_date = datetime.strptime(trade_date_str, "%Y-%m-%d").date()
-                    except ValueError:
-                        # If parsing fails, use current date
-                        trade_date = datetime.now().date()
-                
-                data.append([
-                    str(row['symbol']) if row['symbol'] else '',
-                    str(row['series']) if row['series'] else '',
-                    float(row['open_price']) if row['open_price'] else 0.0,
-                    float(row['high_price']) if row['high_price'] else 0.0,
-                    float(row['low_price']) if row['low_price'] else 0.0,
-                    float(row['close_price']) if row['close_price'] else 0.0,
-                    float(row['last_price']) if row['last_price'] else 0.0,
-                    float(row['prev_close']) if row['prev_close'] else 0.0,
-                    int(row['total_traded_qty']) if row['total_traded_qty'] else 0,
-                    float(row['turnover_lacs']) if row['turnover_lacs'] else 0.0,
-                    timestamp,  # Use parsed datetime object
-                    int(row['no_of_trades']) if row['no_of_trades'] else 0,
-                    str(row['record_key']) if row['record_key'] else '',
-                    trade_date,  # Use parsed date object
-                    str(row['_hoodie_commit_time']) if row['_hoodie_commit_time'] else '',
-                    str(row['_hoodie_commit_seqno']) if row['_hoodie_commit_seqno'] else '',
-                    str(row['_hoodie_record_key']) if row['_hoodie_record_key'] else '',
-                    str(row['_hoodie_partition_path']) if row['_hoodie_partition_path'] else '',
-                    str(row['_hoodie_file_name']) if row['_hoodie_file_name'] else ''
-                ])
+                        ts = datetime.strptime(str(date_str), "%d-%b-%Y")
+                    except Exception:
+                        try:
+                            ts = datetime.strptime(str(date_str), "%Y-%m-%d")
+                        except Exception:
+                            ts = datetime.now()
 
-            if not data:
-                logger.info("No records to process")
+                # Parse trade_date -> date
+                trade_date = None
+                td = gv('trade_date')
+                if td:
+                    try:
+                        trade_date = datetime.strptime(str(td), "%Y-%m-%d").date()
+                    except Exception:
+                        try:
+                            trade_date = datetime.strptime(str(td), "%d-%b-%Y").date()
+                        except Exception:
+                            trade_date = datetime.now().date()
+
+                return [
+                    str(gv('symbol') or ''),
+                    str(gv('series') or ''),
+                    float(gv('open_price') or 0.0),
+                    float(gv('high_price') or 0.0),
+                    float(gv('low_price') or 0.0),
+                    float(gv('close_price') or 0.0),
+                    float(gv('last_price') or 0.0),
+                    float(gv('prev_close') or 0.0),
+                    int(gv('total_traded_qty') or 0),
+                    float(gv('turnover_lacs') or 0.0),
+                    ts,
+                    int(gv('no_of_trades') or 0),
+                    str(gv('record_key') or ''),
+                    trade_date,
+                    str(gv('_hoodie_commit_time') or ''),
+                    str(gv('_hoodie_commit_seqno') or ''),
+                    str(gv('_hoodie_record_key') or ''),
+                    str(gv('_hoodie_partition_path') or ''),
+                    str(gv('_hoodie_file_name') or '')
+                ]
+
+            try:
+                for row in df.toLocalIterator():
+                    data_batch.append(_convert_row(row.asDict()))
+                    if len(data_batch) >= batch_size:
+                        self._flush_batch(table_name, data_batch)
+                        total += len(data_batch)
+                        data_batch = []
+
+                # Final batch
+                if data_batch:
+                    self._flush_batch(table_name, data_batch)
+                    total += len(data_batch)
+
+                logger.info(f"Successfully upserted ~{total} records to ClickHouse table {table_name}")
                 return True
 
-            # Use ClickHouse's INSERT with ON CONFLICT for upsert
-            # First, delete existing records with same symbol + trade_date combination
-            symbols_and_dates = [(row[0], row[13]) for row in data if row[0] and row[13]]
-            
-            if symbols_and_dates:
-                # Delete existing records to prepare for upsert
-                delete_conditions = []
-                for symbol, trade_date in symbols_and_dates:
-                    delete_conditions.append(f"(symbol = '{symbol}' AND trade_date = '{trade_date}')")
-                
-                if delete_conditions:
-                    delete_query = f"DELETE FROM {table_name} WHERE {' OR '.join(delete_conditions)}"
-                    try:
-                        self.ch_client.command(delete_query)
-                        logger.info(f"Deleted existing records for {len(symbols_and_dates)} symbol+trade_date combinations")
-                    except Exception as e:
-                        logger.warning(f"Could not delete existing records: {e}. Proceeding with insert.")
-
-            # Insert all data (this will be the "upsert" since we deleted existing records)
-            self.ch_client.insert(table_name, data,
-                                column_names=[
-                                    'symbol', 'series', 'open_price', 'high_price', 'low_price',
-                                    'close_price', 'last_price', 'prev_close', 'total_traded_qty',
-                                    'total_traded_val', 'timestamp', 'total_trades', 'isin',
-                                    'trade_date', '_hoodie_commit_time', '_hoodie_commit_seqno',
-                                    '_hoodie_record_key', '_hoodie_partition_path', '_hoodie_file_name'
-                                ])
-
-            logger.info(f"Successfully upserted {len(data)} records to ClickHouse table {table_name}")
-            return True
+            except Exception as e:
+                logger.error(f"Error syncing to ClickHouse while streaming: {e}")
+                return False
 
         except Exception as e:
-            logger.error(f"Error syncing to ClickHouse: {e}")
+            logger.error(f"Error in sync_to_clickhouse: {e}")
             return False
 
     def sync_table(self, table_name, base_path=None):
@@ -228,6 +240,55 @@ class HudiClickHouseSync:
             self.spark.stop()
         if self.ch_client:
             self.ch_client.close()
+
+    def _flush_batch(self, table_name, data_batch):
+        """Insert a batch of rows into ClickHouse. Uses simple delete+insert upsert pattern for conflicting keys."""
+        if not data_batch:
+            return
+
+        try:
+            # Attempt a delete of existing rows for the symbol+trade_date pairs in batch
+            symbols_and_dates = [(r[0], r[13]) for r in data_batch if r[0] and r[13]]
+            if symbols_and_dates:
+                delete_conditions = []
+                for symbol, trade_date in symbols_and_dates:
+                    delete_conditions.append(f"(symbol = '{symbol}' AND trade_date = '{trade_date}')")
+                if delete_conditions:
+                    delete_query = f"DELETE FROM {table_name} WHERE {' OR '.join(delete_conditions)}"
+                    try:
+                        self.ch_client.command(delete_query)
+                    except Exception:
+                        # ignore delete failures and proceed to insert
+                        pass
+
+            # Insert batch
+            self.ch_client.insert(table_name, data_batch,
+                                  column_names=[
+                                      'symbol', 'series', 'open_price', 'high_price', 'low_price',
+                                      'close_price', 'last_price', 'prev_close', 'total_traded_qty',
+                                      'turnover_lacs', 'timestamp', 'total_trades', 'isin',
+                                      'trade_date', '_hoodie_commit_time', '_hoodie_commit_seqno',
+                                      '_hoodie_record_key', '_hoodie_partition_path', '_hoodie_file_name'
+                                  ])
+        except Exception as e:
+            logger.error(f"Batch insert failed: {e}")
+
+    def _ensure_table_exists(self):
+        """Create ClickHouse table if it does not exist with a compatible schema."""
+        try:
+            create_sql = (
+                "CREATE TABLE IF NOT EXISTS galactus.sec_bhavdata ("
+                "symbol String, series String, open_price Float64, high_price Float64, low_price Float64, "
+                "close_price Float64, last_price Float64, prev_close Float64, total_traded_qty UInt64, "
+                "turnover_lacs Float64, timestamp DateTime, total_trades UInt32, isin String, trade_date Date, "
+                "_hoodie_commit_time String, _hoodie_commit_seqno String, _hoodie_record_key String, "
+                "_hoodie_partition_path String, _hoodie_file_name String) "
+                "ENGINE = MergeTree() ORDER BY (trade_date, symbol)"
+            )
+            self.ch_client.command(create_sql)
+            logger.info("Ensured ClickHouse table galactus.sec_bhavdata exists")
+        except Exception as e:
+            logger.error(f"Could not ensure ClickHouse table exists: {e}")
 
 def main():
     import argparse

@@ -29,6 +29,9 @@ from typing import Optional
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, concat_ws
 
+# Add parent directory to path for local imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Local imports
 from conf.hudi import hudi_write_options
 from utils.nse_download import download_bhavcopy
