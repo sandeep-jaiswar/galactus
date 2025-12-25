@@ -35,16 +35,23 @@ def hudi_write_options(
         # Schema evolution (important for finance)
         "hoodie.datasource.write.schema.evolution.enable": "true",
 
-        # ClickHouse sync configuration
-        "hoodie.meta.sync.enable": "true",
-        "hoodie.datasource.meta.sync.enable": "true",
-        "hoodie.datasource.hive_sync.enable": "false",  # Disable Hive sync
-        "hoodie.datasource.clickhouse_sync.enable": "true",
-        "hoodie.datasource.clickhouse_sync.jdbc.url": "jdbc:clickhouse://localhost:8123/galactus",
-        "hoodie.datasource.clickhouse_sync.table": table_name,
-        "hoodie.datasource.clickhouse_sync.database": "galactus",
+        # Disable Java-based meta sync (use Python sync module instead)
+        "hoodie.meta.sync.enable": "false",
+        "hoodie.datasource.meta.sync.enable": "false",
+        "hoodie.meta.sync.classes": "",
+        "hoodie.datasource.hive_sync.enable": "false",
+        "hoodie.datasource.clickhouse_sync.enable": "false",
+        "hoodie.datasource.clickhouse_sync.jdbc.url": "",
+        "hoodie.datasource.clickhouse_sync.table": "",
+        "hoodie.datasource.clickhouse_sync.database": "",
         "hoodie.datasource.clickhouse_sync.username": "",
         "hoodie.datasource.clickhouse_sync.password": "",
         "hoodie.datasource.clickhouse_sync.partition_fields": partition_key,
-        "hoodie.datasource.clickhouse_sync.partition_extractor_class": "org.apache.hudi.hive.SlashEncodedDayPartitionValueExtractor"
+        "hoodie.datasource.clickhouse_sync.partition_extractor_class": "org.apache.hudi.hive.SlashEncodedDayPartitionValueExtractor",
+        # Hive sync (HMS) settings left empty when disabled
+        "hoodie.datasource.hive_sync.mode": "NONE",
+        "hoodie.datasource.hive_sync.metastore.uris": "",
+        "hoodie.datasource.hive_sync.database": "",
+        "hoodie.datasource.hive_sync.table": "",
+        "hoodie.datasource.hive_sync.partition_extractor_class": ""
     }

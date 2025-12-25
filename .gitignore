@@ -33,3 +33,24 @@ spark-warehouse/sec_bhavdata/
 
 # OS specific
 Thumbs.db
+
+# Testing / typecheck
+.mypy_cache/
+.pytest_cache/
+.cache/
+.coverage
+htmlcov/
+
+# Packaging / build
+dist/
+build/
+*.egg-info/
+pip-wheel-metadata/
+
+# Local tools and large binaries
+/tools/apache-hive-2.1.0-bin/
+/tools/hadoop-2.7.3/
+/spark-warehouse/
+
+# Python wheel and metadata
+*.whl
