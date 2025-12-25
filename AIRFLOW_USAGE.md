@@ -21,7 +21,7 @@ Apache Airflow is now integrated into your data processing pipeline.
 - View task logs under Graph > Task Instance > Logs.
 
 ## Adding New DAGs
-- Place Python files defining DAGs in `/media/sandeep/DataDrive/datastore/airflow/dags/`
+- Place Python files defining DAGs in `/media/sandeep/DataDrive/galactus/airflow/dags/`
 - Airflow will automatically detect and load them.
 - Example: Create a DAG for other jobs like data processing or reporting.
 

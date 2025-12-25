@@ -22,6 +22,6 @@ dag = DAG(
 
 ingest_task = BashOperator(
     task_id='ingest_bhavcopy',
-    bash_command='cd /media/sandeep/DataDrive/datastore && export PYTHONPATH=/media/sandeep/DataDrive/datastore && /media/sandeep/DataDrive/datastore/.venv/bin/spark-submit --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 --master local[*] /media/sandeep/DataDrive/datastore/jobs/ingest_bhavcopy_daily.py {{ ds }} /media/sandeep/DataDrive/datastore/spark-warehouse',
+    bash_command='cd /media/sandeep/DataDrive/galactus && export PYTHONPATH=/media/sandeep/DataDrive/galactus && /media/sandeep/DataDrive/galactus/.venv/bin/spark-submit --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 --master local[*] /media/sandeep/DataDrive/galactus/jobs/ingest_bhavcopy_daily.py {{ ds }} /media/sandeep/DataDrive/galactus/spark-warehouse',
     dag=dag,
 )

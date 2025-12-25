@@ -8,10 +8,10 @@ Apache Airflow has been set up locally on your system.
 - Password: DuM7v7utTSdmn3Ye (stored in airflow/simple_auth_manager_passwords.json.generated)
 
 ## Installation Details
-- Virtual Environment: /media/sandeep/DataDrive/datastore/.venv
-- Airflow Home: /media/sandeep/DataDrive/datastore/airflow
+- Virtual Environment: /media/sandeep/DataDrive/galactus/.venv
+- Airflow Home: /media/sandeep/DataDrive/galactus/airflow
 - Database: SQLite (airflow.db)
-- DAGs Folder: /media/sandeep/DataDrive/datastore/airflow/dags
+- DAGs Folder: /media/sandeep/DataDrive/galactus/airflow/dags
 
 ## Running Airflow
 - Manual Start: ./start_airflow.sh
