@@ -1,16 +1,22 @@
 # Galactus - NSE Market Intelligence Platform
-FROM python:3.10-slim
+# Use OpenJDK 11 base so Spark runs with a compatible JDK
+FROM eclipse-temurin:11-jdk
 
-# Install system dependencies
+# Install Python and other system dependencies
 RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk-headless \
+    python3 \
+    python3-pip \
+    python3-venv \
     wget \
     curl \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
+RUN ln -s /usr/bin/python3 /usr/bin/python || true
+RUN ln -s /usr/bin/pip3 /usr/bin/pip || true
+
 # Set Java environment
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV JAVA_HOME=/usr/local/openjdk-11
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install Spark
@@ -38,7 +44,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
 
 # Copy application code
 COPY . .

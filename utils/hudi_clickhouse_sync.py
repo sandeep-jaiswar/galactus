@@ -35,7 +35,8 @@ logger = logging.getLogger(__name__)
 
 class HudiClickHouseSync:
     def __init__(self, hudi_base_path="/tmp/hudi_data", clickhouse_host="localhost", clickhouse_port=8123,
-                 clickhouse_database="galactus", clickhouse_table="sec_bhavdata"):
+                 clickhouse_database="galactus", clickhouse_table="sec_bhavdata",
+                 clickhouse_user="default", clickhouse_password=None):
         self.hudi_base_path = hudi_base_path
         self.clickhouse_host = clickhouse_host
         self.clickhouse_port = clickhouse_port
@@ -43,10 +44,14 @@ class HudiClickHouseSync:
         self.clickhouse_database = self._validate_identifier(clickhouse_database, "database")
         self.clickhouse_table = self._validate_identifier(clickhouse_table, "table")
 
-        # Initialize ClickHouse client
+        # Initialize ClickHouse client (allow explicit user/password)
+        self.clickhouse_user = clickhouse_user
+        self.clickhouse_password = clickhouse_password
         self.ch_client = clickhouse_connect.get_client(
             host=self.clickhouse_host,
             port=self.clickhouse_port,
+            username=self.clickhouse_user,
+            password=self.clickhouse_password,
             database=self.clickhouse_database
         )
 
@@ -172,6 +177,14 @@ class HudiClickHouseSync:
                             # ClickHouse will handle None appropriately based on column nullability.
                             trade_date = None
 
+                # Ensure timestamp is a datetime (clickhouse_connect expects datetime, not None)
+                if ts is None:
+                    if trade_date:
+                        ts = datetime.combine(trade_date, datetime.min.time())
+                    else:
+                        # Fallback to epoch to avoid serialization errors
+                        ts = datetime.utcfromtimestamp(0)
+
                 return [
                     str(safe_get('symbol') or ''),
                     str(safe_get('series') or ''),
@@ -294,29 +307,12 @@ class HudiClickHouseSync:
         table_name = self._validate_identifier(table_name, "table")
 
         try:
-            # Delete existing rows for the symbol+trade_date pairs in batch using parameterized query
-            symbols_and_dates = [(r[0], r[13]) for r in data_batch if r[0] and r[13]]
-            if symbols_and_dates:
-                # Build parameterized DELETE query to prevent SQL injection
-                delete_conditions = []
-                params = {}
-                for idx, (symbol, trade_date) in enumerate(symbols_and_dates):
-                    symbol_key = f"symbol_{idx}"
-                    trade_date_key = f"trade_date_{idx}"
-                    delete_conditions.append(
-                        f"(symbol = {{{symbol_key}}} AND trade_date = {{{trade_date_key}}})"
-                    )
-                    params[symbol_key] = symbol
-                    params[trade_date_key] = trade_date
-                
-                if delete_conditions:
-                    # table_name is already validated by _validate_identifier, so string interpolation is safe
-                    delete_query = f"DELETE FROM {table_name} WHERE {' OR '.join(delete_conditions)}"
-                    try:
-                        self.ch_client.command(delete_query, parameters=params)
-                    except Exception as e:
-                        # Log delete failures but proceed to insert to avoid data loss
-                        logger.error(f"Delete query failed for table '{table_name}': {e}")
+            # Skipping per-batch DELETE for now (DELETE syntax/parameterization differences
+            # across ClickHouse drivers can be problematic). This means sync is currently
+            # insert-only and may create duplicates on repeated runs. For idempotent
+            # behavior, consider using a ReplacingMergeTree or implementing a safe
+            # dedup/upsert pattern.
+            pass
 
             # Insert batch
             self.ch_client.insert(table_name, data_batch,
@@ -371,6 +367,8 @@ def main():
     parser.add_argument('--clickhouse-port', type=int, default=8123, help='ClickHouse port')
     parser.add_argument('--clickhouse-database', default='galactus', help='ClickHouse database name')
     parser.add_argument('--clickhouse-table', default='sec_bhavdata', help='ClickHouse table name')
+    parser.add_argument('--clickhouse-user', default='default', help='ClickHouse user')
+    parser.add_argument('--clickhouse-password', default=None, help='ClickHouse password')
     parser.add_argument('--incremental', action='store_true', help='Perform incremental sync')
     parser.add_argument('--last-sync-time', help='Last sync timestamp for incremental sync')
 
@@ -381,7 +379,9 @@ def main():
         clickhouse_host=args.clickhouse_host,
         clickhouse_port=args.clickhouse_port,
         clickhouse_database=args.clickhouse_database,
-        clickhouse_table=args.clickhouse_table
+        clickhouse_table=args.clickhouse_table,
+        clickhouse_user=args.clickhouse_user,
+        clickhouse_password=args.clickhouse_password
     )
 
     try:

@@ -131,12 +131,12 @@ def download_bhavcopy(
                 )
         
         except requests.exceptions.Timeout as e:
-            last_error = NSEDownloadError(f"Request timeout after {timeout}s") from e
-            logger.warning(f"Attempt {attempt} failed: {last_error}")
+            last_error = e
+            logger.warning(f"Attempt {attempt} failed: Request timeout after {timeout}s: {e}")
         
         except requests.exceptions.RequestException as e:
-            last_error = NSEDownloadError(f"Network error: {e}") from e
-            logger.warning(f"Attempt {attempt} failed: {last_error}")
+            last_error = e
+            logger.warning(f"Attempt {attempt} failed: Network error: {e}")
         
         except Exception as e:
             last_error = e
@@ -148,7 +148,13 @@ def download_bhavcopy(
             time.sleep(retry_delay)
     
     # All retries failed
-    error_msg = f"Failed to download bhavcopy for {session_date} after {max_retries} attempts"
+    if last_error:
+        error_msg = (
+            f"Failed to download bhavcopy for {session_date} after {max_retries} attempts: {last_error}"
+        )
+    else:
+        error_msg = f"Failed to download bhavcopy for {session_date} after {max_retries} attempts"
+
     logger.error(error_msg)
     raise NSEDownloadError(error_msg) from last_error
 

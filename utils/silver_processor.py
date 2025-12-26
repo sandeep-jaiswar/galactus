@@ -44,21 +44,25 @@ def get_bhavcopy_schema() -> StructType:
     Returns:
         StructType schema for bhavcopy CSV
     """
+    # The CSV from NSE orders columns as: SYMBOL, SERIES, DATE1, PREV_CLOSE,
+    # OPEN_PRICE, HIGH_PRICE, LOW_PRICE, LAST_PRICE, CLOSE_PRICE, AVG_PRICE,
+    # TTL_TRD_QNTY, TURNOVER_LACS, NO_OF_TRADES, DELIV_QTY, DELIV_PER
     return StructType([
         StructField("SYMBOL", StringType(), nullable=False),
         StructField("SERIES", StringType(), nullable=False),
+        StructField("DATE1", StringType(), nullable=False),
+        StructField("PREV_CLOSE", DecimalType(18, 2), nullable=True),
         StructField("OPEN_PRICE", DecimalType(18, 2), nullable=True),
         StructField("HIGH_PRICE", DecimalType(18, 2), nullable=True),
         StructField("LOW_PRICE", DecimalType(18, 2), nullable=True),
-        StructField("CLOSE_PRICE", DecimalType(18, 2), nullable=True),
         StructField("LAST_PRICE", DecimalType(18, 2), nullable=True),
-        StructField("PREV_CLOSE", DecimalType(18, 2), nullable=True),
+        StructField("CLOSE_PRICE", DecimalType(18, 2), nullable=True),
+        StructField("AVG_PRICE", DecimalType(18, 2), nullable=True),
         StructField("TTL_TRD_QNTY", LongType(), nullable=True),
         StructField("TURNOVER_LACS", DecimalType(18, 2), nullable=True),
         StructField("NO_OF_TRADES", IntegerType(), nullable=True),
         StructField("DELIV_QTY", LongType(), nullable=True),
         StructField("DELIV_PER", DecimalType(5, 2), nullable=True),
-        StructField("DATE1", StringType(), nullable=False),
     ])
 
 
