@@ -225,9 +225,15 @@ python check_hudi_status.py
 # Should match (or be close, accounting for weekends/holidays)
 ```
 
-### Step 4: Update Airflow/Schedulers
+### Step 4: Update Schedulers
 
-Update any scheduled jobs to use new scripts and paths.
+Update any scheduled jobs (cron, systemd timers, etc.) to use new scripts and paths.
+
+Example cron job:
+```bash
+# Daily ingestion at 6 PM
+0 18 * * * cd /path/to/galactus && ./run_jobs.py $(date +\%Y-\%m-\%d)
+```
 
 ### Step 5: Retire Old Data (Optional)
 
@@ -240,24 +246,24 @@ tar -czf old_hudi_backup.tar.gz /old/hudi/path
 rm -rf /old/hudi/path
 ```
 
-## Airflow Migration
+## Scheduling & Automation
 
-### Old DAG Configuration
+For scheduling jobs, you can use:
 
-```python
-bash_command='cd /media/sandeep/DataDrive/galactus && ...'
+**Option 1: Cron Jobs (Linux/Mac)**
+```bash
+# Edit crontab
+crontab -e
+
+# Add daily job at 6 PM
+0 18 * * * cd /path/to/galactus && source .venv/bin/activate && ./run_jobs.py $(date +\%Y-\%m-\%d) >> /path/to/galactus/logs/cron.log 2>&1
 ```
 
-### New DAG Configuration
+**Option 2: systemd Timers (Linux)**
+Create a service file and timer for more robust scheduling.
 
-```python
-PROJECT_ROOT = os.getenv('GALACTUS_PROJECT_ROOT', '/app')
-HUDI_BASE_PATH = os.getenv('HUDI_BASE_PATH', f'{PROJECT_ROOT}/data/silver')
-
-bash_command=f'cd {PROJECT_ROOT} && ...'
-```
-
-Update your Airflow environment variables or DAG configurations.
+**Option 3: Kubernetes CronJob**
+See `k8s/README.md` for Kubernetes-based scheduling examples.
 
 ## Docker/Kubernetes Migration
 
@@ -312,9 +318,9 @@ export PYTHONPATH=/old/path
 cp -r /path/to/backup/hudi/* /original/hudi/path/
 ```
 
-### Rollback Airflow
+### Rollback Schedulers
 
-Revert DAG to previous version in Airflow UI or git.
+Remove any cron jobs or systemd timers you configured.
 
 ## Testing After Migration
 
@@ -366,6 +372,6 @@ If you encounter issues during migration:
 
 - **Week 1**: Set up new environment, run in parallel
 - **Week 2**: Switch to new scripts, validate outputs
-- **Week 3**: Migrate Airflow/schedulers
+- **Week 3**: Set up scheduling (cron/K8s CronJob)
 - **Week 4**: Full cutover, retire old system
 - **Week 5+**: Monitor and optimize

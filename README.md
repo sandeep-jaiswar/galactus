@@ -161,14 +161,13 @@ galactus/
 │   ├── config.py          # Centralized configuration
 │   └── hudi.py            # Hudi write options
 ├── jobs/                   # Data ingestion jobs
-│   ├── ingest_bhavcopy_daily.py
-│   └── ingest_bhavcopy_historical.py
+│   ├── ingest_bhavcopy_daily_v2.py    # Daily ingestion (improved)
+│   └── ingest_bhavcopy_historical.py  # Historical backfill
 ├── utils/                  # Utility modules
 │   ├── nse_download.py    # NSE data scraper (Bronze layer)
 │   ├── silver_processor.py # Silver layer transformations
 │   ├── hudi_clickhouse_sync.py
 │   └── logging_utils.py   # Logging utilities
-├── airflow/                # Apache Airflow DAGs
 ├── k8s/                    # Kubernetes manifests
 ├── data/                   # Data storage (gitignored)
 │   ├── bronze/            # Raw NSE data
@@ -248,8 +247,9 @@ python find_missing_dates.py
 ## 📚 Documentation
 
 - [Copilot Instructions](.github/copilot-instructions.md) - Development guidelines
-- [Airflow Setup](AIRFLOW_README.md) - Airflow configuration
-- [Airflow Usage](AIRFLOW_USAGE.md) - Running scheduled jobs
+- [Testing Guide](tests/README.md) - Testing documentation
+- [Kubernetes Deployment](k8s/README.md) - K8s setup guide
+- [Migration Guide](MIGRATION.md) - Upgrading from old codebase
 
 ## 🤝 Contributing
 
@@ -269,7 +269,7 @@ Built with open-source tools:
 - Apache Spark
 - Apache Hudi
 - ClickHouse
-- Apache Airflow
+- Docker & Kubernetes
 
 ## 📞 Contact
 

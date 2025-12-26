@@ -100,7 +100,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Centralized configuration system (old hardcoded paths deprecated)
 
 #### Improvements
-- **Airflow DAG**: Updated to use environment variables instead of hardcoded paths
 - **All Scripts**: Removed hardcoded paths, now use configuration system
 - **Error Handling**: All modules now use explicit exceptions and proper error messages
 - **Type Hints**: Added comprehensive type hints to new modules
@@ -114,6 +113,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ingest_bhavcopy_daily.py`: Old version kept for backwards compatibility
   - Added deprecation warning
   - Recommends using `ingest_bhavcopy_daily_v2.py`
+
+### Removed
+- **Apache Airflow**: Removed Airflow orchestration in favor of simpler scheduling approaches
+  - Removed `airflow/` directory
+  - Removed `airflow.service`, `start_airflow.sh`
+  - Removed `AIRFLOW_README.md`, `AIRFLOW_USAGE.md`
+- **Deprecated Jobs**: Removed old job files
+  - Removed `ingest_bhavcopy_daily.py` (superseded by v2)
+  - Removed `ingest_bhavcopy_daily_sync.py` (redundant)
 
 ### Fixed
 - Hardcoded paths throughout codebase

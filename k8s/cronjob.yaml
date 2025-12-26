@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: galactus-daily-ingestion
+  namespace: galactus
+spec:
+  # Run daily at 6 PM (18:00 UTC)
+  schedule: "0 18 * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: ingest-bhavcopy
+            image: galactus:latest
+            imagePullPolicy: IfNotPresent
+            envFrom:
+            - configMapRef:
+                name: galactus-config
+            env:
+            - name: GALACTUS_PROJECT_ROOT
+              value: "/app"
+            - name: GALACTUS_DATA_ROOT
+              value: "/app/data"
+            - name: HUDI_BASE_PATH
+              value: "/app/data/silver"
+            command:
+            - /bin/bash
+            - -c
+            - |
+              cd /app
+              export PYTHONPATH=/app
+              spark-submit \
+                --packages org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 \
+                --master local[*] \
+                jobs/ingest_bhavcopy_daily_v2.py \
+                $(date +%Y-%m-%d) \
+                /app/data/silver
+            volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+            - name: logs-volume
+              mountPath: /app/logs
+            resources:
+              requests:
+                memory: "4Gi"
+                cpu: "2"
+              limits:
+                memory: "8Gi"
+                cpu: "4"
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: galactus-data-pvc
+          - name: logs-volume
+            persistentVolumeClaim:
+              claimName: galactus-logs-pvc

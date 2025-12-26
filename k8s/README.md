@@ -16,6 +16,9 @@ kubectl apply -f k8s/clickhouse.yaml
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/pvc.yaml
 kubectl apply -f k8s/deployment.yaml
+
+# Optional: Set up scheduled ingestion
+kubectl apply -f k8s/cronjob.yaml
 ```
 
 ## Step-by-Step Deployment
@@ -85,7 +88,36 @@ kubectl exec -it -n galactus deployment/galactus-app -- bash
 
 ## Running Jobs
 
-### Daily Ingestion
+### Scheduled Daily Ingestion (Recommended)
+
+Deploy the CronJob for automatic daily ingestion:
+
+```bash
+kubectl apply -f k8s/cronjob.yaml
+```
+
+The CronJob runs daily at 6 PM UTC. To customize the schedule:
+```bash
+# Edit the cronjob
+kubectl edit cronjob galactus-daily-ingestion -n galactus
+# Change the schedule field (cron format)
+```
+
+Check CronJob status:
+```bash
+# List cronjobs
+kubectl get cronjobs -n galactus
+
+# View job history
+kubectl get jobs -n galactus
+
+# View logs from last run
+kubectl logs -n galactus job/galactus-daily-ingestion-<timestamp>
+```
+
+### Manual Daily Ingestion
+
+For manual runs:
 
 ```bash
 kubectl exec -it -n galactus deployment/galactus-app -- \

@@ -15,10 +15,8 @@ tmp/
 # Virtual environment
 .venv/
 
-# Airflow specific
+# Hive Metastore
 metastore_db/
-airflow/logs/
-airflow/simple_auth_manager_passwords.json.generated
 
 # Downloaded data
 /tmp/bhavcopy/
