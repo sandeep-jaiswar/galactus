@@ -17,7 +17,10 @@ spec:
     spec:
       containers:
       - name: galactus
+        # IMPORTANT: Use specific version tags in production, not 'latest'
+        # Example: galactus:v1.0.0 or galactus@sha256:abc123...
         image: galactus:latest
+        # Use 'Always' pull policy in production with version tags
         imagePullPolicy: IfNotPresent
         envFrom:
         - configMapRef:

@@ -104,6 +104,18 @@ def main():
     project_root = get_project_root()
     spark_submit = get_spark_submit()
 
+    # Validate that required job files exist
+    daily_job = Path(f'{project_root}/jobs/ingest_bhavcopy_daily_v2.py')
+    hist_job = Path(f'{project_root}/jobs/ingest_bhavcopy_historical.py')
+    
+    if not daily_job.exists():
+        print(f"ERROR: Daily job file not found: {daily_job}")
+        sys.exit(1)
+    
+    if not hist_job.exists():
+        print(f"ERROR: Historical job file not found: {hist_job}")
+        sys.exit(1)
+
     print("Galactus Data Ingestion Job Runner")
     print(f"Project Root: {project_root}")
     print(f"Daily Date: {daily_date}")

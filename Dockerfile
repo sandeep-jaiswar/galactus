@@ -23,7 +23,7 @@ RUN wget -q "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-
     && rm "spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"
 
 ENV PATH="${SPARK_HOME}/bin:${PATH}"
-ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-0.10.9.7-src.zip:${PYTHONPATH}"
+ENV PYTHONPATH="${SPARK_HOME}/python:${SPARK_HOME}/python/lib/py4j-*-src.zip:${PYTHONPATH}"
 
 # Download Hudi bundle
 ENV HUDI_VERSION=0.15.0

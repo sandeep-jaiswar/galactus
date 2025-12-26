@@ -30,6 +30,21 @@ spec:
         env:
         - name: CLICKHOUSE_DB
           value: "galactus"
+        # SECURITY: For production, use Kubernetes Secrets for credentials
+        # Create a secret: kubectl create secret generic clickhouse-credentials \
+        #   --from-literal=username=galactus_user \
+        #   --from-literal=password=<strong-password>
+        # Then reference it here:
+        # - name: CLICKHOUSE_USER
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: clickhouse-credentials
+        #       key: username
+        # - name: CLICKHOUSE_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: clickhouse-credentials
+        #       key: password
         - name: CLICKHOUSE_USER
           value: "default"
         volumeMounts:

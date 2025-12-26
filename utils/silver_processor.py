@@ -19,8 +19,7 @@ from typing import Optional
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import (
-    col, concat_ws, to_date, lit, trim, 
-    when, isnan, isnull, regexp_replace
+    col, concat_ws, to_date, lit, trim
 )
 from pyspark.sql.types import (
     StructType, StructField, StringType, DecimalType, 
