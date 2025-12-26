@@ -2,6 +2,9 @@
 """
 Daily Bhavcopy Data Ingestion Script
 
+DEPRECATED: This script is kept for backwards compatibility.
+For new deployments, use ingest_bhavcopy_daily_v2.py which follows proper architecture.
+
 This script downloads the NSE bhavcopy data for a given date and ingests it into a Hudi table
 using Apache Spark. It performs data cleaning, adds necessary columns, and writes to Hudi
 in append mode.
@@ -34,8 +37,39 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Local imports
 from conf.hudi import hudi_write_options
-from utils.nse_download import download_bhavcopy
 
+# Import legacy download function for backwards compatibility
+try:
+    from utils.nse_download import download_bhavcopy
+except ImportError:
+    # Fallback to inline implementation for compatibility
+    import requests
+    
+    def download_bhavcopy(session_date: str) -> str:
+        """Legacy download function"""
+        date_obj = datetime.strptime(session_date, "%Y-%m-%d")
+        session_date_str = date_obj.strftime("%d%m%Y")
+        url = f"https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_{session_date_str}.csv"
+        output_dir = f"/tmp/bhavcopy/{session_date}"
+        os.makedirs(output_dir, exist_ok=True)
+
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+        }
+
+        file_path = f"{output_dir}/sec_bhavdata_{session_date}.csv"
+        response = requests.get(url, headers=headers, timeout=30)
+        if response.status_code == 200:
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+            return file_path
+        else:
+            raise Exception(f"Failed to download bhavcopy for {session_date}, status code: {response.status_code}")
 
 
 # Configure logging
@@ -47,6 +81,12 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+# Log deprecation warning
+logger.warning("=" * 80)
+logger.warning("DEPRECATION WARNING: This script uses the old architecture.")
+logger.warning("For new deployments, please use ingest_bhavcopy_daily_v2.py")
+logger.warning("=" * 80)
 
 
 def validate_date(date_str: str) -> bool:
