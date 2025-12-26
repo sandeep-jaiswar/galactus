@@ -1,4 +1,5 @@
 # Python dependencies for Galactus project
+
 # Data processing and Spark
 pyspark>=3.4.0
 
@@ -17,3 +18,13 @@ python-dateutil>=2.8.0
 
 # ClickHouse client for data synchronization
 clickhouse-connect>=0.7.0
+
+# Testing dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Code quality
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0

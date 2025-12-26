@@ -211,15 +211,38 @@ log_job_end(logger, "bhavcopy_ingestion", success=True, records=1000)
 
 ## 🧪 Testing
 
-```bash
-# Run unit tests (when available)
-pytest tests/
+Run unit tests:
 
-# Validate Hudi table status
-spark-submit check_hudi_status.py
+```bash
+# Install test dependencies
+pip install pytest pytest-cov
+
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=conf --cov=utils --cov=jobs --cov-report=html
+
+# Run specific test file
+pytest tests/test_config.py
+```
+
+See [tests/README.md](tests/README.md) for detailed testing guide.
+
+### Available Tests
+
+- `test_config.py` - Configuration system tests
+- `test_logging.py` - Logging utilities tests
+- `test_nse_download.py` - NSE scraper tests
+
+### Validate Hudi Table
+
+```bash
+# Check Hudi table status
+python check_hudi_status.py
 
 # Find missing dates
-spark-submit find_missing_dates.py
+python find_missing_dates.py
 ```
 
 ## 📚 Documentation
