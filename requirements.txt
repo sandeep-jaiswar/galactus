@@ -17,3 +17,10 @@ python-dateutil>=2.8.0
 
 # ClickHouse client for data synchronization
 clickhouse-connect>=0.7.0
+
+# Parsing libraries (optional; install when implementing parsers)
+pdfplumber>=0.6.0
+tabula-py>=2.4.0
+openpyxl>=3.0.0
+arelle>=1.0.0
+playwright>=1.40.0
