@@ -21,6 +21,7 @@ Example:
 # Standard library imports
 import logging
 import sys
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
@@ -35,6 +36,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Local imports
 from conf.hudi import hudi_write_options
 from utils.nse_download import download_bhavcopy
+from utils.silver_processor import process_bhavcopy_to_silver, SilverProcessingError
 
 
 # Configure logging
@@ -120,7 +122,7 @@ def process_bhavcopy_data(spark: 'SparkSession', csv_path: str) -> Optional['Dat
             .option("inferSchema", "true")
             .option("ignoreLeadingWhiteSpace", "true")
             .option("ignoreTrailingWhiteSpace", "true")
-            .csv(csv_path)
+            .csv(str(csv_path))
         )
 
         row_count = df.count()
@@ -148,10 +150,26 @@ def process_bhavcopy_data(spark: 'SparkSession', csv_path: str) -> Optional['Dat
 def write_to_hudi(df: 'DataFrame', hudi_base_path: str, session_date: str) -> bool:
     """Write DataFrame to Hudi table"""
     try:
+        # If table exists, reuse its precombine field to avoid config conflicts
+        table_path = f"{hudi_base_path}/sec_bhavdata"
+        existing_precombine = None
+        props_path = os.path.join(table_path, '.hoodie', 'hoodie.properties')
+        if os.path.exists(props_path):
+            try:
+                with open(props_path, 'r') as pf:
+                    for line in pf:
+                        if line.startswith('hoodie.table.precombine.field'):
+                            existing_precombine = line.split('=', 1)[1].strip()
+                            break
+            except Exception:
+                existing_precombine = None
+
+        precombine_val = existing_precombine if existing_precombine else 'trade_date'
+
         hudi_options = hudi_write_options(
             table_name="sec_bhavdata",
             record_key="record_key",
-            precombine_key="trade_date",
+            precombine_key=precombine_val,
             partition_key="trade_date"
         )
 
@@ -177,10 +195,14 @@ def process_date(spark: 'SparkSession', session_date: str, hudi_base_path: str) 
         csv_path = download_bhavcopy(session_date)
         logger.info(f"Downloaded bhavcopy to: {csv_path}")
 
-        # Process data
-        df = process_bhavcopy_data(spark, csv_path)
+        # Process data into Silver schema using shared processor
+        try:
+            df = process_bhavcopy_to_silver(spark, Path(csv_path), session_date)
+        except SilverProcessingError as spe:
+            logger.error(f"Failed to process bhavcopy data for {session_date}: {spe}")
+            return False
         if df is None:
-            logger.error(f"Failed to process bhavcopy data for {session_date}")
+            logger.error(f"No valid rows after processing for {session_date}")
             return False
 
         # Write to Hudi

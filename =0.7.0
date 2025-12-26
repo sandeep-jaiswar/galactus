@@ -1,7 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: clickhouse-connect in /home/sandeep/.local/lib/python3.11/site-packages (0.10.0)
-Requirement already satisfied: certifi in /usr/lib/python3/dist-packages (from clickhouse-connect) (2023.11.17)
-Requirement already satisfied: urllib3>=1.26 in /usr/lib/python3/dist-packages (from clickhouse-connect) (2.0.7)
-Requirement already satisfied: pytz in /usr/lib/python3/dist-packages (from clickhouse-connect) (2024.1)
-Requirement already satisfied: zstandard in /home/sandeep/.local/lib/python3.11/site-packages (from clickhouse-connect) (0.25.0)
-Requirement already satisfied: lz4 in /home/sandeep/.local/lib/python3.11/site-packages (from clickhouse-connect) (4.4.5)
