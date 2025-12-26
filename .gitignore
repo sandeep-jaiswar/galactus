@@ -22,9 +22,15 @@ airflow/simple_auth_manager_passwords.json.generated
 
 # Downloaded data
 /tmp/bhavcopy/
+/tmp/galactus/
+
+# Data directories (Bronze/Silver/Gold layers)
+data/bronze/
+data/silver/
+data/gold/
 
 # Spark temporary files
-spark-warehouse/sec_bhavdata/
+spark-warehouse/
 *.parquet
 *.crc
 
