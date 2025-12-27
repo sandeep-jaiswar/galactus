@@ -769,3 +769,19 @@ impl FromProto<FuturesDataProto> for crate::features::FuturesData {
         })
     }
 }
+
+// BatchIntentRequest conversions
+impl FromProto<BatchIntentRequestProto> for crate::api::BatchIntentRequest {
+    fn from_proto(proto: BatchIntentRequestProto) -> Result<Self, ApiError> {
+        let requests = proto.requests.into_iter()
+            .map(|r| crate::api::IntentRequest::from_proto(r))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(crate::api::BatchIntentRequest {
+            requests,
+            metadata: proto.metadata,
+            client_id: proto.client_id,
+            timestamp: proto.timestamp,
+        })
+    }
+}

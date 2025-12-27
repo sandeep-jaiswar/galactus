@@ -38,7 +38,7 @@ pub use aggregation::{SignalAggregator, AggregationResult};
 use std::collections::HashMap;
 
 /// Represents a capital intent vector
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct IntentVector {
     /// Overall capital pressure (-1.0 to 1.0)
     /// Negative = selling pressure, Positive = buying pressure
@@ -58,7 +58,7 @@ pub struct IntentVector {
 }
 
 /// Contribution of a single signal to the intent vector
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SignalContribution {
     /// Signal value (-1.0 to 1.0)
     pub value: f64,
