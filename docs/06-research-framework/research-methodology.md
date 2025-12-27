@@ -156,6 +156,20 @@ Insight must not cross into advice.
 
 ---
 
+## Related Documentation
+
+For detailed experiment design guidance:
+- [`experiment-design.md`](experiment-design.md) — Complete experiment framework
+- [`experiment-template.md`](experiment-template.md) — Documentation template
+- [`experiment-checklist.md`](experiment-checklist.md) — Validation checklist
+- [`experiment-examples.md`](experiment-examples.md) — Practical examples
+
+For promotion process:
+- [`promotion-checklist.md`](promotion-checklist.md) — Promotion requirements
+- [`backtesting-guidelines.md`](backtesting-guidelines.md) — Validation standards
+
+---
+
 ## Final Statement
 
 **Research in Galactus exists to reduce ignorance, not to create confidence.**

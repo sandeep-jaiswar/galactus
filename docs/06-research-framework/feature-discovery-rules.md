@@ -150,6 +150,19 @@ Must be retired and documented.
 
 ---
 
+## Related Documentation
+
+For feature experimentation:
+- [`experiment-design.md`](experiment-design.md) — Experiment framework
+- [`experiment-template.md`](experiment-template.md) — Documentation template
+- [`experiment-examples.md`](experiment-examples.md) — Example experiments
+
+For feature promotion:
+- [`promotion-checklist.md`](promotion-checklist.md) — Promotion requirements
+- [`backtesting-guidelines.md`](backtesting-guidelines.md) — Validation standards
+
+---
+
 ## Final Statement
 
 **Features exist to clarify thinking, not to inflate models.**
