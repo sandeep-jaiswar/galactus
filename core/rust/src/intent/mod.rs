@@ -106,6 +106,9 @@ pub enum IntentError {
 
     /// Regime detection failed
     RegimeFailure(String),
+
+    /// Kill switch triggered - inference must halt
+    KillSwitchTriggered(String),
 }
 
 impl std::fmt::Display for IntentError {
@@ -116,6 +119,7 @@ impl std::fmt::Display for IntentError {
             IntentError::AggregationFailure(msg) => write!(f, "Aggregation failure: {}", msg),
             IntentError::ConfidenceFailure(msg) => write!(f, "Confidence calculation failure: {}", msg),
             IntentError::RegimeFailure(msg) => write!(f, "Regime detection failure: {}", msg),
+            IntentError::KillSwitchTriggered(msg) => write!(f, "Kill switch triggered: {}", msg),
         }
     }
 }
