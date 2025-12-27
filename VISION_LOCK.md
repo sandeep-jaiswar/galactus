@@ -87,8 +87,10 @@ The following are **permanently excluded** from Galactus:
 - Time-series price models
 - Pattern-based chart prediction
 - Upside/downside range estimation
+- Prediction guarantees or warranties
+- Performance promises or accuracy assurances
 
-**Rationale:** Price is an outcome, not a primitive. Predicting it obscures causal structure.
+**Rationale:** Price is an outcome, not a primitive. Predicting it obscures causal structure. Guarantees on future outcomes create false expectations and are incompatible with market uncertainty.
 
 ### ❌ Category 3: Advisory Tools
 - Personalized investment advice
@@ -99,7 +101,17 @@ The following are **permanently excluded** from Galactus:
 
 **Rationale:** Advisory services cross regulatory boundaries and compromise objectivity.
 
-### ❌ Category 4: Execution Logic
+### ❌ Category 4: Alpha Generation & Performance Competition
+- Claiming to generate alpha or excess returns
+- Competing on performance metrics (Sharpe ratio, win rate, returns)
+- Optimizing for benchmark outperformance
+- Marketing as a trading edge or competitive advantage
+- Promising superior returns or outperformance
+- Measuring success primarily through PnL metrics
+
+**Rationale:** Alpha generation requires trading decisions and execution beyond Galactus scope. Galactus provides structural inference, not investment performance. Performance competition encourages overfitting.
+
+### ❌ Category 5: Execution Logic
 - Automated trade execution
 - Real-time order management
 - Broker API integration
