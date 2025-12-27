@@ -55,6 +55,10 @@ pub enum KillConditionType {
     UnresolvableSchemaMismatch,
     
     /// Missing core data across required windows
+    /// 
+    /// Core data includes: canonical market events (trades, quotes, open interest),
+    /// derivatives data (options chain, futures positions), and time-sensitive
+    /// constraint data. Required windows depend on signal lookback periods.
     MissingCoreData,
     
     /// Event time cannot be reliably determined
@@ -242,8 +246,15 @@ impl KillSwitchEvaluator {
         stability: &StabilityIndicator,
     ) -> KillSwitchDecision {
         let mut mandatory_conditions = Vec::new();
-        let mut partial_conditions = Vec::new();
-        let mut warning_conditions = Vec::new();
+        let partial_conditions = Vec::new();
+        let warning_conditions = Vec::new();
+        
+        // Cache frequently accessed config values
+        let min_data_completeness = self.config.min_data_completeness;
+        let max_time_ambiguity = self.config.max_time_ambiguity_seconds;
+        let min_regime_conf = self.config.min_regime_confidence;
+        let min_overall_conf = self.config.min_overall_confidence;
+        let min_data_quality = self.config.min_data_quality;
         
         // 1. Check data integrity
         self.check_data_integrity(data_quality, &mut mandatory_conditions);

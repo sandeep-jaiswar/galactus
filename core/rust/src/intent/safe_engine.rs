@@ -54,6 +54,11 @@ impl SafeIntentEngine {
     /// 2. Evaluates kill switch conditions
     /// 3. Either halts, warns, or proceeds with inference
     ///
+    /// Note: Currently performs inference first to extract confidence metrics.
+    /// TODO: In production, restructure to validate data quality before expensive
+    /// inference operations. This requires extracting confidence computation into
+    /// a separate pre-validation step.
+    ///
     /// # Arguments
     /// * `signals` - Vector of signal inputs
     /// * `data_quality` - Data quality metrics
@@ -68,12 +73,13 @@ impl SafeIntentEngine {
         structural: StructuralValidation,
     ) -> Result<IntentResult, IntentError> {
         // Step 1: Perform core inference (this gives us confidence/stability)
-        // We do this first to get confidence metrics, then evaluate kill switch
+        // TODO: Refactor to validate data quality first before inference
         let inference_result = self.engine.process(signals)?;
         
         // Step 2: Extract or compute confidence and stability
-        // For now, we'll create placeholder values - in production these would come
-        // from the inference process
+        // TODO: Replace placeholder with actual confidence system integration
+        // In production, these should come from the inference engine's internal
+        // confidence computation module, not be extracted post-hoc.
         let confidence = self.extract_confidence(&inference_result);
         let stability = self.extract_stability(&inference_result);
         

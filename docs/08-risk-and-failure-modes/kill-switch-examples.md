@@ -241,6 +241,9 @@ let dev_engine = SafeIntentEngine::new(
 
 ### Tracking Kill Switch Activations
 
+**Note**: The following examples use placeholder functions to illustrate the monitoring pattern.
+In production, replace with your actual monitoring library (e.g., Prometheus, StatsD, Datadog).
+
 ```rust
 // In production, wrap engine calls with monitoring
 let result = engine.process_safe(signals, data_quality, structural);
@@ -248,12 +251,13 @@ let result = engine.process_safe(signals, data_quality, structural);
 match result {
     Ok(intent_result) => {
         // Log successful inference
+        // Replace with your metrics library: prometheus, statsd, etc.
         metrics::increment_counter("inference.success");
         
         // Check for warnings
         if intent_result.metadata.get("kill_switch_status") == Some(&"warning".to_string()) {
             metrics::increment_counter("inference.warning");
-            // Alert on warnings
+            // Alert on warnings (replace with your alerting system)
             for (key, value) in &intent_result.metadata {
                 if key.starts_with("kill_switch_warning") {
                     log::warn!("Kill switch warning: {}", value);
@@ -266,7 +270,7 @@ match result {
         metrics::increment_counter("inference.kill_switch_triggered");
         log::error!("Kill switch triggered: {}", e);
         
-        // Alert operations team
+        // Alert operations team (replace with your alerting system: PagerDuty, OpsGenie, etc.)
         alert::send(AlertLevel::Critical, &format!("Kill switch triggered: {}", e));
         
         // Store incident for analysis
