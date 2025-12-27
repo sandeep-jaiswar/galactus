@@ -13,7 +13,6 @@
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use crate::data::*;
-use crate::failure_analysis::{FailureCategory, FailureRecord};
 
 /// Data ingestion result
 #[derive(Debug, Clone, PartialEq)]
@@ -52,8 +51,8 @@ impl Default for QualityThresholds {
     }
 }
 
-impl DataValidator {
-    pub fn new() -> Self {
+impl Default for DataValidator {
+    fn default() -> Self {
         let mut approved_sources = HashMap::new();
 
         // NSE/BSE cash market data
@@ -86,6 +85,12 @@ impl DataValidator {
         );
 
         Self { approved_sources }
+    }
+}
+
+impl DataValidator {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn validate_event(&self, event: &CanonicalEvent) -> IngestionResult<CanonicalEvent> {
@@ -146,9 +151,15 @@ impl DataValidator {
 /// Data normalizer for unit conversions and format standardization
 pub struct DataNormalizer;
 
+impl Default for DataNormalizer {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl DataNormalizer {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     /// Normalize volume values to standard units
@@ -177,9 +188,15 @@ impl DataNormalizer {
 /// Data quality assessor
 pub struct QualityAssessor;
 
+impl Default for QualityAssessor {
+    fn default() -> Self {
+        Self
+    }
+}
+
 impl QualityAssessor {
     pub fn new() -> Self {
-        Self
+        Self::default()
     }
 
     /// Assess overall data quality
@@ -191,18 +208,18 @@ impl QualityAssessor {
         // Count required vs present fields based on payload type
         match &event.payload {
             EventPayload::Positioning(payload) => {
-                fields_required = 5; // instrument, expiry, oi, oi_change, volume
+                fields_required = 3; // instrument, open_interest, volume
                 if !payload.instrument.0.is_empty() { fields_present += 1; }
-                if payload.open_interest > 0 { fields_present += 1; }
-                // Add more field checks as needed
+                fields_present += 1; // open_interest is always present (can be 0)
+                fields_present += 1; // volume is always present (can be 0)
             },
             EventPayload::Liquidity(payload) => {
-                fields_required = 4; // instrument, volumes, ratio, value
+                fields_required = 5; // instrument, traded_volume, delivery_volume, delivery_ratio, avg_daily_value
                 if !payload.instrument.0.is_empty() { fields_present += 1; }
-                if payload.traded_volume > 0 { fields_present += 1; }
-                if payload.delivery_volume > 0 { fields_present += 1; }
-                if payload.delivery_ratio >= 0.0 && payload.delivery_ratio <= 1.0 { fields_present += 1; }
-                if payload.avg_daily_value > 0.0 { fields_present += 1; }
+                fields_present += 1; // traded_volume is always present (can be 0)
+                fields_present += 1; // delivery_volume is always present (can be 0)
+                fields_present += 1; // delivery_ratio is always present (can be 0.0)
+                fields_present += 1; // avg_daily_value is always present (can be 0.0)
             },
             _ => {
                 // Default assessment
@@ -239,21 +256,35 @@ pub struct DataIngestion {
     quality_assessor: QualityAssessor,
 }
 
+impl Default for DataIngestion {
+    fn default() -> Self {
+        Self {
+            validator: DataValidator::default(),
+            normalizer: DataNormalizer::default(),
+            quality_assessor: QualityAssessor::default(),
+        }
+    }
+}
+
 impl DataIngestion {
     pub fn new() -> Self {
-        Self {
-            validator: DataValidator::new(),
-            normalizer: DataNormalizer::new(),
-            quality_assessor: QualityAssessor::new(),
-        }
+        Self::default()
     }
 
     /// Process incoming event data
     pub fn process_event(&self, raw_event: CanonicalEvent) -> IngestionResult<CanonicalEvent> {
         // First validate the event structure
         let validation_result = self.validator.validate_event(&raw_event);
-        if let IngestionResult::FailedValidation(errors) = &validation_result {
-            return IngestionResult::FailedValidation(errors.clone());
+        match validation_result {
+            IngestionResult::FailedValidation(errors) => {
+                return IngestionResult::FailedValidation(errors);
+            }
+            IngestionResult::Rejected(reason) => {
+                return IngestionResult::Rejected(reason);
+            }
+            IngestionResult::Success(_) => {
+                // Continue processing
+            }
         }
 
         // Assess data quality
@@ -355,5 +386,120 @@ mod tests {
 
         let result = ingestion.process_event(event);
         assert!(matches!(result, IngestionResult::Rejected(_)));
+    }
+
+    #[test]
+    fn test_quality_assessment_positioning() {
+        let assessor = QualityAssessor::new();
+        
+        let event = CanonicalEvent::new(
+            EventId("test-event-3".to_string()),
+            EventType::Positioning,
+            Utc::now(),
+            DataSource("NSE_FO".to_string()),
+            vec![Instrument("NIFTY".to_string())],
+            EventPayload::Positioning(PositioningPayload {
+                instrument: Instrument("NIFTY".to_string()),
+                expiry: chrono::NaiveDate::from_ymd_opt(2025, 12, 31).unwrap(),
+                strike: Some(22000.0),
+                option_type: Some(OptionType::Call),
+                open_interest: 0,  // Zero is valid
+                oi_change: 100,
+                volume: 0,  // Zero is valid
+            }),
+            Completeness::Complete,
+            SchemaVersion("1.0".to_string()),
+        );
+
+        let quality = assessor.assess_quality(&event);
+        assert_eq!(quality.fields_required, 3);
+        assert_eq!(quality.fields_present, 3);
+        assert_eq!(quality.completeness_ratio(), 1.0);
+    }
+
+    #[test]
+    fn test_quality_assessment_liquidity() {
+        let assessor = QualityAssessor::new();
+        
+        let event = CanonicalEvent::new(
+            EventId("test-event-4".to_string()),
+            EventType::Liquidity,
+            Utc::now(),
+            DataSource("NSE".to_string()),
+            vec![Instrument("RELIANCE".to_string())],
+            EventPayload::Liquidity(LiquidityPayload {
+                instrument: Instrument("RELIANCE".to_string()),
+                traded_volume: 0,  // Zero is valid
+                delivery_volume: 0,  // Zero is valid
+                delivery_ratio: 0.0,  // Zero is valid
+                avg_daily_value: 0.0,  // Zero is valid
+            }),
+            Completeness::Complete,
+            SchemaVersion("1.0".to_string()),
+        );
+
+        let quality = assessor.assess_quality(&event);
+        assert_eq!(quality.fields_required, 5);
+        assert_eq!(quality.fields_present, 5);
+        assert_eq!(quality.completeness_ratio(), 1.0);
+    }
+
+    #[test]
+    fn test_normalize_volume() {
+        let normalizer = DataNormalizer::new();
+        
+        let volume = normalizer.normalize_volume(1000, &DataSource("NSE".to_string()));
+        assert_eq!(volume, 1000);
+        
+        let volume = normalizer.normalize_volume(5000, &DataSource("BSE".to_string()));
+        assert_eq!(volume, 5000);
+    }
+
+    #[test]
+    fn test_normalize_price() {
+        let normalizer = DataNormalizer::new();
+        
+        let price = normalizer.normalize_price(123.456789);
+        assert_eq!(price, 123.46);
+        
+        let price = normalizer.normalize_price(99.994);
+        assert_eq!(price, 99.99);
+        
+        let price = normalizer.normalize_price(99.996);
+        assert_eq!(price, 100.0);
+    }
+
+    #[test]
+    fn test_normalize_ratio() {
+        let normalizer = DataNormalizer::new();
+        
+        let ratio = normalizer.normalize_ratio(0.5);
+        assert_eq!(ratio, 0.5);
+        
+        let ratio = normalizer.normalize_ratio(-0.1);
+        assert_eq!(ratio, 0.0);
+        
+        let ratio = normalizer.normalize_ratio(1.5);
+        assert_eq!(ratio, 1.0);
+        
+        let ratio = normalizer.normalize_ratio(0.0);
+        assert_eq!(ratio, 0.0);
+    }
+
+    #[test]
+    fn test_normalization_edge_cases() {
+        let normalizer = DataNormalizer::new();
+        
+        // Very large numbers
+        let volume = normalizer.normalize_volume(u64::MAX, &DataSource("NSE".to_string()));
+        assert_eq!(volume, u64::MAX);
+        
+        // Very small prices
+        let price = normalizer.normalize_price(0.001);
+        assert_eq!(price, 0.0);
+        
+        // Negative prices (should still round)
+        let price = normalizer.normalize_price(-123.456);
+        assert_eq!(price, -123.46);
     }
 }

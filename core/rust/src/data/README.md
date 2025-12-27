@@ -1,6 +1,6 @@
 # Galactus Data & Schema Implementation
 
-This document describes the data structures and schemas implemented for Galactus based on the canonical schemas defined in [`docs/03-data-and-schemas/canonical-schemas.md`](../docs/03-data-and-schemas/canonical-schemas.md).
+This document describes the data structures and schemas implemented for Galactus based on the canonical schemas defined in [`docs/03-data-and-schemas/canonical-schemas.md`](../../../../docs/03-data-and-schemas/canonical-schemas.md).
 
 ## Overview
 
@@ -29,7 +29,7 @@ pub struct CanonicalEvent {
 ```
 
 ### Event Types
-Based on the event taxonomy in [`docs/03-data-and-schemas/event-taxonomy.md`](../docs/03-data-and-schemas/event-taxonomy.md):
+Based on the event taxonomy in [`docs/03-data-and-schemas/event-taxonomy.md`](../../../../docs/03-data-and-schemas/event-taxonomy.md):
 
 - `MarketStructure` - Hard constraints (expiries, rebalances)
 - `Positioning` - Derivatives exposure changes
@@ -71,7 +71,7 @@ Evaluates data quality metrics:
 
 ## Approved Data Sources
 
-Based on [`docs/03-data-and-schemas/data-sources.md`](../docs/03-data-and-schemas/data-sources.md):
+Based on [`docs/03-data-and-schemas/data-sources.md`](../../../../docs/03-data-and-schemas/data-sources.md):
 
 | Source | Data Types | Purpose |
 |--------|------------|---------|
@@ -89,7 +89,7 @@ All schemas include explicit version identifiers. Changes follow:
 
 ## Data Quality Rules
 
-Implemented from [`docs/03-data-and-schemas/data-quality-rules.md`](../docs/03-data-and-schemas/data-quality-rules.md):
+Implemented from [`docs/03-data-and-schemas/data-quality-rules.md`](../../../../docs/03-data-and-schemas/data-quality-rules.md):
 
 - **Completeness**: Minimum 80% field presence
 - **Freshness**: Maximum 5-minute delay
