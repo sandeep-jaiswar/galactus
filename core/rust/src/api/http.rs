@@ -51,14 +51,18 @@ use std::convert::Infallible;
 use warp::Filter;
 use serde::{Deserialize, Serialize};
 use crate::intent::{IntentEngine, SignalInput};
+use crate::features::FeatureRegistry;
 use crate::api::{
     ApiConfig, ApiError, IntentRequest, IntentResponse,
     BatchIntentRequest, BatchIntentResponse, HealthCheck
 };
 
 /// HTTP Intent API implementation
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct IntentApi {
+    /// Feature registry for signal computation
+    registry: Arc<FeatureRegistry>,
+
     /// Intent engine for computation
     engine: Arc<IntentEngine>,
 
@@ -68,8 +72,8 @@ pub struct IntentApi {
 
 impl IntentApi {
     /// Create a new HTTP intent API
-    pub fn new(engine: Arc<IntentEngine>, config: ApiConfig) -> Self {
-        Self { engine, config }
+    pub fn new(registry: Arc<FeatureRegistry>, engine: Arc<IntentEngine>, config: ApiConfig) -> Self {
+        Self { registry, engine, config }
     }
 
     /// Create warp filters for the API
@@ -180,8 +184,33 @@ impl IntentApi {
         // Check rate limits
         self.check_rate_limit(&request.client_id)?;
 
+        // Create feature inputs from request data
+        let feature_inputs = crate::features::FeatureInputs {
+            market_data: request.market_data,
+            options_data: request.options_data,
+            futures_data: request.futures_data,
+            context: request.context,
+            timestamp: request.timestamp,
+        };
+
+        // Compute all registered features
+        let feature_names = self.registry.list_features();
+        let batch_result = self.registry.compute_batch(&feature_names, &feature_inputs);
+
+        // Convert feature results to signal inputs
+        let mut signals = Vec::new();
+        for (name, result) in &batch_result.results {
+            signals.push(self.feature_result_to_signal_input(name.clone(), result.clone()));
+        }
+
+        // Log any feature computation errors but continue
+        if !batch_result.errors.is_empty() {
+            // In production, this should be logged properly
+            eprintln!("Feature computation errors: {:?}", batch_result.errors);
+        }
+
         // Process with intent engine
-        let result = self.engine.process(request.signals)?;
+        let result = self.engine.process(signals)?;
 
         // Create response
         let timestamp = std::time::SystemTime::now()
@@ -191,12 +220,25 @@ impl IntentApi {
 
         let mut metadata = HashMap::new();
         metadata.insert("server_version".to_string(), env!("CARGO_PKG_VERSION").to_string());
+        metadata.insert("features_computed".to_string(), batch_result.results.len().to_string());
+        metadata.insert("feature_errors".to_string(), batch_result.errors.len().to_string());
 
         Ok(IntentResponse {
             result,
             metadata,
             timestamp,
         })
+    }
+
+    /// Convert feature result to signal input
+    fn feature_result_to_signal_input(&self, name: String, result: crate::features::FeatureResult) -> SignalInput {
+        SignalInput {
+            name,
+            value: result.value,
+            confidence: result.confidence,
+            timestamp: result.timestamp,
+            metadata: result.metadata,
+        }
     }
 
     /// Process batch request
@@ -268,15 +310,16 @@ impl IntentApi {
 
     /// Validate intent request
     fn validate_intent_request(&self, request: &IntentRequest) -> Result<(), ApiError> {
-        if request.signals.is_empty() {
-            return Err(ApiError::InvalidRequest("No signals provided".to_string()));
+        // Validate that we have some market data to work with
+        if request.market_data.is_empty() && request.options_data.is_empty() && request.futures_data.is_empty() {
+            return Err(ApiError::InvalidRequest("No market data provided".to_string()));
         }
 
-        if request.signals.len() > self.config.max_signals_per_request {
+        // Check size limits (simplified - in production would check total data size)
+        let total_data_points = request.market_data.len() + request.options_data.len() + request.futures_data.len();
+        if total_data_points > 1000 {  // Arbitrary limit
             return Err(ApiError::InvalidRequest(
-                format!("Too many signals: {} (max: {})",
-                       request.signals.len(),
-                       self.config.max_signals_per_request)
+                format!("Too much data: {} data points (max: 1000)", total_data_points)
             ));
         }
 
@@ -284,19 +327,38 @@ impl IntentApi {
             return Err(ApiError::InvalidRequest("Client ID required".to_string()));
         }
 
-        // Validate each signal
-        for signal in &request.signals {
-            if !(-1.0..=1.0).contains(&signal.value) {
+        // Basic validation of market data
+        for (symbol, data) in &request.market_data {
+            if symbol.trim().is_empty() {
+                return Err(ApiError::InvalidRequest("Empty symbol in market data".to_string()));
+            }
+            if data.price <= 0.0 {
                 return Err(ApiError::InvalidRequest(
-                    format!("Signal '{}' value {} is outside valid range [-1.0, 1.0]",
-                           signal.name, signal.value)
+                    format!("Invalid price {} for symbol {}", data.price, symbol)
                 ));
             }
+        }
 
-            if !(0.0..=1.0).contains(&signal.confidence) {
+        // Basic validation of options data
+        for (underlying, chain) in &request.options_data {
+            if underlying.trim().is_empty() {
+                return Err(ApiError::InvalidRequest("Empty underlying in options data".to_string()));
+            }
+            if chain.strikes.is_empty() {
                 return Err(ApiError::InvalidRequest(
-                    format!("Signal '{}' confidence {} is outside valid range [0.0, 1.0]",
-                           signal.name, signal.confidence)
+                    format!("No strikes provided for options chain {}", underlying)
+                ));
+            }
+        }
+
+        // Basic validation of futures data
+        for (symbol, data) in &request.futures_data {
+            if symbol.trim().is_empty() {
+                return Err(ApiError::InvalidRequest("Empty symbol in futures data".to_string()));
+            }
+            if data.price <= 0.0 {
+                return Err(ApiError::InvalidRequest(
+                    format!("Invalid price {} for futures symbol {}", data.price, symbol)
                 ));
             }
         }
@@ -387,7 +449,11 @@ impl IntentApi {
 /// JSON representation of intent request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IntentRequestJson {
-    pub signals: Vec<SignalInputJson>,
+    pub market_data: HashMap<String, MarketDataPointJson>,
+    pub options_data: HashMap<String, OptionChainJson>,
+    pub futures_data: HashMap<String, FuturesDataJson>,
+    #[serde(default)]
+    pub context: HashMap<String, String>,
     pub client_id: String,
     #[serde(default)]
     pub metadata: HashMap<String, String>,
@@ -399,6 +465,50 @@ pub struct SignalInputJson {
     pub name: String,
     pub value: f64,
     pub confidence: f64,
+    pub timestamp: i64,
+    #[serde(default)]
+    pub metadata: HashMap<String, String>,
+}
+
+/// JSON representation of market data point
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarketDataPointJson {
+    pub symbol: String,
+    pub price: f64,
+    pub volume: u64,
+    pub timestamp: i64,
+    #[serde(default)]
+    pub metadata: HashMap<String, String>,
+}
+
+/// JSON representation of option chain
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OptionChainJson {
+    pub underlying: String,
+    pub expiry: i64,
+    pub strikes: Vec<StrikeDataJson>,
+    #[serde(default)]
+    pub metadata: HashMap<String, String>,
+}
+
+/// JSON representation of strike data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StrikeDataJson {
+    pub strike: f64,
+    pub call_bid: f64,
+    pub call_ask: f64,
+    pub put_bid: f64,
+    pub put_ask: f64,
+    pub open_interest: u64,
+    pub volume: u64,
+}
+
+/// JSON representation of futures data
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FuturesDataJson {
+    pub symbol: String,
+    pub price: f64,
+    pub open_interest: u64,
     pub timestamp: i64,
     #[serde(default)]
     pub metadata: HashMap<String, String>,
@@ -471,12 +581,23 @@ pub struct BatchSummaryJson {
 // Conversion implementations
 impl IntentRequestJson {
     fn to_internal(self) -> Result<IntentRequest, ApiError> {
-        let signals = self.signals.into_iter()
-            .map(|s| s.to_internal())
-            .collect::<Result<Vec<_>, _>>()?;
+        let market_data = self.market_data.into_iter()
+            .map(|(k, v)| (k, v.to_internal()))
+            .collect();
+
+        let options_data = self.options_data.into_iter()
+            .map(|(k, v)| (k, v.to_internal()))
+            .collect();
+
+        let futures_data = self.futures_data.into_iter()
+            .map(|(k, v)| (k, v.to_internal()))
+            .collect();
 
         Ok(IntentRequest {
-            signals,
+            market_data,
+            options_data,
+            futures_data,
+            context: self.context,
             metadata: self.metadata,
             client_id: self.client_id,
             timestamp: std::time::SystemTime::now()
@@ -496,6 +617,55 @@ impl SignalInputJson {
             timestamp: self.timestamp,
             metadata: self.metadata,
         })
+    }
+}
+
+impl MarketDataPointJson {
+    fn to_internal(self) -> crate::features::MarketDataPoint {
+        crate::features::MarketDataPoint {
+            symbol: self.symbol,
+            price: self.price,
+            volume: self.volume,
+            timestamp: self.timestamp,
+            metadata: self.metadata,
+        }
+    }
+}
+
+impl OptionChainJson {
+    fn to_internal(self) -> crate::features::OptionChain {
+        crate::features::OptionChain {
+            underlying: self.underlying,
+            expiry: self.expiry,
+            strikes: self.strikes.into_iter().map(|s| s.to_internal()).collect(),
+            metadata: self.metadata,
+        }
+    }
+}
+
+impl StrikeDataJson {
+    fn to_internal(self) -> crate::features::StrikeData {
+        crate::features::StrikeData {
+            strike: self.strike,
+            call_bid: self.call_bid,
+            call_ask: self.call_ask,
+            put_bid: self.put_bid,
+            put_ask: self.put_ask,
+            open_interest: self.open_interest,
+            volume: self.volume,
+        }
+    }
+}
+
+impl FuturesDataJson {
+    fn to_internal(self) -> crate::features::FuturesData {
+        crate::features::FuturesData {
+            symbol: self.symbol,
+            price: self.price,
+            open_interest: self.open_interest,
+            timestamp: self.timestamp,
+            metadata: self.metadata,
+        }
     }
 }
 

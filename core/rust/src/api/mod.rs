@@ -39,19 +39,29 @@ pub mod http;
 pub mod types;
 
 // Re-export main types for convenience
-pub use types::{IntentRequest, IntentResponse, BatchIntentRequest, BatchIntentResponse};
 pub use grpc::IntentService as GrpcIntentService;
 pub use http::IntentApi as HttpIntentApi;
 
 // Core types for API communication
 use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
 use crate::intent::{IntentResult, SignalInput};
+use crate::features::{FeatureInputs, MarketDataPoint, OptionChain, FuturesData};
 
 /// Request for intent computation
 #[derive(Debug, Clone)]
 pub struct IntentRequest {
-    /// Signals to process
-    pub signals: Vec<SignalInput>,
+    /// Market data for feature computation
+    pub market_data: HashMap<String, MarketDataPoint>,
+
+    /// Option chain data for feature computation
+    pub options_data: HashMap<String, OptionChain>,
+
+    /// Futures data for feature computation
+    pub futures_data: HashMap<String, FuturesData>,
+
+    /// Additional context data
+    pub context: HashMap<String, String>,
 
     /// Request metadata
     pub metadata: HashMap<String, String>,
@@ -188,8 +198,8 @@ pub enum ApiError {
     /// Request too large
     RequestTooLarge(String),
 
-    /// Processing timeout
-    Timeout(String),
+    /// Processing failed
+    ProcessingError(String),
 
     /// Internal server error
     InternalError(String),
@@ -206,7 +216,7 @@ impl std::fmt::Display for ApiError {
             ApiError::AuthorizationFailed(msg) => write!(f, "Authorization failed: {}", msg),
             ApiError::RateLimitExceeded(msg) => write!(f, "Rate limit exceeded: {}", msg),
             ApiError::RequestTooLarge(msg) => write!(f, "Request too large: {}", msg),
-            ApiError::Timeout(msg) => write!(f, "Request timeout: {}", msg),
+            ApiError::ProcessingError(msg) => write!(f, "Processing error: {}", msg),
             ApiError::InternalError(msg) => write!(f, "Internal error: {}", msg),
             ApiError::ServiceUnavailable(msg) => write!(f, "Service unavailable: {}", msg),
         }
@@ -215,8 +225,14 @@ impl std::fmt::Display for ApiError {
 
 impl std::error::Error for ApiError {}
 
+impl From<crate::intent::IntentError> for ApiError {
+    fn from(error: crate::intent::IntentError) -> Self {
+        ApiError::ProcessingError(error.to_string())
+    }
+}
+
 /// Health check response
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HealthCheck {
     /// Service status
     pub status: HealthStatus,
@@ -232,7 +248,7 @@ pub struct HealthCheck {
 }
 
 /// Service health status
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum HealthStatus {
     /// Service is healthy
     Healthy,
