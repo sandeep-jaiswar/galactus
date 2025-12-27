@@ -10,9 +10,13 @@ pub mod confidence;
 pub mod failure_analysis;
 pub mod stress_scenarios;
 pub mod api;
+pub mod config;
+pub mod persistence;
 
 // Re-export main types for convenience
 pub use data::*;
 pub use features::*;
 pub use intent::*;
 pub use api::*;
+pub use config::*;
+pub use persistence::*;
