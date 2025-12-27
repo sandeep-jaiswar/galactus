@@ -591,7 +591,7 @@ While signals progress at their own pace, these guidelines help identify stalled
 - **Hypothesis → Research Validation**: 2-8 weeks
 - **Research Validation → Promotion Candidate**: 4-12 weeks
 - **Promotion Candidate → Core Signal**: 4-8 weeks
-- **Core Signal → Monitoring**: Immediate upon deployment
+- **Core Signal → Monitoring**: Automatic upon successful deployment
 - **Monitoring → Deprecation**: Variable (months to years)
 - **Deprecation → Retirement**: 90+ days minimum
 
@@ -630,7 +630,7 @@ Ownership transfer requires:
 | **Hypothesis** | 2-8 weeks | Idea formulation, preliminary exploration | Clear testable predictions | Research notebook |
 | **Research Validation** | 4-12 weeks | Empirical testing, failure analysis | Structural consistency, documented failures | Validation report, backtests |
 | **Promotion Candidate** | 4-8 weeks | Formal proposal, review process | Complete promotion checklist | Specification, checklist |
-| **Core Signal** | Implementation sprint | Rust implementation, testing | All tests pass, docs complete | Source code, tests |
+| **Core Signal** | 2-4 weeks | Rust implementation, testing | All tests pass, docs complete | Source code, tests |
 | **Monitoring** | Continuous | Health tracking, periodic review | Deprecation trigger observed | Dashboards, reports |
 | **Deprecation** | 90+ days | Consumer migration, confidence reduction | Retirement date reached | Deprecation notice |
 | **Retirement** | Final | Removal, archival, knowledge preservation | Documentation complete | Archive package |
