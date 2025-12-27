@@ -17,7 +17,7 @@ This is the **mathematical and conceptual foundation** for all capital pressure 
 
 ## What Is Capital Pressure?
 
-**Capital pressure** is the magnitude and directionality of required capital action that results from binding constraints within a specific time window.
+**Capital pressure** is the magnitude and direction of required capital action that results from binding constraints within a specific time window.
 
 Pressure arises when capital:
 - Must act (constraint is binding)
