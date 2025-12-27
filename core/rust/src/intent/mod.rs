@@ -26,6 +26,7 @@
 
 pub mod engine;
 pub mod aggregation;
+pub mod safe_engine;
 
 #[cfg(feature = "examples")]
 pub mod examples;
@@ -33,6 +34,7 @@ pub mod examples;
 // Re-export main types for convenience
 pub use engine::IntentEngine;
 pub use aggregation::{SignalAggregator, AggregationResult};
+pub use safe_engine::SafeIntentEngine;
 
 // Core types for intent representation
 use std::collections::HashMap;
