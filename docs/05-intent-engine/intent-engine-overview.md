@@ -455,7 +455,13 @@ Given identical:
 - Engine version
 - Reference data
 
-The Intent Engine **must** produce byte-for-byte identical outputs.
+The Intent Engine **must** produce functionally identical outputs:
+- All structural decisions (classifications, regime states, intent types) must be identical
+- All integer metrics and counts must be identical
+- All floating-point values must match within documented precision tolerances
+- All metadata, timestamps, and IDs must be byte-for-byte identical
+
+For critical computations requiring exact reproducibility, fixed-point arithmetic or explicit rounding must be used.
 
 #### Completeness Guarantee
 Every output must include:
@@ -488,7 +494,7 @@ Outputs must **never** include:
 - "Expected return"
 - "Recommended action"
 
-See [`docs/09-compliance-and-language/language-guidelines.md`](../09-compliance-and-language/language-guidelines.md) for complete language policy.
+See [`docs/09-compliance-and-language/language-guidelines.md`](../09-compliance-and-language/language-guidelines.md) for language guidelines and [`docs/09-compliance-and-language/output-restrictions.md`](../09-compliance-and-language/output-restrictions.md) for output restrictions.
 
 ### Output Consumers
 
@@ -517,10 +523,11 @@ The Intent Engine is deterministic if and only if:
 4. Reference data (same point-in-time state)
 
 **Then:**
-- The engine produces **byte-for-byte identical** outputs
-- Every metric, score, and classification is identical
-- All timestamps, IDs, and metadata are identical
-- Computation order and intermediate results are identical
+- The engine produces **functionally identical** outputs
+- Every structural decision (classification, regime, intent type) is identical
+- Every metric, score, and timestamp is identical
+- Floating-point values match within documented precision tolerances (or use fixed-point)
+- All metadata, IDs, and versioning information are byte-for-byte identical
 
 ### Determinism Requirements
 
@@ -595,9 +602,11 @@ The Intent Engine is deterministic if and only if:
 
 #### Handling Numerical Precision
 - Floating-point operations must be documented
-- Precision loss must be understood and bounded
-- Critical computations may require fixed-point arithmetic
-- Comparison operations must handle floating-point tolerances
+- Precision requirements must be explicit (e.g., epsilon for comparisons)
+- Critical computations requiring exact reproducibility must use fixed-point arithmetic
+- Comparison operations must use documented tolerance levels (e.g., 1e-10)
+- Determinism tests must verify functional equivalence, not byte-level equality for floats
+- Platform-specific floating-point behavior must be documented and tested
 
 ### Verification and Testing
 
