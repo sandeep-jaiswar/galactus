@@ -55,6 +55,20 @@ Concrete enforcement mechanisms:
 - Violation detection and response
 - Cultural norms and team practices
 
+### [Quick Reference](QUICK-REFERENCE.md)
+Developer quick reference guide:
+- What goes where
+- Promotion workflow
+- Forbidden patterns
+- Common questions and answers
+
+### [Implementation Summary](IMPLEMENTATION-SUMMARY.md)
+Complete implementation overview:
+- What was implemented
+- Enforcement layers
+- Success metrics
+- Benefits achieved
+
 ---
 
 ## Document Relationships
