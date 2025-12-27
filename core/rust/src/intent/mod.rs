@@ -31,7 +31,7 @@ pub mod aggregation;
 pub mod examples;
 
 // Re-export main types for convenience
-pub use engine::{IntentEngine, IntentResult, IntentVector};
+pub use engine::IntentEngine;
 pub use aggregation::{SignalAggregator, AggregationResult};
 
 // Core types for intent representation

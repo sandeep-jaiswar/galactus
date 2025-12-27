@@ -238,7 +238,11 @@ impl FromProto<IntentVectorProto> for IntentVector {
         validate_intent_vector_proto(&proto)?;
 
         let signals = proto.signals.into_iter()
-            .map(SignalContribution::from_proto)
+            .map(|signal_proto| {
+                let name = signal_proto.name.clone();
+                SignalContribution::from_proto(signal_proto)
+                    .map(|contribution| (name, contribution))
+            })
             .collect::<Result<HashMap<_, _>, _>>()?;
 
         Ok(IntentVector {
