@@ -20,7 +20,7 @@
 //! - No external dependencies or random number generation
 
 use std::collections::HashMap;
-use crate::intent::{SignalInput, SignalContribution, IntentError, IntentConfig};
+use super::{SignalInput, SignalContribution, IntentError, IntentConfig};
 
 /// Result of signal aggregation
 #[derive(Debug, Clone, PartialEq)]

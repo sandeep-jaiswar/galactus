@@ -14,7 +14,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::features::{
+use super::{
     Feature, FeatureResult, FeatureError, FeatureInputs, FeatureConfig
 };
 

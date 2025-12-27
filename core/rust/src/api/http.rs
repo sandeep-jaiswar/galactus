@@ -214,6 +214,7 @@ impl IntentApi {
         self.check_rate_limit(&request.client_id)?;
 
         let start_time = std::time::SystemTime::now();
+        let total_requests = request.requests.len();
         let mut responses = Vec::new();
         let mut successful = 0;
         let mut failed = 0;
@@ -243,7 +244,7 @@ impl IntentApi {
         };
 
         let summary = crate::api::BatchSummary {
-            total_requests: request.requests.len(),
+            total_requests,
             successful,
             failed,
             total_processing_time_ns: total_processing_time,

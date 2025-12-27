@@ -28,7 +28,7 @@
 pub mod registry;
 
 // Re-export main types for convenience
-pub use registry::{FeatureRegistry, FeatureResult, FeatureError};
+pub use registry::{FeatureRegistry, FeatureError};
 
 // Core types for feature computation
 use std::collections::HashMap;

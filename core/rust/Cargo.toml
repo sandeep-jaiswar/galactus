@@ -11,7 +11,7 @@ license = "TBD"
 
 [dependencies]
 # Core functionality (to be added as needed after promotion)
-# serde = { version = "1.0", features = ["derive"] }  # Serialization
+serde = { version = "1.0", features = ["derive"] }  # Serialization - Required for API types
 # tokio = { version = "1", features = ["full"] }      # Async runtime
 # polars = "0.35"                                      # Data processing
 
