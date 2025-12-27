@@ -1,0 +1,237 @@
+# Galactus Promotion Checklist Template
+# Copy this file and rename it to: YYYY-MM-DD-signal-name.yml
+# Complete all sections before requesting promotion approval
+# See: docs/06-research-framework/promotion-checklist-format.md
+
+version: "1.0"
+
+promotion:
+  signal_name: "Your Signal or Feature Name"
+  description: "Brief description of what is being promoted"
+  date_initiated: "YYYY-MM-DD"
+  owner: "Your Name or GitHub Handle"
+  target_version: "Rust Core Version (e.g., v0.2.0)"
+
+checklist:
+  # =============================================================================
+  # Section 1: Structural Validity (Non-Negotiable)
+  # =============================================================================
+  structural_validity:
+    capital_behavior_mapping:
+      status: "incomplete"  # complete|incomplete|not_applicable
+      evidence: ""  # Path to documentation explaining capital behavior
+      notes: ""  # Optional: Additional context
+    
+    market_structure_alignment:
+      status: "incomplete"
+      evidence: ""  # Path to market theory alignment documentation
+      notes: ""
+
+  # =============================================================================
+  # Section 2: Determinism & Reproducibility
+  # =============================================================================
+  determinism:
+    deterministic_definition:
+      status: "incomplete"
+      evidence: ""  # Path to mathematical/logical definition
+      notes: ""
+    
+    replayability:
+      status: "incomplete"
+      evidence: ""  # Path to replay test results
+      notes: ""
+
+  # =============================================================================
+  # Section 3: Data Discipline
+  # =============================================================================
+  data_discipline:
+    data_source_compliance:
+      status: "incomplete"
+      evidence: ""  # List of data sources used (all must be approved)
+      notes: ""
+    
+    schema_compliance:
+      status: "incomplete"
+      evidence: ""  # Schema version and compliance verification
+      notes: ""
+
+  # =============================================================================
+  # Section 4: Normalization & Scaling
+  # =============================================================================
+  normalization:
+    normalization_justification:
+      status: "incomplete"
+      evidence: ""  # Path to normalization documentation
+      notes: ""
+    
+    cross_instrument_validity:
+      status: "incomplete"
+      evidence: ""  # Path to cross-instrument validation results
+      notes: ""
+
+  # =============================================================================
+  # Section 5: Regime Awareness
+  # =============================================================================
+  regime_awareness:
+    regime_conditioning:
+      status: "incomplete"
+      evidence: ""  # Path to regime documentation
+      notes: ""
+    
+    regime_failure_handling:
+      status: "incomplete"
+      evidence: ""  # Path to failure handling logic
+      notes: ""
+
+  # =============================================================================
+  # Section 6: Failure Analysis (Mandatory)
+  # =============================================================================
+  failure_analysis:
+    known_failure_modes:
+      status: "incomplete"
+      evidence: ""  # Path to failure modes documentation (min 3 scenarios)
+      notes: ""
+    
+    historical_failure_evidence:
+      status: "incomplete"
+      evidence: ""  # Path to historical failure analysis
+      notes: ""
+
+  # =============================================================================
+  # Section 7: Backtesting Integrity
+  # =============================================================================
+  backtesting:
+    backtest_framing:
+      status: "incomplete"
+      evidence: ""  # Path to backtest results (event-time aligned)
+      notes: ""
+    
+    stability_evidence:
+      status: "incomplete"
+      evidence: ""  # Path to stability analysis across regimes
+      notes: ""
+
+  # =============================================================================
+  # Section 8: Interpretability & Explainability
+  # =============================================================================
+  interpretability:
+    explanation_test:
+      status: "incomplete"
+      evidence: ""  # Example explanations for signal activations
+      notes: ""
+    
+    component_transparency:
+      status: "incomplete"
+      evidence: ""  # Path to component documentation
+      notes: ""
+
+  # =============================================================================
+  # Section 9: Confidence & Stability Integration
+  # =============================================================================
+  confidence:
+    confidence_logic:
+      status: "incomplete"
+      evidence: ""  # Path to confidence calculation documentation
+      notes: ""
+    
+    stability_behavior:
+      status: "incomplete"
+      evidence: ""  # Path to stability behavior documentation
+      notes: ""
+
+  # =============================================================================
+  # Section 10: Rust Readiness (Final Gate)
+  # =============================================================================
+  rust_readiness:
+    rust_implementability:
+      status: "incomplete"
+      evidence: ""  # Rust implementation design document path
+      notes: ""
+    
+    testing_requirements:
+      status: "incomplete"
+      evidence: ""  # Path to test specifications and golden cases
+      notes: ""
+
+# =============================================================================
+# Artifacts - All paths must point to existing files
+# =============================================================================
+artifacts:
+  research_notebooks:
+    # Add paths to research notebooks (at least 1 required)
+    # Example: - "research/python/notebooks/YYYY-MM-DD-signal-exploration.ipynb"
+  
+  documentation:
+    # Add paths to documentation (at least 1 required)
+    # Example: - "docs/05-intent-engine/signal-specification.md"
+  
+  backtest_results:
+    # Add paths to backtest results (at least 1 required)
+    # Example: - "research/python/results/backtest-YYYY-MM.csv"
+  
+  implementation_design:
+    # Add path to Rust implementation design (required)
+    # Example: - "core/rust/docs/signal-implementation-design.md"
+  
+  tests:
+    # Add paths to test specifications (required)
+    # Example: - "core/rust/tests/test_signal_name.rs"
+
+# =============================================================================
+# Decision Log - Must be updated before final approval
+# =============================================================================
+decision_log:
+  entry_added: false  # Set to true after adding entry
+  entry_path: "docs/11-decision-log/decision-log.md"
+  entry_date: ""  # YYYY-MM-DD when entry added
+
+# =============================================================================
+# Reviews - To be completed by designated reviewers
+# =============================================================================
+reviews:
+  research_lead:
+    reviewer: ""  # Name of reviewer
+    status: "pending"  # pending|approved|rejected
+    date: ""  # YYYY-MM-DD
+    notes: ""  # Optional review notes
+  
+  architecture_reviewer:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+  
+  security_reviewer:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+  
+  final_approval:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+
+# =============================================================================
+# Promotion Status - Track progress through implementation
+# =============================================================================
+promotion_status:
+  overall_status: "pending"  # pending|in_progress|approved|rejected
+  rust_implementation_started: false
+  rust_implementation_completed: false
+  tests_passing: false
+  documentation_complete: false
+  deployment_ready: false
+
+# =============================================================================
+# Instructions:
+# 1. Copy this template to a new file named YYYY-MM-DD-signal-name.yml
+# 2. Fill in all sections systematically
+# 3. Update status from 'incomplete' to 'complete' as you progress
+# 4. Provide evidence paths for all 'complete' items
+# 5. For 'not_applicable' items, provide justification in notes
+# 6. Request reviews when checklist is complete
+# 7. Validation script will verify all requirements are met
+# 8. See docs/06-research-framework/promotion-checklist-format.md for details
+# =============================================================================

@@ -14,6 +14,37 @@ Failure to satisfy **any single item** blocks promotion.
 
 ---
 
+## 🔒 Hard Gating Enforcement
+
+**This checklist is enforced as a HARD GATE through automated validation.**
+
+### Machine-Readable Format
+All promotions must include a completed checklist file in machine-readable YAML format:
+- **Location**: `research/python/promotions/YYYY-MM-DD-signal-name.yml`
+- **Template**: `research/python/promotions/TEMPLATE-promotion-checklist.yml`
+- **Format Specification**: [`promotion-checklist-format.md`](promotion-checklist-format.md)
+
+### Automated Validation
+The validation script `scripts/validate_checklist.sh` runs automatically in CI/CD:
+- ✅ **PASS**: All requirements met → Promotion may proceed
+- ❌ **FAIL**: Requirements not met → **Promotion BLOCKED**
+- ⚠️  **WARNING**: Some items need attention, but hard requirements met
+
+### Blocking Conditions
+Promotion is automatically blocked if:
+- Any checklist item status is `incomplete`
+- Evidence is missing for `complete` items
+- Required artifacts don't exist
+- Decision log entry is missing
+- Any required review is rejected or pending approval
+- Promotion status is inconsistent with reviews
+
+**There are NO exceptions. The gate is absolute.**
+
+See [`promotion-checklist-format.md`](promotion-checklist-format.md) for complete details on the machine-readable format and validation rules.
+
+---
+
 ## Promotion Scope
 
 This checklist applies to promotion of:
