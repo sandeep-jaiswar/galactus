@@ -1,0 +1,65 @@
+---
+name: Research Experiment
+about: Create a new research experiment to develop and validate market signals
+title: "EXP-{{ date }}-001: [Experiment Title]"
+labels: research, experiment, validation
+assignees: ''
+
+---
+
+## Experiment Overview
+
+**Hypothesis**: [One-sentence hypothesis statement]
+
+**Capital Pool**: [Which capital pool? e.g., FII derivatives, domestic MF equity]
+
+**Expected Signal**: [What market behavior should we observe?]
+
+**Validation Approach**: [How will we test this hypothesis?]
+
+## Implementation Plan
+
+### 1. Data Requirements
+- [ ] Identify required data sources
+- [ ] Define data quality thresholds
+- [ ] Set up data pipelines
+
+### 2. Feature Development
+- [ ] Implement signal computation logic
+- [ ] Add feature isolation decorators
+- [ ] Create unit tests
+
+### 3. Validation Framework
+- [ ] Set up walk-forward validation
+- [ ] Define success/failure criteria
+- [ ] Implement backtesting logic
+
+### 4. Stress Testing
+- [ ] Test under different market regimes
+- [ ] Validate edge cases
+- [ ] Check failure modes
+
+## Success Criteria
+
+### Quantitative Metrics
+- [ ] Signal stability across regimes
+- [ ] False positive/negative rates
+- [ ] Correlation with known market events
+
+### Qualitative Assessment
+- [ ] Explainability in market terms
+- [ ] Resistance to overfitting
+- [ ] Alignment with capital behavior theory
+
+## Related Documentation
+
+- [ ] Update experiment log
+- [ ] Document assumptions and limitations
+- [ ] Create validation report
+
+## Definition of Done
+
+- [ ] Hypothesis tested with sufficient statistical power
+- [ ] Results documented and peer-reviewed
+- [ ] Code ready for promotion consideration
+- [ ] Failure modes identified and mitigated

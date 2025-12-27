@@ -1,0 +1,93 @@
+---
+name: Signal Promotion
+about: Promote a validated research signal to production Rust core
+title: "PROMO-{{ date }}-001: Promote [Signal Name] to Production"
+labels: promotion, production, rust
+assignees: ''
+
+---
+
+## Signal Overview
+
+**Signal Name**: [Name of the signal being promoted]
+
+**Research Location**: [Path to research implementation]
+
+**Hypothesis**: [Brief restatement of the validated hypothesis]
+
+**Validation Results**: [Link to validation report/experiment results]
+
+## Promotion Checklist Status
+
+### 1. Research Validation ✅
+- [ ] Statistical significance achieved
+- [ ] Cross-validation performed
+- [ ] Walk-forward testing completed
+- [ ] Regime robustness verified
+
+### 2. Documentation ✅
+- [ ] Hypothesis clearly stated
+- [ ] Assumptions documented
+- [ ] Failure modes identified
+- [ ] Performance metrics defined
+
+### 3. Code Quality ✅
+- [ ] Feature isolation implemented
+- [ ] Unit tests written
+- [ ] Edge cases handled
+- [ ] No research dependencies
+
+### 4. Determinism ✅
+- [ ] Same inputs produce same outputs
+- [ ] No randomness or hidden state
+- [ ] Pure functions where possible
+- [ ] Reproducible results
+
+### 5. Production Readiness ✅
+- [ ] Error handling implemented
+- [ ] Logging added
+- [ ] Performance acceptable
+- [ ] Memory usage reasonable
+
+## Implementation Plan
+
+### Rust Implementation
+- [ ] Create feature module in `core/rust/src/features/`
+- [ ] Implement deterministic computation logic
+- [ ] Add comprehensive unit tests
+- [ ] Update module exports
+
+### Integration
+- [ ] Update intent engine to use new signal
+- [ ] Add signal to confidence assessment
+- [ ] Update failure analysis categories
+- [ ] Test with existing stress scenarios
+
+### Documentation
+- [ ] Update promotion registry
+- [ ] Add signal documentation
+- [ ] Update decision log
+- [ ] Create usage examples
+
+## Testing Requirements
+
+- [ ] Unit tests for all public functions
+- [ ] Integration tests with intent engine
+- [ ] Performance benchmarks
+- [ ] Memory usage tests
+
+## Rollback Plan
+
+**If issues arise after promotion:**
+- [ ] Immediate rollback procedure documented
+- [ ] Monitoring alerts for signal degradation
+- [ ] Alternative signal identification
+- [ ] Impact assessment on downstream consumers
+
+## Definition of Done
+
+- [ ] Signal implemented in Rust with full test coverage
+- [ ] Integration tests passing
+- [ ] Documentation updated
+- [ ] Promotion registry updated
+- [ ] Decision log entry created

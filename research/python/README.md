@@ -18,6 +18,43 @@ It is responsible for:
 
 ---
 
+## Setup
+
+### Virtual Environment
+
+This project uses a Python virtual environment for dependency management.
+
+**Quick Start:**
+```bash
+# Activate environment and install dependencies
+./activate_env.sh
+
+# Or manually:
+source .venv/bin/activate
+pip install jugaad-data pandas numpy requests
+```
+
+**Requirements:**
+- Python 3.10+
+- Virtual environment (`.venv/` directory)
+- Dependencies: `jugaad-data`, `pandas`, `numpy`, `requests`
+
+### Data Provider
+
+The enhanced data provider (`data_provider_enhanced.py`) provides:
+- Real derivatives data integration
+- Historical data for backtesting
+- Robust error handling and fallbacks
+- Data quality validation
+
+**Test the setup:**
+```bash
+source .venv/bin/activate
+python data_provider_enhanced.py
+```
+
+---
+
 ## What Belongs Here
 
 ### Allowed Content

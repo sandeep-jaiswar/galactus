@@ -11,11 +11,14 @@ pub mod ingestion {
 pub mod features {
     // Promoted feature computation
     // All features here must pass the promotion checklist
+    pub mod registry;
 }
 
 pub mod intent {
     // Core intent engine
     // Deterministic capital pressure inference
+    pub mod engine;
+    pub mod aggregation;
 }
 
 pub mod regime;
@@ -28,6 +31,9 @@ pub mod stress_scenarios;
 pub mod api {
     // External APIs (gRPC, HTTP)
     // Interface for external consumers
+    pub mod grpc;
+    pub mod http;
+    pub mod types;
 }
 
 #[cfg(test)]

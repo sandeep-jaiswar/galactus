@@ -15,7 +15,9 @@ This document tracks all signal promotions from research (Python) to production 
 
 | Signal Name | Owner | Date Initiated | Status | Checklist File |
 |-------------|-------|----------------|--------|----------------|
-| *(No active promotions)* | - | - | - | - |
+| OI Decay Pressure | Galactus Research Team | 2025-12-27 | Ready for Review | 2025-12-27-oi-decay-promotion.yml |
+| Hedge Pressure | Galactus Research Team | 2025-12-27 | Ready for Review | 2025-12-27-hedge-pressure-promotion.yml |
+| Basis Pressure | Galactus Research Team | 2025-12-27 | Ready for Review | 2025-12-27-basis-pressure-promotion.yml |
 
 ---
 
@@ -37,10 +39,10 @@ This document tracks all signal promotions from research (Python) to production 
 
 ## Promotion Statistics
 
-- **Total Initiated**: 0
+- **Total Initiated**: 3
 - **Total Approved**: 0
 - **Total Rejected**: 0
-- **Currently Active**: 0
+- **Currently Active**: 3
 - **Average Time to Approval**: N/A
 
 ---
