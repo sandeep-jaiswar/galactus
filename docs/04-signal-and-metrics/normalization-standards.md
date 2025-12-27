@@ -356,8 +356,17 @@ Time normalization must ensure:
 ```
 # Pressure measured 1 day before expiry should be significantly higher
 # than the same raw pressure measured 30 days before expiry
+# Factor of 5 is derived from sqrt(30)/sqrt(1) ≈ 5.48, rounded conservatively
 assert Pressure_1_day > Pressure_30_days × 5
 ```
+
+**Rationale for 5x multiplier:**
+Using the sqrt decay function (Method 3A), the ratio is:
+- 1 day factor: 1/sqrt(1) = 1.0
+- 30 day factor: 1/sqrt(30) ≈ 0.183
+- Ratio: 1.0/0.183 ≈ 5.5
+
+The 5x multiplier is a conservative floor for validation.
 
 ### Combining Time Normalizations
 
@@ -456,6 +465,15 @@ where Base_VIX = 15 (normal regime baseline)
 - 20-30: Elevated regime (dampen signals)
 - > 30: Crisis regime (significant dampening)
 
+**Rationale for Base_VIX = 15:**
+Historical analysis of VIX (1990-2023) shows:
+- Median VIX: ~14-15
+- Mean VIX: ~19 (skewed by crisis periods)
+- "Normal" market conditions cluster around 12-18
+
+15 represents the midpoint of typical non-crisis trading.
+**Note:** This baseline should be periodically reviewed (annually) as market structure evolves.
+
 ### Rules
 
 - **Volatility normalization must be justified** per metric
@@ -483,14 +501,27 @@ where Base_VIX = 15 (normal regime baseline)
    - Adjust normalization mid-regime
 
 2. **Zero/near-zero volatility** (unusual stability):
-   - Set minimum vol floor (e.g., 5% annualized)
+   - Set minimum vol floor (e.g., 5% annualized for equities, 2% for bonds)
    - Flag as anomalous regime
    - Avoid division by near-zero
+   
+   **Floor determination criteria:**
+   - Equities: Use 0.5x of 1-year minimum realized vol
+   - Derivatives: Use exchange margin requirements as lower bound
+   - Fixed income: Use historical range minimum
+   - Document floor choice and review quarterly
 
 3. **Volatility clusters** (GARCH effects):
    - Use EWMA for current regime sensitivity
-   - Lambda = 0.94 (standard)
+   - Lambda = 0.94 (standard for daily data, from RiskMetrics™)
+   - Alternative lambdas: 0.97 (slower decay), 0.90 (faster decay)
    - Update daily
+   
+   **Lambda selection guidance:**
+   - 0.94: Standard for equity volatility (roughly 20-day half-life)
+   - 0.97: For stable instruments or longer horizons
+   - 0.90: For high-frequency or rapidly changing regimes
+   - Document choice based on instrument characteristics
 
 ### Anti-Scale-Illusion Check
 
