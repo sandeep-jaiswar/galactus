@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "galactus-research"
+version = "0.1.0"
+description = "Galactus research and experimentation layer"
+authors = ["Galactus Research Team"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+# Data science stack (to be added as needed)
+# pandas = "^2.0"
+# numpy = "^1.24"
+# matplotlib = "^3.7"
+# seaborn = "^0.12"
+# plotly = "^5.14"
+# jupyter = "^1.0"
+
+# Statistical and ML (for research only, not production)
+# scipy = "^1.10"
+# scikit-learn = "^1.3"
+# statsmodels = "^0.14"
+
+[tool.poetry.group.dev.dependencies]
+# Development tools
+# pytest = "^7.3"
+# black = "^23.3"
+# mypy = "^1.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# Note: Keep dependencies minimal and documented
+# Heavy ML frameworks should be justified
+# See: docs/02-system-architecture/rust-python-boundary-enforcement.md

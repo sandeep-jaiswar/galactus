@@ -47,6 +47,28 @@ Technology separation contract:
 - Promotion process from research to production
 - Interface patterns and testing requirements
 
+### [Rust Python Boundary Enforcement](rust-python-boundary-enforcement.md)
+Concrete enforcement mechanisms:
+- Physical directory separation
+- Automated CI/CD checks
+- Promotion validation workflow
+- Violation detection and response
+- Cultural norms and team practices
+
+### [Quick Reference](QUICK-REFERENCE.md)
+Developer quick reference guide:
+- What goes where
+- Promotion workflow
+- Forbidden patterns
+- Common questions and answers
+
+### [Implementation Summary](IMPLEMENTATION-SUMMARY.md)
+Complete implementation overview:
+- What was implemented
+- Enforcement layers
+- Success metrics
+- Benefits achieved
+
 ---
 
 ## Document Relationships

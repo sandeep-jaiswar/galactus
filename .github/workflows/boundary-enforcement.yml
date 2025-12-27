@@ -1,0 +1,89 @@
+name: Boundary Enforcement
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  check-boundaries:
+    name: Validate Rust vs Python Separation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Check boundary integrity
+        run: |
+          ./scripts/check_boundaries.sh
+      
+      - name: Validate promotion process
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_PR_DESCRIPTION: ${{ github.event.pull_request.body }}
+        run: |
+          ./scripts/validate_promotion.sh
+      
+      - name: Report results
+        if: always()
+        run: |
+          echo "Boundary enforcement checks completed"
+          echo "See job logs for details"
+
+  verify-structure:
+    name: Verify Directory Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Verify core structure
+        run: |
+          if [ ! -d "core/rust" ]; then
+            echo "❌ Missing core/rust directory"
+            exit 1
+          fi
+          if [ ! -f "core/rust/README.md" ]; then
+            echo "⚠️  Missing core/rust/README.md"
+          fi
+          echo "✅ Core structure verified"
+      
+      - name: Verify research structure
+        run: |
+          if [ ! -d "research/python" ]; then
+            echo "❌ Missing research/python directory"
+            exit 1
+          fi
+          if [ ! -f "research/python/README.md" ]; then
+            echo "⚠️  Missing research/python/README.md"
+          fi
+          echo "✅ Research structure verified"
+      
+      - name: Check for forbidden patterns
+        run: |
+          # Check for common boundary violations
+          VIOLATIONS=0
+          
+          # Check for "import production" in Python
+          if grep -r "from core.rust" research/python 2>/dev/null; then
+            echo "❌ Python importing from Rust core"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+          
+          # Check for shared directories
+          if [ -d "shared" ] || [ -d "common" ] || [ -d "lib" ]; then
+            echo "❌ Shared directory detected"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+          
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "❌ Boundary violations detected"
+            exit 1
+          fi
+          
+          echo "✅ No forbidden patterns found"

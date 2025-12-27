@@ -1,0 +1,51 @@
+# Galactus — Git Ignore Rules
+
+# Build artifacts
+target/
+dist/
+build/
+*.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Rust
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Research notebooks (if they contain sensitive data)
+# research/notebooks/*_private.ipynb
+
+# Local configuration
+*.local
+.env

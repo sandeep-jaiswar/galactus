@@ -1,0 +1,40 @@
+// Galactus Core Library
+// This is a placeholder for the production Rust inference engine
+
+// Example structure - to be implemented according to promotion process
+
+pub mod ingestion {
+    // Data ingestion and normalization
+    // TODO: Implement after research validation
+}
+
+pub mod features {
+    // Promoted feature computation
+    // All features here must pass the promotion checklist
+}
+
+pub mod intent {
+    // Core intent engine
+    // Deterministic capital pressure inference
+}
+
+pub mod regime {
+    // Regime classification
+    // Event-driven regime detection
+}
+
+pub mod confidence {
+    // Confidence and stability metrics
+    // Conservative confidence degradation
+}
+
+pub mod api {
+    // External APIs (gRPC, HTTP)
+    // Interface for external consumers
+}
+
+#[cfg(test)]
+mod tests {
+    // Comprehensive unit and integration tests
+    // All public APIs must have tests
+}
