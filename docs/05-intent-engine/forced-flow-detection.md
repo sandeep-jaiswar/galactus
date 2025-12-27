@@ -97,8 +97,8 @@ Forced flow is identified when **all** of the following conditions are present:
 
 **Key Test**: *Would this capital act even if market conditions were unfavorable?*
 
-If yes → Likely forced flow  
-If no → Likely discretionary flow
+- If yes → Likely forced flow  
+- If no → Likely discretionary flow
 
 ---
 
@@ -128,8 +128,8 @@ Discretionary flow is identified when:
 
 **Key Test**: *Would this capital abstain if market conditions deteriorated?*
 
-If yes → Likely discretionary flow  
-If no → Re-evaluate for hidden constraints
+- If yes → Likely discretionary flow  
+- If no → Re-evaluate for hidden constraints
 
 ---
 
@@ -304,7 +304,7 @@ A complete structural justification must include:
 > 1. Dealers are short options concentrated at strike X (observable via OI)
 > 2. As price approaches X, dealer delta changes rapidly (gamma effect)
 > 3. Dealers must continuously buy/sell underlying to maintain delta neutrality (hedging requirement)
-> 4. Expected magnitude: proportional to gamma × spot move × open interest"
+> 4. Expected magnitude: proportional to gamma * spot move * open interest"
 
 #### 3. Capital Identification
 
@@ -462,11 +462,11 @@ Confidence: High (0.85)
 Structural Justification:
 - Constraint: Delta neutrality requirement for options dealers
 - Mechanism: 45% of weekly call OI concentrated at 44000 strike; spot at 43900
-              creates negative dealer delta → must buy underlying to hedge
+  creates negative dealer delta which requires buying underlying to hedge
 - Capital: Options market makers (estimated ₹2000 crore gross exposure)
 - Timeline: Next 48 hours (expiry Thursday 3:30 PM)
 - Observables: Strike OI 44000: 15 lakh contracts, Gamma exposure: 0.65, 
-               Volume increasing near strike consistent with hedging
+  Volume increasing near strike consistent with hedging
 
 Alternative Explanations: None identified (OI concentration and timing strongly suggest hedging)
 
