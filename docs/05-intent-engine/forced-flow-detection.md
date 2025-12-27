@@ -487,11 +487,6 @@ Every forced flow inference in Galactus must be:
 
 This requirement is non-negotiable. It is what separates Galactus from pattern-matching systems.
 
-
-
-Galactus avoids misclassification by:
-
-- Normalizing flows by liquidity
 ---
 
 ## Differentiating Forced Flow from Noise
