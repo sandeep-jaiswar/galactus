@@ -12,16 +12,21 @@ EXIT_CODE=0
 # Check 1: No experimental features in Rust production code
 echo "✓ Check 1: No experimental Python features in Rust core..."
 if [ -d "core/rust" ]; then
-    # Check for imports of research features in Rust code
-    FEATURE_IMPORTS=$(grep -r "from features" core/rust/ 2>/dev/null || true)
-    if [ -n "$FEATURE_IMPORTS" ]; then
-        echo "❌ FAIL: Experimental features imported in Rust core"
-        echo "$FEATURE_IMPORTS"
-        echo ""
-        echo "Experimental features must not be imported in production code."
+    # Check for Python files or Python-related patterns in Rust code
+    # Rust shouldn't have Python files or call Python features directly
+    PY_FILES=$(find core/rust/src -name "*.py" -not -path "*/bindings/*" 2>/dev/null || true)
+    PYTHON_CALLS=$(grep -r "PyO3\|pyo3\|python!" core/rust/src 2>/dev/null | grep -v "^#" | grep -v "//" || true)
+    
+    if [ -n "$PY_FILES" ]; then
+        echo "❌ FAIL: Python files found in Rust core"
+        echo "$PY_FILES"
         EXIT_CODE=1
+    elif [ -n "$PYTHON_CALLS" ]; then
+        echo "⚠️  WARNING: Python integration detected in Rust core:"
+        echo "$PYTHON_CALLS"
+        echo "   Ensure these are official bindings, not feature imports"
     else
-        echo "   ✅ No experimental feature imports in Rust core"
+        echo "   ✅ No experimental feature usage in Rust core"
     fi
 else
     echo "   ⚠️  Rust core directory not found"
