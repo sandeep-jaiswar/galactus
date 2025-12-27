@@ -150,8 +150,85 @@ Must be retired and documented.
 
 ---
 
+## Practical Implementation
+
+### Isolation Mechanisms
+
+To enforce these rules, Galactus provides:
+
+1. **Feature Package** (`research/python/src/features/`)
+   - Isolated Python package for feature exploration
+   - Automatic production environment blocking
+   - Mandatory isolation decorators
+
+2. **`@mark_experimental` Decorator**
+   - Enforces hypothesis documentation
+   - Tracks assumptions and failure modes
+   - Emits warnings on use
+   - Prevents production usage
+
+3. **FeatureIsolationContext**
+   - Context manager for safe feature usage
+   - Tracks feature usage
+   - Enforces environment checks
+
+### Usage Example
+
+```python
+from features.isolation import mark_experimental, FeatureIsolationContext
+
+@mark_experimental(
+    hypothesis="OI decay rate indicates forced position unwinding",
+    assumptions=[
+        "Clean derivatives data available",
+        "Sufficient liquidity (>1000 contracts)",
+        "Normal market regime"
+    ],
+    failure_modes=[
+        "False signals during expiry weeks",
+        "Sensitive to data quality",
+        "Fails in low volume"
+    ]
+)
+def compute_oi_decay_pressure(current_oi, previous_oi, time_delta):
+    """Compute capital pressure from OI decay patterns."""
+    # Feature implementation
+    total_decay = sum(
+        max(0, prev - current_oi.get(strike, 0))
+        for strike, prev in previous_oi.items()
+    )
+    total_build = sum(
+        max(0, current_oi.get(strike, 0) - prev)
+        for strike, prev in previous_oi.items()
+    )
+    total = total_decay + total_build
+    return (total_build - total_decay) / total if total > 0 else 0.0
+
+# Use the feature
+with FeatureIsolationContext() as ctx:
+    pressure = compute_oi_decay_pressure(current, previous, 1.0)
+```
+
+### Enforcement
+
+Features are enforced through:
+
+1. **Automatic blocking**: Production environment prevents feature imports
+2. **CI validation**: `scripts/validate_feature_isolation.sh`
+3. **Tests**: Comprehensive isolation mechanism tests
+4. **Documentation**: Example notebook and README
+
+See:
+- `research/python/src/features/README.md` - Usage guide
+- `research/python/notebooks/exploratory/feature-discovery-example.ipynb` - Examples
+- `research/python/tests/test_feature_isolation.py` - Tests
+
+---
+
 ## Final Statement
 
 **Features exist to clarify thinking, not to inflate models.**
 
 In Galactus, fewer features mean clearer inference.
+
+**Implementation**: Features are isolated in `research/python/src/features/` with enforced boundaries.
