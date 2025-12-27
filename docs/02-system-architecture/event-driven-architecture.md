@@ -53,7 +53,7 @@ While price tickers create the illusion of continuous motion, markets actually m
 - Options expire at specific times, forcing hedging adjustments
 - Index rebalancing happens at predetermined moments, creating forced flows
 - Liquidity evaporates at specific price levels, changing absorption capacity
-- Delivery obligations crystalize on settlement dates
+- Delivery obligations crystallize on settlement dates
 
 Between these events, much of the noise is just that—noise. Event-driven architecture focuses inference on moments that matter.
 
