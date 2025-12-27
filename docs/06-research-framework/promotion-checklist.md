@@ -14,6 +14,37 @@ Failure to satisfy **any single item** blocks promotion.
 
 ---
 
+## 🔒 Hard Gating Enforcement
+
+**This checklist is enforced as a HARD GATE through automated validation.**
+
+### Machine-Readable Format
+All promotions must include a completed checklist file in machine-readable YAML format:
+- **Location**: `research/python/promotions/YYYY-MM-DD-signal-name.yml`
+- **Template**: `research/python/promotions/TEMPLATE-promotion-checklist.yml`
+- **Format Specification**: [`promotion-checklist-format.md`](promotion-checklist-format.md)
+
+### Automated Validation
+The validation script `scripts/validate_checklist.sh` runs automatically in CI/CD:
+- ✅ **PASS**: All requirements met → Promotion may proceed
+- ❌ **FAIL**: Requirements not met → **Promotion BLOCKED**
+- ⚠️  **WARNING**: Some items need attention, but hard requirements met
+
+### Blocking Conditions
+Promotion is automatically blocked if:
+- Any checklist item status is `incomplete`
+- Evidence is missing for `complete` items
+- Required artifacts don't exist
+- Decision log entry is missing
+- Any required review is rejected or pending approval
+- Promotion status is inconsistent with reviews
+
+**There are NO exceptions. The gate is absolute.**
+
+See [`promotion-checklist-format.md`](promotion-checklist-format.md) for complete details on the machine-readable format and validation rules.
+
+---
+
 ## Promotion Scope
 
 This checklist applies to promotion of:
@@ -271,5 +302,86 @@ If promotion requires “we’ll refine later” → **Reject**
 
 **Promotion is not a reward.  
 It is a commitment to correctness under scrutiny.**
+
+Galactus promotes slowly so it can remain trusted forever.
+
+---
+
+## Enforcement and Validation
+
+### Automated Validation Process
+
+1. **Create Checklist File**
+   - Copy `research/python/promotions/TEMPLATE-promotion-checklist.yml`
+   - Rename to `YYYY-MM-DD-signal-name.yml`
+   - Fill all sections systematically
+
+2. **Complete Requirements**
+   - Mark items as `complete` with evidence
+   - Mark items as `not_applicable` with justification
+   - Ensure no items remain `incomplete`
+
+3. **Gather Artifacts**
+   - Create all required documentation
+   - Complete research notebooks
+   - Generate backtest results
+   - Design Rust implementation
+   - Define test specifications
+
+4. **Request Reviews**
+   - Notify all four required reviewers
+   - Address feedback and update checklist
+   - Obtain all approvals
+
+5. **Update Decision Log**
+   - Add entry to `docs/11-decision-log/decision-log.md`
+   - Set `entry_added: true` in checklist
+
+6. **Update Promotion Registry**
+   - Add entry to `research/python/promotions/PROMOTION-REGISTRY.md`
+   - Track promotion status
+
+7. **CI/CD Validation**
+   - Push changes to PR branch
+   - CI runs `scripts/validate_checklist.sh` automatically
+   - If validation passes → Proceed
+   - If validation fails → Fix issues and retry
+
+### Validation Script
+
+Run manual validation locally:
+```bash
+./scripts/validate_checklist.sh
+```
+
+The script checks:
+- ✓ YAML syntax validity
+- ✓ Required fields present
+- ✓ No incomplete items
+- ✓ Not applicable items justified
+- ✓ Evidence provided for complete items
+- ✓ All artifact files exist
+- ✓ Decision log entry added
+- ✓ All reviews approved
+- ✓ Status consistency
+
+**Exit code 0 = Pass, Non-zero = Fail (blocks merge)**
+
+### Related Documents
+
+- [`promotion-checklist-format.md`](promotion-checklist-format.md) — Machine-readable format specification
+- [`PROMOTION-REGISTRY.md`](../../research/python/promotions/PROMOTION-REGISTRY.md) — Track all promotions
+- [`research-methodology.md`](research-methodology.md) — Research discipline
+- [`signal-lifecycle.md`](../04-signal-and-metrics/signal-lifecycle.md) — Signal lifecycle stages
+- [`rust-python-boundary-enforcement.md`](../02-system-architecture/rust-python-boundary-enforcement.md) — Boundary enforcement
+
+---
+
+## Updated Final Statement
+
+**Promotion is not a reward.  
+It is a commitment to correctness under scrutiny.**
+
+**The hard gate ensures that commitment is never compromised.**
 
 Galactus promotes slowly so it can remain trusted forever.

@@ -32,6 +32,12 @@ jobs:
         run: |
           ./scripts/validate_promotion.sh
       
+      - name: Validate promotion checklist (HARD GATE)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔒 Running promotion checklist hard gate validation..."
+          ./scripts/validate_checklist.sh
+      
       - name: Report results
         if: always()
         run: |
