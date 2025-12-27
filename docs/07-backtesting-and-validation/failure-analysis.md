@@ -13,6 +13,19 @@ It exists to:
 Failure is not an exception in Galactus.  
 It is a signal.
 
+## Implementation
+
+The failure analysis framework is implemented in the Rust core at:
+**`core/rust/src/failure_analysis/`**
+
+The implementation provides:
+- **Structured categorization** of all failure types
+- **Complete documentation** of failure metadata
+- **Pattern detection** for repeated failures
+- **Learning loop** that feeds into research and signal refinement
+
+See module documentation for usage examples and API details.
+
 ---
 
 ## Core Belief
@@ -210,3 +223,60 @@ Confidence without humility is a bug.
 
 **Galactus improves not by being right often,  
 but by understanding clearly when it is wrong.**
+
+---
+
+## Using the Implementation
+
+The failure analysis framework is available as a Rust module in the production core.
+
+### Basic Usage
+
+```rust
+use galactus_core::failure_analysis::*;
+
+// Create an analyzer
+let mut analyzer = FailureAnalyzer::new();
+
+// Record a failure
+let failure = FailureRecord::new(
+    FailureCategory::DataFailure,
+    "Missing OI data for NSE FO".to_string(),
+    "Data provider API timeout".to_string(),
+    vec!["oi_signal".to_string(), "derivatives_pressure".to_string()],
+);
+analyzer.record_failure(failure);
+
+// Detect patterns
+let patterns = analyzer.detect_patterns();
+
+// Generate learning report
+let report = analyzer.generate_learning_report();
+```
+
+### Querying Failures
+
+```rust
+// Get failures by category
+let data_failures = analyzer.recorder().get_by_category(&FailureCategory::DataFailure);
+
+// Check for repeated failures
+if analyzer.has_repeated_failures("problematic_signal") {
+    // Take corrective action
+}
+
+// Check if component should be deprecated
+if analyzer.should_deprecate_component("bad_signal") {
+    // Trigger deprecation process
+}
+```
+
+### Integration Points
+
+The failure analysis framework integrates with:
+- **Research Framework**: Failures inform hypothesis generation
+- **Signal Lifecycle**: Repeated failures trigger signal deprecation
+- **Confidence System**: Failure patterns influence confidence degradation rules
+- **Documentation**: All failures must be documented with full context
+
+For complete API documentation, see: `core/rust/src/failure_analysis/mod.rs`
