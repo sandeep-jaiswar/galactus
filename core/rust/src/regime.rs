@@ -167,14 +167,15 @@ impl RegimeConfidence {
         self.score >= 0.8
     }
 
-    /// Returns true if confidence is uncertain (< 0.5)
+    /// Returns true if confidence is uncertain (< 0.4)
     pub fn is_uncertain(&self) -> bool {
-        self.score < 0.5
+        self.score < 0.4
     }
 
-    /// Returns true if confidence is ambiguous (0.4-0.6 range)
+    /// Returns true if confidence is ambiguous (0.4-0.7 range)
+    /// Ambiguous confidence should be treated cautiously but not rejected
     pub fn is_ambiguous(&self) -> bool {
-        self.score >= 0.4 && self.score <= 0.6
+        self.score >= 0.4 && self.score < 0.7
     }
 }
 
@@ -381,6 +382,15 @@ mod tests {
         assert!(!ambiguous.is_high());
         assert!(!ambiguous.is_uncertain());
         assert!(ambiguous.is_ambiguous());
+
+        // Edge cases
+        let boundary_low = RegimeConfidence::new(0.4);
+        assert!(!boundary_low.is_uncertain());
+        assert!(boundary_low.is_ambiguous());
+
+        let boundary_high = RegimeConfidence::new(0.7);
+        assert!(!boundary_high.is_ambiguous());
+        assert!(!boundary_high.is_high());
     }
 
     #[test]
