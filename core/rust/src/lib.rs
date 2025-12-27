@@ -23,10 +23,7 @@ pub mod regime {
     // Event-driven regime detection
 }
 
-pub mod confidence {
-    // Confidence and stability metrics
-    // Conservative confidence degradation
-}
+pub mod confidence;
 
 pub mod api {
     // External APIs (gRPC, HTTP)
