@@ -5,18 +5,28 @@
 This document defines the **backtesting guidelines** for Project Galactus.
 
 It exists to:
+- Define backtesting as structural validation, not profit evaluation
 - Prevent outcome-driven research
 - Avoid false confidence from historical artifacts
-- Ensure backtests measure structural validity, not profit
 - Preserve consistency between research and production
 
-Backtests are diagnostic tools, not proof engines.
+Backtests are diagnostic tools for validating structure, not proof engines for predicting outcomes.
+
+---
+
+## Definition
+
+**Backtesting in Galactus is structural validation.**
+
+It is **not** profit evaluation, performance optimization, or outcome prediction.
 
 ---
 
 ## Core Principle
 
-Backtesting does not prove that a signal will work.  
+Backtesting evaluates whether inference logic aligns with observable market structure and constraints.
+
+It does not prove that a signal will work.  
 It only tests whether a hypothesis is **structurally plausible and stable**.
 
 ---
@@ -31,7 +41,7 @@ Backtesting in Galactus may evaluate:
 - Timing alignment with known constraints
 - Failure behavior under stress
 
-Backtesting may **not** evaluate trading profitability as a primary goal.
+Backtesting must **not** evaluate trading profitability at all. Profit is not a validation metric.
 
 ---
 
