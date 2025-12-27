@@ -11,6 +11,8 @@ It exists to:
 
 When multiple solutions are technically valid, **the one that best aligns with these principles must be chosen**.
 
+**This document is locked.** See [`VISION_LOCK.md`](../../VISION_LOCK.md) for the immutability policy.
+
 ---
 
 ## Principle 1 — Determinism Is a Feature, Not an Implementation Detail

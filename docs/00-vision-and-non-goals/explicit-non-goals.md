@@ -11,6 +11,8 @@ It exists to:
 
 If a feature aligns with these non-goals, it must be rejected **without debate**.
 
+**This document is locked.** See [`VISION_LOCK.md`](../../VISION_LOCK.md) for the immutability policy and enforcement mechanisms.
+
 ---
 
 ## Why Non-Goals Matter

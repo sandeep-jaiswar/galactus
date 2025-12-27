@@ -11,6 +11,8 @@ It exists to:
 
 If a future decision contradicts this document, **the decision is wrong** unless this document is explicitly revised.
 
+**This document is locked.** See [`VISION_LOCK.md`](../../VISION_LOCK.md) for the immutability policy and formal revision process.
+
 ---
 
 ## One-Sentence Vision
