@@ -21,6 +21,10 @@ jobs:
         run: |
           ./scripts/check_boundaries.sh
       
+      - name: Validate feature isolation
+        run: |
+          ./scripts/validate_feature_isolation.sh
+      
       - name: Validate promotion process
         if: github.event_name == 'pull_request'
         env:
