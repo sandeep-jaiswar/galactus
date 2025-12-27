@@ -248,6 +248,249 @@ This decision should NOT be revisited due to:
 
 ---
 
+## Decision 003: Promotion of OI Decay Pressure Signal (2025-12-27)
+
+### Date
+2025-12-27
+
+### Decision
+Approve promotion of OI Decay Pressure signal from Python research to Rust production core.
+
+### Context
+- OI Decay Pressure identifies pressure from decaying open interest in futures contracts
+- Signal represents institutional position unwinding behavior
+- Maps directly to capital behavior theory in derivatives-dominant markets
+- All 20 research tests passing with comprehensive validation
+- Aligns with core vision of capital pressure inference
+
+### Alternatives Considered
+
+**Alternative 1: Wait for more historical data**
+- Collect 6+ months of additional validation data before promotion
+- Rejected because:
+  - Current statistical validation is already robust (p < 0.05)
+  - Signal has deterministic mathematical definition
+  - Walk-forward validation already implemented
+  - Delaying provides diminishing returns
+
+**Alternative 2: Deploy as experimental feature flag**
+- Keep in Python layer with feature flag for testing
+- Rejected because:
+  - Violates Rust vs Python boundary (production logic must be in Rust)
+  - Creates technical debt in deployment architecture
+  - Reduces performance (Python vs Rust execution)
+
+### Rationale
+- **Design Principle: Capital constraints drive markets** — OI decay directly captures institutional unwinding
+- **Design Principle: Determinism over cleverness** — Mathematical definition is deterministic and reproducible
+- **Market Theory: Derivatives dominance** — Futures OI is primary signal in Indian markets
+- Statistical rigor validated with 20 comprehensive test cases
+- Performance requirements met (< 100ms per computation)
+
+### Implementation
+- Add OI decay computation to `core/rust/src/features/`
+- Integrate with intent engine aggregation layer
+- Implement comprehensive Rust unit tests
+- Update monitoring dashboards for OI-based signals
+
+### Trade-offs and Consequences
+
+**Accepted Costs:**
+- Maintenance burden increases with additional production signal
+- Rust implementation requires careful numerical precision handling
+- Monitoring infrastructure needs OI-specific alerting
+
+**Benefits:**
+- First research signal successfully promoted through new framework
+- Validates promotion process and quality gates
+- Adds key institutional positioning signal to production
+- Demonstrates research-to-production pipeline
+
+### Success Metrics
+- Signal computation time < 10ms (target) vs 100ms (research)
+- Zero data quality issues in first 30 days
+- Correlation with research implementation > 0.99
+- No kill-switch activations due to signal anomalies
+
+### Revisit Conditions
+This decision should be revisited if:
+- Statistical significance drops below p < 0.05 in production
+- Correlation with capital behavior becomes unclear
+- OI data quality degrades systematically
+- Performance degrades below 50ms consistently
+
+### References
+- `research/python/src/features/oi_decay_research.py`
+- `research/python/tests/test_oi_decay_research.py`
+- `docs/01-market-theory/derivatives-dominance.md`
+- `docs/06-research-framework/promotion-checklist.md`
+
+---
+
+## Decision 004: Promotion of Hedge Pressure Signal (2025-12-27)
+
+### Date
+2025-12-27
+
+### Decision
+Approve promotion of Hedge Pressure signal from Python research to Rust production core.
+
+### Context
+- Hedge Pressure identifies directional bias from call-put OI imbalances
+- Reflects institutional hedging activity patterns vs retail positioning
+- Maps to capital behavior model for option market inefficiencies
+- All 21 research tests passing with statistical validation
+- Captures institutional vs retail dynamics critical to Indian markets
+
+### Alternatives Considered
+
+**Alternative 1: Combine with OI Decay into single signal**
+- Create unified derivatives pressure signal
+- Rejected because:
+  - Different mechanisms: OI decay is time-based, hedge pressure is strike-based
+  - Different failure modes and monitoring needs
+  - Violates single responsibility principle
+  - Reduces interpretability and explainability
+
+**Alternative 2: Deploy simplified version first**
+- Remove strike proximity weighting, use simple OI ratio
+- Rejected because:
+  - Strike proximity is essential for signal quality
+  - Simplified version tested poorly in research
+  - Would require re-promotion later for full version
+  - Research already validates complete implementation
+
+### Rationale
+- **Design Principle: Capital behavior is the primitive** — Call-put imbalance reveals hedging pressure
+- **Market Theory: Retail vs institutional dynamics** — Captures key market inefficiency
+- **Design Principle: Interpretability** — Clear explanation for each signal activation
+- Effect size validated across different market conditions
+- 21 comprehensive test cases with edge case coverage
+
+### Implementation
+- Add hedge pressure computation to `core/rust/src/features/`
+- Implement efficient option chain parsing in Rust
+- Integrate with intent engine for directional bias signals
+- Add option chain quality validation
+
+### Trade-offs and Consequences
+
+**Accepted Costs:**
+- Higher computational cost (< 150ms research, target < 50ms production)
+- Option chain data is larger and more complex than futures data
+- Strike filtering algorithms need careful optimization
+- Higher memory usage (< 100MB) compared to other signals
+
+**Benefits:**
+- Adds critical directional bias signal from options market
+- Complements OI decay with different market mechanism
+- Validates promotion process for complex data structures
+- Demonstrates option chain processing capability
+
+### Success Metrics
+- Signal computation time < 50ms
+- Memory usage < 100MB during option chain processing
+- Correlation with research implementation > 0.99
+- Strike filtering algorithm performance validated
+- Zero option chain parsing errors in first 30 days
+
+### Revisit Conditions
+This decision should be revisited if:
+- Option chain data quality degrades consistently
+- Computational cost exceeds 100ms regularly
+- Correlation with institutional positioning becomes unclear
+- Strike proximity weighting proves ineffective
+
+### References
+- `research/python/src/features/hedge_pressure_research.py`
+- `research/python/tests/test_hedge_pressure_research.py`
+- `docs/01-market-theory/retail-vs-institutional-dynamics.md`
+- `docs/06-research-framework/promotion-checklist.md`
+
+---
+
+## Decision 005: Promotion of Basis Pressure Signal (2025-12-27)
+
+### Date
+2025-12-27
+
+### Decision
+Approve promotion of Basis Pressure signal from Python research to Rust production core.
+
+### Context
+- Basis Pressure identifies arbitrage pressure from futures-spot basis divergence
+- Reveals arbitrage capital flows and market maker positioning
+- Maps to capital behavior through cost-of-carry relationships
+- All 21 research tests passing with high correlation (0.9978)
+- Critical for derivatives-dominant market understanding
+
+### Alternatives Considered
+
+**Alternative 1: Use simple basis without time decay**
+- Calculate raw futures-spot difference only
+- Rejected because:
+  - Ignores time-to-expiry effects (critical for basis)
+  - Research shows time decay adjustment improves signal quality
+  - Would miss arbitrage opportunities near expiry
+  - Not aligned with theoretical cost-of-carry model
+
+**Alternative 2: Wait for risk-free rate integration**
+- Delay until risk-free rate data source is available
+- Rejected because:
+  - Current approximation (zero rate) is acceptable for Indian markets
+  - Perfect is enemy of good — can enhance later
+  - Statistical validation already robust without it
+  - Risk-free rate adjustments are second-order effects
+
+### Rationale
+- **Market Theory: Derivatives dominance** — Basis reflects arbitrage efficiency
+- **Design Principle: Determinism** — Mathematical cost-of-carry model is deterministic
+- **Capital Behavior: Arbitrage flows** — Basis divergence reveals capital constraints
+- Target vs computed correlation: 0.9978 (excellent)
+- High-precision mathematical computations validated
+
+### Implementation
+- Add basis pressure computation to `core/rust/src/features/`
+- Implement high-precision floating point basis calculations
+- Integrate futures-spot data synchronization
+- Add time-to-expiry calculations with proper date handling
+
+### Trade-offs and Consequences
+
+**Accepted Costs:**
+- Requires synchronization of futures and spot data (complexity)
+- Time-to-expiry calculations need accurate calendar handling
+- Risk-free rate initially approximated (enhancement needed later)
+- Cross-validates futures vs spot price relationships (overhead)
+
+**Benefits:**
+- Captures key arbitrage inefficiency signal
+- Validates multi-data-source signal promotion
+- Demonstrates high-precision computation capability
+- Critical signal for derivatives market understanding
+
+### Success Metrics
+- Signal computation time < 25ms
+- Memory usage < 25MB
+- Correlation with research implementation > 0.995
+- Futures-spot synchronization errors < 0.1%
+- Basis anomaly detection operational
+
+### Revisit Conditions
+This decision should be revisited if:
+- Futures-spot data synchronization becomes unreliable
+- Risk-free rate effects prove material (> 5% impact)
+- Basis calculation precision degrades
+- Arbitrage relationship breaks down systematically
+
+### References
+- `research/python/src/features/basis_pressure_research.py`
+- `research/python/tests/test_basis_pressure_research.py`
+- `docs/01-market-theory/capital-behavior-model.md`
+- `docs/06-research-framework/promotion-checklist.md`
+
+---
+
 # Decision Log Template
 
 The following sections define the template for future decision log entries.
