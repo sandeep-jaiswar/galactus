@@ -130,7 +130,7 @@ To distinguish transient noise from structural conditions.
 **These five categories are exhaustive and exclusive.**
 
 - **Constraint**: Binding constraints on capital
-- **Pressure**: Required or incentivized capital action  
+- **Pressure**: Required or incentivized capital action
 - **Imbalance**: Asymmetry between opposing forces
 - **Liquidity**: Absorption capacity
 - **Stability**: Persistence or fragility of conditions
