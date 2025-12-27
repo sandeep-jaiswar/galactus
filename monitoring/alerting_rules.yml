@@ -1,0 +1,143 @@
+# Galactus Alerting Rules
+# Prometheus alerting rules for production monitoring
+
+groups:
+  - name: galactus_health
+    interval: 30s
+    rules:
+      # Service Health
+      - alert: GalactusServiceDown
+        expr: up{job="galactus"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: core
+        annotations:
+          summary: "Galactus service is down"
+          description: "Galactus service has been down for more than 1 minute"
+
+      - alert: GalactusHighErrorRate
+        expr: rate(galactus_inference_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "High error rate in inference operations"
+          description: "Inference error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+  - name: galactus_data_quality
+    interval: 30s
+    rules:
+      # Data Quality
+      - alert: GalactusLowDataQuality
+        expr: galactus_data_quality_score < 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: data_ingestion
+        annotations:
+          summary: "Low data quality detected"
+          description: "Data quality score is {{ $value }}, below threshold of 0.5"
+
+      - alert: GalactusCriticalDataQuality
+        expr: galactus_data_quality_score < 0.3
+        for: 2m
+        labels:
+          severity: critical
+          component: data_ingestion
+        annotations:
+          summary: "Critical data quality issue"
+          description: "Data quality score is {{ $value }}, below critical threshold of 0.3"
+
+      - alert: GalactusDataIngestionStalled
+        expr: rate(galactus_data_events_processed_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: critical
+          component: data_ingestion
+        annotations:
+          summary: "Data ingestion has stalled"
+          description: "No data events have been processed in the last 10 minutes"
+
+  - name: galactus_inference
+    interval: 30s
+    rules:
+      # Inference Quality
+      - alert: GalactusLowConfidence
+        expr: galactus_confidence_score < 0.3
+        for: 15m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "Sustained low confidence in inferences"
+          description: "Confidence score is {{ $value }}, below 0.3 for 15 minutes"
+
+      - alert: GalactusHighSilenceRate
+        expr: rate(galactus_silence_suppressions_total[10m]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "High rate of silence suppressions"
+          description: "Silence suppression rate is {{ $value | humanizePercentage }}"
+
+      - alert: GalactusInferenceLatency
+        expr: histogram_quantile(0.95, rate(galactus_inference_latency_seconds_bucket[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "High inference latency"
+          description: "95th percentile latency is {{ $value }}s, above 1 second threshold"
+
+  - name: galactus_stability
+    interval: 30s
+    rules:
+      # System Stability
+      - alert: GalactusLowStability
+        expr: galactus_stability_score < 0.4
+        for: 15m
+        labels:
+          severity: warning
+          component: inference
+        annotations:
+          summary: "Low stability score"
+          description: "Stability score is {{ $value }}, below 0.4 for 15 minutes"
+
+      - alert: GalactusRegimeTransitions
+        expr: rate(galactus_regime_transitions_total[10m]) > 5
+        for: 5m
+        labels:
+          severity: info
+          component: regime_detection
+        annotations:
+          summary: "Frequent regime transitions detected"
+          description: "Regime is transitioning frequently ({{ $value }} per minute)"
+
+  - name: galactus_resources
+    interval: 30s
+    rules:
+      # Resource Utilization
+      - alert: GalactusHighMemoryUsage
+        expr: process_resident_memory_bytes{job="galactus"} > 2e9
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanize1024 }}, above 2GB threshold"
+
+      - alert: GalactusHighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="galactus"}[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
