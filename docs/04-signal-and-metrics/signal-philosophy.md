@@ -40,6 +40,71 @@ Any metric that implies action without context is invalid.
 
 ---
 
+## Explicit Rejections
+
+Galactus **explicitly rejects** the following classes of signals:
+
+### 1. Indicator-Based Signals
+
+**Rejected:**
+- RSI-based signals
+- MACD crossovers
+- Moving average crosses (SMA, EMA)
+- Bollinger Band touches
+- Stochastic oscillators
+- Any traditional technical indicator used as a primary signal
+
+**Rationale:**  
+Indicators describe price outcomes, not capital constraints. They collapse diverse capital dynamics into a single dimension and encourage reactive rather than structural interpretation.
+
+### 2. Predictive Signals
+
+**Rejected:**
+- Price forecasts or predictions
+- Target price estimates
+- Return probability distributions
+- Time-series extrapolations
+- Pattern-based future projections
+- Confidence intervals for price outcomes
+
+**Rationale:**  
+Galactus infers pressure, not outcomes. Price prediction obscures causal structure and creates false confidence. Predicting "what will happen" is fundamentally outside scope.
+
+### 3. Price-Derived Signals
+
+**Rejected:**
+- Signals derived purely from historical price
+- Rate-of-change indicators (price-only)
+- Price momentum signals
+- Trend strength measures based on price alone
+- Price pattern recognition outputs
+
+**Rationale:**  
+Price is a consequence of capital behavior, not a cause. Price-derived signals lack grounding in structural constraints and fail to explain *why* capital must act.
+
+### 4. Black-Box Signals
+
+**Rejected:**
+- Uninterpretable ML model outputs
+- Neural network embeddings without explanation
+- Proprietary "alpha scores" without decomposition
+- Opaque composite metrics
+
+**Rationale:**  
+Every signal must be explainable in terms of capital behavior and constraints. Black-box outputs violate the fundamental explainability requirement.
+
+### Enforcement
+
+Any signal that:
+- Falls into these rejected categories
+- Cannot articulate which capital is constrained and why
+- Requires prediction of future outcomes
+- Depends solely on price history
+
+**Must be rejected, regardless of historical performance.**
+
+---
+
 ## Signal Primitives
 
 All valid signals must be reducible to one or more of the following primitives:
