@@ -25,7 +25,7 @@ requests = "^2.31"
 
 [tool.poetry.group.dev.dependencies]
 # Development tools
-# pytest = "^7.3"
+pytest = "^7.3"
 # black = "^23.3"
 # mypy = "^1.3"
 

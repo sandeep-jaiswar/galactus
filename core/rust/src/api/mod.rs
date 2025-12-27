@@ -37,10 +37,14 @@
 pub mod grpc;
 pub mod http;
 pub mod types;
+pub mod health;
+pub mod metrics;
 
 // Re-export main types for convenience
 pub use grpc::IntentService as GrpcIntentService;
 pub use http::IntentApi as HttpIntentApi;
+pub use health::{HealthChecker, HealthCheckResponse};
+pub use metrics::MetricsCollector;
 
 // Core types for API communication
 use std::collections::HashMap;
