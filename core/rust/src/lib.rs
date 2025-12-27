@@ -22,6 +22,8 @@ pub mod regime;
 
 pub mod confidence;
 
+pub mod stress_scenarios;
+
 pub mod api {
     // External APIs (gRPC, HTTP)
     // Interface for external consumers
