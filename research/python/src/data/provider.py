@@ -13,6 +13,7 @@ Features:
 """
 
 import warnings
+import time
 from typing import Dict, List, Optional, Tuple, Any
 from datetime import datetime, timedelta
 from dataclasses import dataclass
@@ -150,8 +151,6 @@ class DataQualityValidator:
             else:
                 return 0.2
 
-        return 0.5
-
     @staticmethod
     def validate_volume_data(volume: int) -> float:
         """Validate volume data quality."""
@@ -159,10 +158,7 @@ class DataQualityValidator:
             return 0.0
 
         # Volume should be reasonable
-        if volume >= 0:
-            return 0.8 if volume > 100 else 0.6
-
-        return 0.3
+        return 0.8 if volume > 100 else 0.6
 
     @staticmethod
     def validate_timestamp(timestamp: datetime) -> float:
@@ -272,14 +268,13 @@ class GalactusDataProvider:
 
     def _retry_operation(self, operation, *args, **kwargs):
         """Retry an operation with exponential backoff."""
-        import time
 
         for attempt in range(MAX_RETRY_ATTEMPTS):
             try:
                 return operation(*args, **kwargs)
             except Exception as e:
                 if attempt == MAX_RETRY_ATTEMPTS - 1:
-                    raise e
+                    raise
                 time.sleep(RETRY_DELAY_SECONDS * (2**attempt))
 
     def get_market_status(self) -> Dict[str, Any]:
@@ -481,7 +476,7 @@ class GalactusDataProvider:
                         expiry_str = contract.get("expiryDate", "")
                         try:
                             expiry_date = datetime.strptime(expiry_str, "%d-%b-%Y")
-                        except:
+                        except (ValueError, TypeError):
                             expiry_date = datetime.now() + timedelta(days=30)
 
                         # Get spot price
@@ -533,7 +528,7 @@ class GalactusDataProvider:
             if expiry_dates:
                 try:
                     expiry_date = datetime.strptime(expiry_dates[0], "%d-%b-%Y")
-                except:
+                except (ValueError, TypeError):
                     expiry_date = datetime.now() + timedelta(days=30)
             else:
                 expiry_date = datetime.now() + timedelta(days=30)
@@ -710,7 +705,7 @@ class GalactusDataProvider:
                     expiry_str = option.get("expiryDate", "")
                     try:
                         expiry_date_parsed = datetime.strptime(expiry_str, "%d-%b-%Y")
-                    except:
+                    except (ValueError, TypeError):
                         expiry_date_parsed = None
 
                     option_data = OptionData(

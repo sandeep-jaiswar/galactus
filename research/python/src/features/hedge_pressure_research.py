@@ -104,7 +104,7 @@ def compute_hedge_pressure(
 
     # Input validation
     if not isinstance(calls_oi, dict) or not isinstance(puts_oi, dict):
-        raise ValueError("OI data must be dictionaries mapping strike to quantity")
+        raise TypeError("OI data must be dictionaries mapping strike to quantity")
 
     if not isinstance(spot_price, (int, float)) or spot_price <= 0:
         raise ValueError("Spot price must be a positive number")
@@ -117,7 +117,8 @@ def compute_hedge_pressure(
 
     if len(all_strikes) < config.min_strikes:
         warnings.warn(
-            f"Insufficient strike data: {len(all_strikes)} strikes, min={config.min_strikes}"
+            f"Insufficient strike data: {len(all_strikes)} strikes, min={config.min_strikes}",
+            stacklevel=2
         )
         return HedgePressureResult(
             pressure=0.0,

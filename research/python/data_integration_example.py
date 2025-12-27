@@ -140,10 +140,6 @@ def demonstrate_data_integration():
 
     except Exception as e:
         print(f"  Error computing basis pressure: {e}")
-        print(f"  Velocity: {basis_result.velocity:.3f}")
-
-    except Exception as e:
-        print(f"  Error computing basis pressure: {e}")
 
     # Show market turnover data
     print("\nMarket Turnover Data:")
