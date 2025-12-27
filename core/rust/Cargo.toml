@@ -11,6 +11,9 @@ license = "TBD"
 
 [dependencies]
 # Core functionality (to be added as needed after promotion)
+chrono = { version = "0.4", features = ["serde"] }  # Date/time handling for events
+serde = { version = "1.0", features = ["derive"] }  # Serialization for data structures
+
 # serde = { version = "1.0", features = ["derive"] }  # Serialization
 # tokio = { version = "1", features = ["full"] }      # Async runtime
 # polars = "0.35"                                      # Data processing

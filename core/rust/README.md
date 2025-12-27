@@ -18,6 +18,35 @@ It is responsible for:
 
 ---
 
+## Implementation Status
+
+### ✅ Completed Components
+
+| Component | Status | Description |
+|-----------|--------|-------------|
+| **Data Schemas** | ✅ Implemented | Canonical event structures, payload types, schema versioning |
+| **Data Ingestion** | ✅ Implemented | Validation, normalization, quality assessment pipeline |
+| **Regime Classification** | ✅ Implemented | Liquidity, volatility, derivatives dominance, time constraints |
+| **Confidence & Stability** | ✅ Implemented | Multi-dimensional confidence scoring, stability indicators |
+| **Failure Analysis** | ✅ Implemented | Structured failure categorization and recording |
+| **Stress Scenarios** | ✅ Implemented | Framework for robustness testing under extreme conditions |
+
+### 🔄 In Progress
+
+| Component | Status | Next Steps |
+|-----------|--------|------------|
+| **Feature Computation** | 📝 Placeholder | Await promoted signals from research |
+| **Intent Engine** | 📝 Placeholder | Core inference logic (depends on features) |
+| **API Interfaces** | 📝 Placeholder | gRPC/HTTP endpoints for external consumption |
+
+### 📋 Ready for Promotion
+
+- Research features must complete the [promotion checklist](../../docs/06-research-framework/promotion-checklist.md)
+- All promoted features will be implemented here with full determinism guarantees
+- Current infrastructure supports immediate feature promotion
+
+---
+
 ## What Belongs Here
 
 ### Allowed Content
