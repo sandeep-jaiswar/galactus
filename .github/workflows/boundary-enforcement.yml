@@ -2,9 +2,9 @@ name: Boundary Enforcement
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ production ]
   push:
-    branches: [ main ]
+    branches: [ production ]
 
 jobs:
   check-boundaries:
