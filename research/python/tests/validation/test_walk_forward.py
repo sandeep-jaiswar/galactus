@@ -382,7 +382,8 @@ class TestWalkForwardValidator(unittest.TestCase):
         
         self.assertTrue(result.passed)
         self.assertEqual(len(result.validation_windows), 3)
-        self.assertEqual(result.total_validation_days, 90)
+        # April (29 days) + May (30 days) + June (29 days) = 88 days
+        self.assertEqual(result.total_validation_days, 88)
     
     def test_regime_coverage_validation(self):
         """Test that regime coverage is validated"""

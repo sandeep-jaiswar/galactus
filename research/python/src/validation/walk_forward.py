@@ -119,6 +119,7 @@ class ValidationResult:
     training_window: ValidationWindow
     validation_windows: List[ValidationWindow]
     window_results: List[WindowResult]
+    started_at: datetime
     
     # Aggregate assessment
     passed: bool
@@ -126,7 +127,6 @@ class ValidationResult:
     warnings: List[str] = field(default_factory=list)
     
     # Metadata
-    started_at: datetime
     completed_at: Optional[datetime] = None
     documentation: Optional[str] = None
     

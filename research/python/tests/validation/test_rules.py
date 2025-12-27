@@ -128,13 +128,13 @@ class TestLogicFreezeValidator(unittest.TestCase):
     
     def test_threshold_tolerance(self):
         """Test numerical tolerance for thresholds"""
-        # Within tolerance
+        # Exceeds tolerance - difference is 1e-9, tolerance is 1e-10
         violation = self.validator.check_threshold_change(
-            "threshold1", 0.5, 0.5 + 1e-12, tolerance=1e-10
+            "threshold1", 0.5, 0.5 + 1e-9, tolerance=1e-10
         )
-        self.assertIsNotNone(violation)  # Still exceeds tolerance
+        self.assertIsNotNone(violation)  # Exceeds tolerance
         
-        # Within larger tolerance
+        # Within tolerance - difference is 1e-12, tolerance is 1e-6
         violation = self.validator.check_threshold_change(
             "threshold1", 0.5, 0.5 + 1e-12, tolerance=1e-6
         )
