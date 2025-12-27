@@ -145,6 +145,35 @@ See **[`docs/02-system-architecture/rust-vs-python-contract.md`](docs/02-system-
 
 ---
 
+## Development Roadmap
+
+### ✅ **Completed (Q4 2024)**
+- **Architecture Foundation**: Rust/Python boundary enforcement implemented
+- **Data Layer**: Canonical schemas, ingestion pipeline, and validation
+- **Core Frameworks**: Regime classification, confidence assessment, failure analysis, stress scenarios
+- **Research Framework**: Experiment templates, promotion checklists, validation tools
+
+### 🔄 **Current Phase (Q1 2025): Signal Development**
+- **Research Experiments**: Validate OI decay, hedge pressure, and basis signals
+- **Signal Promotion**: Move first validated signal to production Rust core
+- **Intent Engine**: Implement core inference logic
+
+### 🎯 **Next Phase (Q2 2025): Production Infrastructure**
+- **API Layer**: gRPC/HTTP interfaces for external consumers
+- **Monitoring**: Production observability and alerting
+- **State Management**: Intent vector persistence and querying
+
+### 📋 **Active Issues**
+See **[`UPCOMING_TASKS.md`](UPCOMING_TASKS.md)** for detailed implementation roadmap and **[`issues/`](issues/)** for specific task definitions.
+
+**Priority Order:**
+1. Research signal validation and promotion
+2. Intent engine core implementation  
+3. API layer and external interfaces
+4. Monitoring and operational readiness
+
+---
+
 ## Success Criteria
 
 Galactus is successful if:
