@@ -93,8 +93,10 @@ pub fn has_critical_degradation(
     stability: &StabilityIndicator,
 ) -> bool {
     // Any component below critical threshold
+    // Note: These thresholds are different from silence thresholds
+    // They indicate early warning signs of degradation
     confidence.components.data_quality < 0.30
-        || confidence.components.structural_alignment < 0.20
+        || confidence.components.structural_alignment < 0.30
         || confidence.components.regime_consistency < 0.30
         || confidence.components.signal_agreement < 0.30
         || stability.components.temporal < 0.20

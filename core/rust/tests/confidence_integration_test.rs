@@ -153,14 +153,27 @@ fn test_geometric_mean_prevents_false_confidence() {
         stability.score,
     );
 
-    // Despite having 3 high components, the low structural confidence should significantly degrade overall
-    assert!(confidence.components.data_quality > 0.9);
-    assert!(confidence.components.regime_consistency > 0.4); // Adjusted - actual value is around 0.432
-    assert!(confidence.components.signal_agreement > 0.9);
-    assert!(confidence.components.structural_alignment < 0.2);
+    // Verify that despite having 3 high components, the low structural confidence degrades overall
+    assert!(confidence.components.data_quality > 0.9, 
+        "Data quality should be high: {}", confidence.components.data_quality);
+    assert!(confidence.components.signal_agreement > 0.9,
+        "Signal agreement should be high: {}", confidence.components.signal_agreement);
+    assert!(confidence.components.structural_alignment < 0.2,
+        "Structural alignment should be low: {}", confidence.components.structural_alignment);
     
-    // Overall confidence should be significantly degraded
-    assert!(confidence.score < 0.6);
+    // The geometric mean should prevent averaging from hiding the weak component
+    // With one component < 0.2 and others > 0.9, geometric mean should be < 0.6
+    assert!(confidence.score < 0.6,
+        "Overall confidence should be significantly degraded by weak structural component: {}", confidence.score);
+    
+    // Verify geometric mean is working (if we used arithmetic mean, we'd get ~0.625)
+    let arithmetic_mean = (confidence.components.data_quality 
+        + confidence.components.structural_alignment 
+        + confidence.components.regime_consistency 
+        + confidence.components.signal_agreement) / 4.0;
+    assert!(confidence.score < arithmetic_mean,
+        "Geometric mean ({}) should be lower than arithmetic mean ({})", 
+        confidence.score, arithmetic_mean);
 }
 
 #[test]

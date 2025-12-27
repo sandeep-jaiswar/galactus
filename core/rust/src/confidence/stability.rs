@@ -117,6 +117,9 @@ pub fn compute_regime_stability(input: &RegimeStabilityInput) -> f64 {
     regime_coherence * boundary_predictability
 }
 
+/// Number of stability components
+const STABILITY_COMPONENTS: usize = 3;
+
 /// Compute overall stability using geometric mean
 ///
 /// Formula:
@@ -126,7 +129,7 @@ pub fn compute_regime_stability(input: &RegimeStabilityInput) -> f64 {
 /// significantly degrades overall scores.
 pub fn compute_overall_stability(components: &StabilityComponents) -> f64 {
     let product = components.temporal * components.sensitivity * components.regime;
-    product.powf(1.0 / 3.0) // Cube root for 3 components
+    product.powf(1.0 / STABILITY_COMPONENTS as f64)
 }
 
 /// Build complete stability assessment

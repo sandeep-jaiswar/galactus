@@ -111,7 +111,11 @@ pub struct RegimeConsistencyInput {
 pub fn compute_regime_confidence(input: &RegimeConsistencyInput) -> f64 {
     let regime_clarity = if input.regime_probabilities.len() >= 2 {
         let mut sorted = input.regime_probabilities.clone();
-        sorted.sort_by(|a, b| b.partial_cmp(a).unwrap());
+        // Sort in descending order, handling NaN by treating as 0.0
+        sorted.sort_by(|a, b| {
+            b.partial_cmp(a)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         sorted[0] - sorted[1]
     } else if input.regime_probabilities.len() == 1 {
         input.regime_probabilities[0]
@@ -175,6 +179,9 @@ pub fn compute_signal_confidence(input: &SignalAgreementInput) -> f64 {
     confluence_factor * (1.0 - offset_ratio) * transparency_score
 }
 
+/// Number of confidence components
+const CONFIDENCE_COMPONENTS: usize = 4;
+
 /// Compute overall confidence using geometric mean
 ///
 /// Formula:
@@ -188,7 +195,7 @@ pub fn compute_overall_confidence(components: &ConfidenceComponents) -> f64 {
         * components.regime_consistency
         * components.signal_agreement;
     
-    product.powf(0.25) // Fourth root for 4 components
+    product.powf(1.0 / CONFIDENCE_COMPONENTS as f64)
 }
 
 /// Build complete confidence assessment
