@@ -15,6 +15,41 @@ When multiple solutions are technically valid, **the one that best aligns with t
 
 ---
 
+
+## Non-Negotiable Core Principles
+
+The following five principles form the **immutable foundation** of Galactus. They are locked, permanent, and absolute. No feature, optimization, or commercial pressure may override them.
+
+### 1. Determinism
+Same inputs **must always** produce same outputs. No hidden state, no time-dependent behavior, no unexplained variance. This is non-negotiable.
+
+### 2. Explainability
+Every output **must** be explainable in market-structure terms. If it cannot be explained clearly to a knowledgeable analyst, it is invalid—regardless of performance.
+
+### 3. Capital Behavior Grounding
+All signals **must** derive from capital behavior primitives (forced flows, liquidity constraints, derivative positioning, structural mechanics). Statistical coincidence is not acceptable.
+
+### 4. Conservative Confidence Handling
+Confidence levels **must** degrade gracefully under uncertainty. Overconfidence is a failure mode. When evidence weakens, outputs must reflect reduced certainty—never mask uncertainty with false precision.
+
+### 5. Silence Over False Precision
+Producing "no meaningful inference" is preferable to producing confident nonsense. Galactus **must** remain silent when structural evidence is insufficient. Most market time contains no exploitable signal—this is expected and acceptable.
+
+---
+
+**These five principles override all other considerations.**
+
+They cannot be:
+- Temporarily suspended
+- Reinterpreted for convenience
+- Traded off against performance
+- Compromised for commercial reasons
+
+Any proposal that violates these principles **must be rejected immediately**.
+
+---
+
+
 ## Principle 1 — Determinism Is a Feature, Not an Implementation Detail
 
 Galactus prioritizes deterministic behavior over all other technical qualities.
@@ -103,6 +138,15 @@ Galactus prefers:
 - Fewer signals over many marginal ones
 
 A signal that works “most of the time” but fails catastrophically is inferior to one that works modestly but consistently.
+
+**Conservative Confidence Implementation**  
+Confidence metrics must degrade smoothly as:
+- Data quality weakens
+- Market regime becomes ambiguous
+- Structural assumptions become questionable
+- Historical precedent becomes sparse
+
+Never maintain high confidence when evidence weakens. False precision is a critical failure mode.
 
 ---
 
