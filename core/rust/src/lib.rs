@@ -18,10 +18,7 @@ pub mod intent {
     // Deterministic capital pressure inference
 }
 
-pub mod regime {
-    // Regime classification
-    // Event-driven regime detection
-}
+pub mod regime;
 
 pub mod confidence {
     // Confidence and stability metrics
