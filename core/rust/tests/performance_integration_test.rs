@@ -135,21 +135,23 @@ fn test_failure_analysis_scalability() {
 #[test]
 fn test_stress_scenario_evaluation_performance() {
     // Test stress scenario evaluation performance
+    use galactus_core::stress_scenarios::{StressScenarioCategory, StressSeverity};
+    
     let scenario = StressScenario::new(
-        "market_crash".to_string(),
-        "Rapid market decline".to_string(),
-        vec![
-            StressCondition::DataDelay { seconds: 600.0 },
-            StressCondition::VolatilitySpike { multiplier: 3.0 },
-            StressCondition::LiquidityDrain { reduction_pct: 0.7 },
-        ],
+        StressScenarioCategory::VolatilityShock,
+        StressSeverity::Severe,
+        "Rapid market decline with high volatility".to_string(),
+        1234567890,
+        true,
     );
 
     let start = Instant::now();
 
     // Evaluate scenario multiple times
     for _ in 0..100 {
-        let _impact = scenario.evaluate_impact();
+        // Check if should suppress
+        let _should_suppress = scenario.should_suppress_inference();
+        let _is_critical = scenario.is_critical();
     }
 
     let duration = start.elapsed();
