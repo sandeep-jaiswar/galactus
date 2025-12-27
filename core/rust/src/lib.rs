@@ -3,10 +3,8 @@
 
 // Example structure - to be implemented according to promotion process
 
-pub mod ingestion {
-    // Data ingestion and normalization
-    // TODO: Implement after research validation
-}
+pub mod data;
+pub mod ingestion;
 
 pub mod features {
     // Promoted feature computation
