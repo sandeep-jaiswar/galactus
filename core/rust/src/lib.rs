@@ -22,6 +22,8 @@ pub mod regime;
 
 pub mod confidence;
 
+pub mod failure_analysis;
+
 pub mod api {
     // External APIs (gRPC, HTTP)
     // Interface for external consumers
