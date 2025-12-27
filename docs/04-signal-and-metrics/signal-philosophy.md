@@ -237,6 +237,8 @@ Signals progress through stages:
 4. Monitored (production)
 5. Deprecated (sunset)
 
+For the complete lifecycle definition with transition criteria, see [`signal-lifecycle.md`](signal-lifecycle.md).
+
 Lifecycle management is mandatory.
 
 ---
