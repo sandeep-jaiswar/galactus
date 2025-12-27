@@ -139,12 +139,16 @@ jupyter = "^1.0"
 Before any logic moves from Python to Rust:
 
 #### Mandatory Artifacts
-1. ✅ **Completed promotion checklist** ([link](../../06-research-framework/promotion-checklist.md))
+1. ✅ **Completed promotion checklist in YAML format** ([format spec](../../06-research-framework/promotion-checklist-format.md))
+   - File: `research/python/promotions/YYYY-MM-DD-signal-name.yml`
+   - All items marked `complete` or `not_applicable` (with justification)
+   - All evidence paths verified
 2. ✅ **Economic rationale document** (Why this signal?)
 3. ✅ **Empirical validation report** (Backtests across regimes)
-4. ✅ **Failure mode documentation** (Known ways it breaks)
+4. ✅ **Failure mode documentation** (Known ways it breaks - minimum 3 scenarios)
 5. ✅ **Rust implementation specification** (Interface and tests)
 6. ✅ **Decision log entry** (Documented approval)
+7. ✅ **All artifacts referenced in checklist must exist**
 
 #### Review Process
 1. Research lead validates methodology
@@ -152,7 +156,14 @@ Before any logic moves from Python to Rust:
 3. Security reviewer checks for vulnerabilities
 4. Final approval from maintainer
 
-If any artifact is missing → **Promotion blocked**
+**All four reviews must be `approved` in the checklist file.**
+
+#### Automated Validation
+- CI/CD runs `scripts/validate_checklist.sh` on every PR
+- Validation failures block merge
+- No exceptions allowed
+
+If any artifact is missing → **Promotion blocked by CI**
 
 ### Promotion Workflow
 
@@ -161,23 +172,42 @@ If any artifact is missing → **Promotion blocked**
       ↓
 [Hypothesis Validated?] → No → Back to Research
       ↓ Yes
-[Promotion Checklist Complete?] → No → Block
+[Create Promotion Checklist YAML] → research/python/promotions/YYYY-MM-DD-name.yml
+      ↓
+[Complete All Checklist Items?] → No → Block
       ↓ Yes
-[Documentation Updated?] → No → Block
+[All Artifacts Created?] → No → Block
       ↓ Yes
-[Rust Spec Defined?] → No → Block
+[Update Decision Log?] → No → Block
       ↓ Yes
-[Implementation Review] → Fail → Block
+[Request Reviews] → All 4 reviewers
+      ↓
+[All Reviews Approved?] → No → Block
+      ↓ Yes
+[Run validate_checklist.sh] → Fail → Block (Fix and retry)
       ↓ Pass
+[Promotion Status: Approved]
+      ↓
+[Rust Implementation]
+      ↓
+[Tests Pass?] → No → Fix
+      ↓ Yes
+[Update Promotion Registry]
+      ↓
 [Rust Production]
 ```
 
 ### Enforcement
 
 - No direct commits from research to production
-- All promotions tracked in decision log
-- Checklist must be in pull request description
+- All promotions tracked in decision log **and** promotion registry
+- Machine-readable checklist YAML file **required** for all promotions
+- Automated validation via `scripts/validate_checklist.sh` (runs in CI)
 - Missing artifacts automatically fail CI
+- Incomplete checklist items block merge
+- Unapproved reviews block merge
+
+**Hard gate: CI fails if `validate_checklist.sh` returns non-zero exit code.**
 
 ---
 
@@ -195,10 +225,8 @@ find research/python -name "*.rs" && echo "FAIL: Rust in Python" && exit 1
 # Check 3: Rust code has tests
 ./scripts/check_rust_coverage.sh || exit 1
 
-# Check 4: Promotion checklist reference in PR
-if [[ -n "$PROMOTION_PR" ]]; then
-    grep -q "promotion-checklist.md" PR_DESCRIPTION || echo "FAIL: Missing checklist" && exit 1
-fi
+# Check 4: Promotion checklist validation (HARD GATE)
+./scripts/validate_checklist.sh || exit 1
 ```
 
 ### CI Pipeline Stages
@@ -207,6 +235,7 @@ fi
 - Verify directory structure integrity
 - Check for cross-contamination
 - Validate file naming conventions
+- **Validate promotion checklists (hard gate)**
 
 #### Stage 2: Rust Production Checks
 - Determinism validation (no rand without seed)

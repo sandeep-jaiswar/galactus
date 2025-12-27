@@ -304,3 +304,84 @@ If promotion requires “we’ll refine later” → **Reject**
 It is a commitment to correctness under scrutiny.**
 
 Galactus promotes slowly so it can remain trusted forever.
+
+---
+
+## Enforcement and Validation
+
+### Automated Validation Process
+
+1. **Create Checklist File**
+   - Copy `research/python/promotions/TEMPLATE-promotion-checklist.yml`
+   - Rename to `YYYY-MM-DD-signal-name.yml`
+   - Fill all sections systematically
+
+2. **Complete Requirements**
+   - Mark items as `complete` with evidence
+   - Mark items as `not_applicable` with justification
+   - Ensure no items remain `incomplete`
+
+3. **Gather Artifacts**
+   - Create all required documentation
+   - Complete research notebooks
+   - Generate backtest results
+   - Design Rust implementation
+   - Define test specifications
+
+4. **Request Reviews**
+   - Notify all four required reviewers
+   - Address feedback and update checklist
+   - Obtain all approvals
+
+5. **Update Decision Log**
+   - Add entry to `docs/11-decision-log/decision-log.md`
+   - Set `entry_added: true` in checklist
+
+6. **Update Promotion Registry**
+   - Add entry to `research/python/promotions/PROMOTION-REGISTRY.md`
+   - Track promotion status
+
+7. **CI/CD Validation**
+   - Push changes to PR branch
+   - CI runs `scripts/validate_checklist.sh` automatically
+   - If validation passes → Proceed
+   - If validation fails → Fix issues and retry
+
+### Validation Script
+
+Run manual validation locally:
+```bash
+./scripts/validate_checklist.sh
+```
+
+The script checks:
+- ✓ YAML syntax validity
+- ✓ Required fields present
+- ✓ No incomplete items
+- ✓ Not applicable items justified
+- ✓ Evidence provided for complete items
+- ✓ All artifact files exist
+- ✓ Decision log entry added
+- ✓ All reviews approved
+- ✓ Status consistency
+
+**Exit code 0 = Pass, Non-zero = Fail (blocks merge)**
+
+### Related Documents
+
+- [`promotion-checklist-format.md`](promotion-checklist-format.md) — Machine-readable format specification
+- [`PROMOTION-REGISTRY.md`](../../research/python/promotions/PROMOTION-REGISTRY.md) — Track all promotions
+- [`research-methodology.md`](research-methodology.md) — Research discipline
+- [`signal-lifecycle.md`](../04-signal-and-metrics/signal-lifecycle.md) — Signal lifecycle stages
+- [`rust-python-boundary-enforcement.md`](../02-system-architecture/rust-python-boundary-enforcement.md) — Boundary enforcement
+
+---
+
+## Updated Final Statement
+
+**Promotion is not a reward.  
+It is a commitment to correctness under scrutiny.**
+
+**The hard gate ensures that commitment is never compromised.**
+
+Galactus promotes slowly so it can remain trusted forever.
