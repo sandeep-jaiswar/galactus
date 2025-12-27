@@ -441,11 +441,11 @@ See [`VISION_LOCK.md`](../../VISION_LOCK.md) for the formal revision process.
 
 **Capital behavior under constraints is the only market primitive that is simultaneously observable, causal, deterministic, and structurally grounded.**
 
-Sentiment is unobservable.  
-Opinion is non-binding.  
+Sentiment is unobservable.
+Opinion is non-binding.
 Price is a lagging effect.
 
 Capital behavior is the foundation because it is the only honest choice.
 
-Galactus infers what capital must do, not what price might do.  
+Galactus infers what capital must do, not what price might do.
 This is the only defensible approach to market inference.
