@@ -472,7 +472,7 @@ All windows are:
 
 Every event must have:
 
-```
+```json
 {
   "event_id": "uuid",
   "event_type": "options_expiry",
@@ -489,7 +489,7 @@ Every event must have:
 
 Every inference output must reference:
 
-```
+```json
 {
   "inference_id": "uuid",
   "inference_type": "capital_pressure",
