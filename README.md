@@ -131,7 +131,17 @@ Galactus uses precise, non-advisory language:
 
 **Python discovers truth. Rust enforces truth.**
 
-See **[`docs/02-system-architecture/rust-vs-python-contract.md`](docs/02-system-architecture/rust-vs-python-contract.md)**
+### Directory Structure
+
+```
+galactus/
+├── core/rust/              # Production inference engine (deterministic core)
+└── research/python/        # Research and experimentation (discovery layer)
+```
+
+**The boundary between these is sacred and enforced.**
+
+See **[`docs/02-system-architecture/rust-vs-python-contract.md`](docs/02-system-architecture/rust-vs-python-contract.md)** and **[`QUICK-REFERENCE.md`](docs/02-system-architecture/QUICK-REFERENCE.md)**
 
 ---
 
