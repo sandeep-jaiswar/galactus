@@ -219,7 +219,101 @@ If uncertain, default to **research-grade Python**.
 
 ---
 
-## 11. Final Guiding Principle
+## 11. Top Level Repository Structure
+
+galactus/
+├── README.md
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+
+├── docs/                          # 📜 Single source of truth
+│   ├── 00-vision-and-non-goals/
+│   ├── 01-market-theory/
+│   ├── 02-system-architecture/
+│   ├── 03-data-and-schemas/
+│   ├── 04-signal-and-metrics/
+│   ├── 05-intent-engine/
+│   ├── 06-research-framework/
+│   ├── 07-backtesting-and-validation/
+│   ├── 08-risk-and-failure-modes/
+│   ├── 09-compliance-and-language/
+│   ├── 10-operational-playbooks/
+│   ├── 11-decision-log/
+│   └── 12-roadmap-and-deprecation/
+
+├── registry/                      # 🧾 Canonical registries
+│   ├── signals.yaml
+│   ├── metrics.yaml
+│   ├── regimes.yaml
+│   └── schemas.yaml
+
+├── core/                          # 🧠 Rust — production inference
+│   ├── Cargo.toml
+│   ├── src/
+│   │   ├── lib.rs
+│   │   ├── engine/
+│   │   │   ├── mod.rs
+│   │   │   ├── intent_engine.rs
+│   │   │   ├── capital_pressure.rs
+│   │   │   ├── forced_flow.rs
+│   │   │   ├── regime_classifier.rs
+│   │   │   └── confidence.rs
+│   │   ├── signals/
+│   │   │   ├── mod.rs
+│   │   │   ├── expiry_pressure.rs
+│   │   │   └── gamma_imbalance.rs
+│   │   ├── data/
+│   │   │   ├── canonical_events.rs
+│   │   │   ├── schemas.rs
+│   │   │   └── validation.rs
+│   │   ├── kill_switch.rs
+│   │   └── errors.rs
+│   └── tests/
+│       ├── determinism_tests.rs
+│       ├── confidence_degradation.rs
+│       └── kill_switch.rs
+
+├── research/                      # 🔬 Python — exploration only
+│   ├── README.md
+│   ├── notebooks/
+│   ├── experiments/
+│   │   ├── expiry_pressure/
+│   │   │   ├── hypothesis.md
+│   │   │   ├── experiment.py
+│   │   │   ├── walk_forward.md
+│   │   │   └── stress_results.md
+│   ├── features/
+│   ├── backtesting/
+│   └── utils/
+
+├── data/                          # 📦 Raw & processed datasets
+│   ├── raw/
+│   ├── canonical/
+│   └── snapshots/
+
+├── api/                           # 🔌 Non-advisory interfaces
+│   ├── openapi.yaml
+│   ├── server/
+│   └── response_filters/
+
+├── ci/                            # 🛡️ CI enforcement logic
+│   ├── docs_checks.sh
+│   ├── language_scan.sh
+│   └── registry_sync.sh
+
+├── .github/
+│   ├── workflows/
+│   │   ├── docs-enforcement.yml
+│   │   ├── determinism-tests.yml
+│   │   └── compliance-checks.yml
+│   └── ISSUE_TEMPLATE/
+│       ├── signal_proposal.md
+│       └── research_experiment.md
+
+
+---
+
+## 12. Final Guiding Principle
 
 **Python discovers truth.  
 Rust enforces truth.  
