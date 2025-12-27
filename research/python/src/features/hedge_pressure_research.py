@@ -317,8 +317,8 @@ def generate_synthetic_hedge_data(
             distance = 0.0
 
         # Apply hedge pressure bias
-        # Positive pressure = more calls (bullish bias)
-        # Negative pressure = more puts (bearish bias)
+        # Positive pressure = more calls (call-dominant bias)
+        # Negative pressure = more puts (put-dominant bias)
         call_adjustment = hedge_pressure * (1.0 - abs(distance) * 0.5)
         put_adjustment = -hedge_pressure * (1.0 - abs(distance) * 0.5)
 

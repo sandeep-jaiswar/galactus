@@ -12,7 +12,7 @@ from .provider import (
     FuturesData,
     OptionData,
     IndexData,
-    data_provider,
+    get_data_provider,
     get_current_market_data,
     get_futures_for_signal,
 )
@@ -25,7 +25,7 @@ __all__ = [
     "FuturesData",
     "OptionData",
     "IndexData",
-    "data_provider",
+    "get_data_provider",
     "get_current_market_data",
     "get_futures_for_signal",
 ]

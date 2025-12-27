@@ -17,7 +17,7 @@ from . import validation
 
 # Re-export commonly used data components for convenience
 from .data import (
-    data_provider,
+    get_data_provider,
     get_current_market_data,
     get_futures_for_signal,
     GalactusDataProvider,

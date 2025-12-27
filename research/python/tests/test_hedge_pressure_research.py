@@ -21,7 +21,7 @@ class TestHedgePressureComputation:
     """Test hedge pressure computation."""
 
     def test_basic_call_dominance(self):
-        """Test detection of call dominance (bullish pressure)."""
+        """Test detection of call dominance (positive hedge pressure)."""
         calls = {18000: 1500, 18500: 1200, 19000: 900}
         puts = {18000: 500, 18500: 400, 19000: 300}
         spot_price = 18500
@@ -36,7 +36,7 @@ class TestHedgePressureComputation:
         assert result.confidence > 0
 
     def test_basic_put_dominance(self):
-        """Test detection of put dominance (bearish pressure)."""
+        """Test detection of put dominance (negative hedge pressure)."""
         calls = {18000: 500, 18500: 400, 19000: 300}
         puts = {18000: 1500, 18500: 1200, 19000: 900}
         spot_price = 18500
@@ -260,11 +260,11 @@ class TestSyntheticDataGeneration:
         assert abs(total_puts - total_base_puts) < total_base_puts * 0.3
 
     def test_negative_pressure_generation(self):
-        """Test synthetic data with negative (bearish) pressure."""
+        """Test synthetic data with negative (put-dominant) pressure."""
         base_calls = {18000: 1000, 18500: 1500}
         base_puts = {18000: 1000, 18500: 1500}
         spot_price = 18500
-        hedge_pressure = -0.5  # Bearish pressure
+        hedge_pressure = -0.5  # Put-dominant pressure
 
         syn_calls, syn_puts = generate_synthetic_hedge_data(
             base_calls, base_puts, spot_price, hedge_pressure

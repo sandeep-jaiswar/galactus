@@ -962,8 +962,21 @@ class GalactusDataProvider:
             )
 
 
-# Global instance for easy access
-data_provider = GalactusDataProvider()
+# Global instance for easy access (lazy-initialized)
+_data_provider_instance = None
+
+
+def get_data_provider() -> GalactusDataProvider:
+    """
+    Get or create the global data provider instance (lazy initialization).
+    
+    Returns:
+        GalactusDataProvider instance
+    """
+    global _data_provider_instance
+    if _data_provider_instance is None:
+        _data_provider_instance = GalactusDataProvider()
+    return _data_provider_instance
 
 
 def get_current_market_data() -> Dict[str, Any]:
@@ -973,7 +986,7 @@ def get_current_market_data() -> Dict[str, Any]:
     Returns:
         Dict with market status and key data points
     """
-    provider = GalactusDataProvider()
+    provider = get_data_provider()
 
     return {
         "market_status": provider.get_market_status(),
@@ -994,7 +1007,7 @@ def get_futures_for_signal(symbol: str = "NIFTY") -> Optional[FuturesData]:
     Returns:
         FuturesData object ready for signal processing
     """
-    provider = GalactusDataProvider()
+    provider = get_data_provider()
     return provider.get_futures_data(symbol)
 
 
