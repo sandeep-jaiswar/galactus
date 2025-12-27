@@ -179,3 +179,70 @@ implementation_notes: |
   - Feature flag to disable basis pressure signal
   - Gradual rollout with correlation monitoring
   - Automated kill-switch on basis anomaly detection
+
+# =============================================================================
+# Artifacts - All paths must point to existing files
+# =============================================================================
+artifacts:
+  research_notebooks:
+    - "research/python/notebooks/exploratory/basis_pressure_experiment.ipynb"
+  
+  documentation:
+    - "docs/01-market-theory/derivatives-dominance.md"
+    - "docs/01-market-theory/capital-behavior-model.md"
+  
+  backtest_results:
+    - "research/python/tests/test_basis_pressure_research.py"
+  
+  implementation_design:
+    - "core/rust/src/features/mod.rs"
+  
+  tests:
+    - "research/python/tests/test_basis_pressure_research.py"
+
+# =============================================================================
+# Decision Log - Must be updated before final approval
+# =============================================================================
+decision_log:
+  entry_added: false
+  entry_path: "docs/11-decision-log/decision-log.md"
+  entry_date: ""
+
+# =============================================================================
+# Reviews - To be completed by designated reviewers
+# =============================================================================
+reviews:
+  research_lead:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+  
+  architecture_reviewer:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+  
+  security_reviewer:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+  
+  final_approval:
+    reviewer: ""
+    status: "pending"
+    date: ""
+    notes: ""
+
+# =============================================================================
+# Promotion Status - Track progress through implementation
+# =============================================================================
+promotion_status:
+  overall_status: "pending"
+  rust_implementation_started: false
+  rust_implementation_completed: false
+  tests_passing: true
+  documentation_complete: true
+  deployment_ready: false

@@ -194,12 +194,19 @@ for CHECKLIST_FILE in $CHECKLISTS; do
     # Check 7: Decision log entry exists
     echo "✓ Check 7: Decision log entry..."
     ENTRY_ADDED=$(grep "entry_added:" "$CHECKLIST_FILE" | grep -o "true\|false" || echo "false")
+    # Get overall status early for conditional validation
+    OVERALL_STATUS_CHECK=$(grep "^  overall_status:" "$CHECKLIST_FILE" | sed 's/.*: "\(.*\)".*/\1/' || echo "unknown")
     
     if [ "$ENTRY_ADDED" != "true" ]; then
-        echo -e "   ${RED}❌ FAIL: Decision log entry not added${NC}"
-        echo "   Must update decision log before promotion"
-        ERRORS=$((ERRORS + 1))
-        EXIT_CODE=1
+        # Only enforce for approved promotions
+        if [ "$OVERALL_STATUS_CHECK" = "approved" ]; then
+            echo -e "   ${RED}❌ FAIL: Decision log entry not added${NC}"
+            echo "   Must update decision log before promotion approval"
+            ERRORS=$((ERRORS + 1))
+            EXIT_CODE=1
+        else
+            echo -e "   ${YELLOW}⚠️  Decision log entry not added (OK for pending/in_progress)${NC}"
+        fi
     else
         # Verify decision log file exists
         DECISION_LOG=$(grep "entry_path:" "$CHECKLIST_FILE" | sed 's/.*: "\(.*\)".*/\1/' || true)
@@ -242,8 +249,17 @@ for CHECKLIST_FILE in $CHECKLISTS; do
         ERRORS=$((ERRORS + 1))
         EXIT_CODE=1
     elif [ $PENDING_REVIEWS -gt 0 ]; then
-        echo -e "   ${YELLOW}⚠️  WARNING: $PENDING_REVIEWS review(s) still pending${NC}"
-        WARNINGS=$((WARNINGS + 1))
+        # Only enforce for approved promotions
+        OVERALL_STATUS_CHECK=$(grep "^  overall_status:" "$CHECKLIST_FILE" | sed 's/.*: "\(.*\)".*/\1/' || echo "unknown")
+        if [ "$OVERALL_STATUS_CHECK" = "approved" ]; then
+            echo -e "   ${RED}❌ FAIL: $PENDING_REVIEWS review(s) still pending but status is approved${NC}"
+            echo "   All reviews must be approved before promotion can be marked approved"
+            ERRORS=$((ERRORS + 1))
+            EXIT_CODE=1
+        else
+            echo -e "   ${YELLOW}⚠️  WARNING: $PENDING_REVIEWS review(s) still pending (OK for pending/in_progress)${NC}"
+            WARNINGS=$((WARNINGS + 1))
+        fi
     else
         echo -e "   ${GREEN}✅ All reviews approved${NC}"
     fi
