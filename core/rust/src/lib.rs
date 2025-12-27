@@ -20,10 +20,7 @@ pub mod intent {
 
 pub mod regime;
 
-pub mod confidence {
-    // Confidence and stability metrics
-    // Conservative confidence degradation
-}
+pub mod confidence;
 
 pub mod api {
     // External APIs (gRPC, HTTP)
