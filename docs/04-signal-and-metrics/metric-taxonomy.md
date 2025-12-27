@@ -26,7 +26,9 @@ All signals are composed of one or more metrics, but not all metrics qualify for
 
 ## Allowed Metric Categories
 
-Only the following categories are permitted.
+**Only the following five (5) categories are permitted.**
+
+Any metric that does not fit into one of these categories **must be rejected**, regardless of performance or appeal.
 
 ---
 
@@ -123,21 +125,22 @@ To distinguish transient noise from structural conditions.
 
 ---
 
-## 6. Regime Metrics
+## Category Enforcement
 
-### Definition
+**These five categories are exhaustive and exclusive.**
 
-Metrics that help classify **market regimes**.
+- **Constraint**: Binding constraints on capital
+- **Pressure**: Required or incentivized capital action
+- **Imbalance**: Asymmetry between opposing forces
+- **Liquidity**: Absorption capacity
+- **Stability**: Persistence or fragility of conditions
 
-### Examples
+Any proposed metric that:
+- Does not clearly fit into exactly one of these five categories
+- Requires creation of a new category
+- Blends multiple categories without clear decomposition
 
-- Volatility regimes
-- Liquidity regimes
-- Derivatives dominance regimes
-
-### Purpose
-
-To condition signal interpretation.
+Must be **rejected immediately**, without exception.
 
 ---
 
