@@ -55,7 +55,9 @@ class TestSignalIntegration:
         combined_confidence = np.prod(confidences) ** (1.0 / len(confidences))
         
         assert 0.0 <= combined_confidence <= 1.0
-        assert combined_confidence < min(confidences)  # More conservative
+        # Geometric mean is more conservative than arithmetic mean
+        arithmetic_mean = np.mean(confidences)
+        assert combined_confidence <= arithmetic_mean
 
     def test_regime_specific_integration(self):
         """Test signal integration under different regime contexts."""

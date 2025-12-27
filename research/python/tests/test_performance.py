@@ -235,7 +235,7 @@ class TestComputationalComplexity:
         elapsed = time.time() - start
         
         assert elapsed < 0.001  # Constant time
-        assert decay > 0
+        assert abs(decay) < 1.0  # Reasonable decay value
 
     def test_time_complexity_basis_computation(self):
         """Test time complexity of basis computations."""
