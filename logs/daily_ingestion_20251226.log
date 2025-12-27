@@ -1,0 +1,32 @@
+2025-12-26 17:56:22 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:79] - Using Hudi base path: /app/data/silver
+2025-12-26 17:56:22 - __main__ - INFO - [logging_utils.py:78] - ================================================================================
+2025-12-26 17:56:22 - __main__ - INFO - [logging_utils.py:79] - Starting job: Daily Bhavcopy Ingestion
+2025-12-26 17:56:22 - __main__ - INFO - [logging_utils.py:81] -   trade_date: 2024-01-15
+2025-12-26 17:56:22 - __main__ - INFO - [logging_utils.py:81] -   hudi_base_path: /app/data/silver
+2025-12-26 17:56:22 - __main__ - INFO - [logging_utils.py:82] - ================================================================================
+2025-12-26 17:56:22 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:186] - ================================================================================
+2025-12-26 17:56:22 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:187] - STEP 1: Downloading to Bronze Layer
+2025-12-26 17:56:22 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:188] - ================================================================================
+2025-12-26 17:56:23 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:197] - Bronze layer file: /app/data/bronze/bhavcopy/date=2024-01-15/sec_bhavdata_full_15012024.csv
+2025-12-26 17:56:23 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:94] - Creating Spark session...
+2025-12-26 17:56:28 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:108] - Spark session created: 3.4.1
+2025-12-26 17:56:28 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:109] - Spark master: local[*]
+2025-12-26 17:56:28 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:206] - ================================================================================
+2025-12-26 17:56:28 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:207] - STEP 2: Processing to Silver Layer
+2025-12-26 17:56:28 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:208] - ================================================================================
+2025-12-26 17:56:41 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:229] - ================================================================================
+2025-12-26 17:56:41 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:230] - STEP 3: Writing to Hudi
+2025-12-26 17:56:41 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:231] - ================================================================================
+2025-12-26 17:56:44 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:147] - Writing to Hudi table: /app/data/silver/sec_bhavdata
+2025-12-26 17:57:07 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:152] - Successfully wrote data to Hudi table: sec_bhavdata
+2025-12-26 17:57:19 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:158] - Latest Hudi commit: 20251226135621758
+2025-12-26 17:57:19 - __main__ - INFO - [logging_utils.py:122] - Data Lineage - Dataset: sec_bhavdata
+2025-12-26 17:57:19 - __main__ - INFO - [logging_utils.py:123] -   Date Range: 2024-01-15
+2025-12-26 17:57:19 - __main__ - INFO - [logging_utils.py:124] -   Input Records: 2614
+2025-12-26 17:57:19 - __main__ - INFO - [logging_utils.py:125] -   Output Records: 2614
+2025-12-26 17:57:19 - __main__ - INFO - [logging_utils.py:126] -   Rejected Records: 0
+2025-12-26 17:57:19 - __main__ - INFO - [ingest_bhavcopy_daily_v2.py:255] - Stopping Spark session
+2025-12-26 17:57:20 - __main__ - INFO - [logging_utils.py:95] - ================================================================================
+2025-12-26 17:57:20 - __main__ - INFO - [logging_utils.py:97] - Job Daily Bhavcopy Ingestion: COMPLETED SUCCESSFULLY
+2025-12-26 17:57:20 - __main__ - INFO - [logging_utils.py:99] -   records_processed: 2614
+2025-12-26 17:57:20 - __main__ - INFO - [logging_utils.py:100] - ================================================================================

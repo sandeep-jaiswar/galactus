@@ -1,0 +1,14 @@
+2025-12-26 18:04:28,306 - INFO - Ensured ClickHouse table galactus.sec_bhavdata exists
+2025-12-26 18:04:28,622 - INFO - Starting sync for table: sec_bhavdata
+2025-12-26 18:04:28,622 - INFO - Reading Hudi table from: /app/data/silver/sec_bhavdata
+2025-12-26 18:04:51,456 - INFO - Successfully read 672197 records from Hudi
+2025-12-26 18:13:36,028 - INFO - Successfully upserted ~672197 records to ClickHouse table sec_bhavdata
+2025-12-26 18:13:36,127 - INFO - Sync completed successfully for table: sec_bhavdata
+2025-12-26 18:13:36,766 - INFO - Closing down clientserver connection
+2025-12-27 05:57:32,736 - INFO - Ensured ClickHouse table galactus.sec_bhavdata exists
+2025-12-27 05:57:32,736 - INFO - Starting sync for table: sec_bhavdata
+2025-12-27 05:57:32,736 - INFO - Reading Hudi table from: /app/data/silver/sec_bhavdata
+2025-12-27 05:57:57,636 - INFO - Successfully read 672197 records from Hudi
+2025-12-27 06:01:15,653 - INFO - Successfully upserted ~672197 records to ClickHouse table sec_bhavdata
+2025-12-27 06:01:15,673 - INFO - Sync completed successfully for table: sec_bhavdata
+2025-12-27 06:01:15,977 - INFO - Closing down clientserver connection
