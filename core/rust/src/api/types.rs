@@ -28,7 +28,9 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use crate::intent::{IntentVector, IntentResult, SignalInput, SignalContribution};
-use crate::api::{IntentRequest, IntentResponse, BatchIntentRequest, BatchIntentResponse, ApiError};
+use crate::ApiError;
+use super::{IntentRequest, IntentResponse, BatchIntentRequest, BatchIntentResponse};
+use crate::features::{MarketDataPoint, OptionChain, FuturesData, StrikeData};
 
 /// Protocol buffer representation of intent vector
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -109,11 +111,61 @@ pub struct SignalInputProto {
     pub metadata: HashMap<String, String>,
 }
 
+/// Protocol buffer representation of market data point
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct MarketDataPointProto {
+    pub symbol: String,
+    pub price: f64,
+    pub volume: u64,
+    pub timestamp: i64,
+    pub metadata: HashMap<String, String>,
+}
+
+/// Protocol buffer representation of option chain
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct OptionChainProto {
+    pub underlying: String,
+    pub expiry: i64,
+    pub strikes: Vec<StrikeDataProto>,
+    pub metadata: HashMap<String, String>,
+}
+
+/// Protocol buffer representation of strike data
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct StrikeDataProto {
+    pub strike: f64,
+    pub call_bid: f64,
+    pub call_ask: f64,
+    pub put_bid: f64,
+    pub put_ask: f64,
+    pub open_interest: u64,
+    pub volume: u64,
+}
+
+/// Protocol buffer representation of futures data
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct FuturesDataProto {
+    pub symbol: String,
+    pub price: f64,
+    pub open_interest: u64,
+    pub timestamp: i64,
+    pub metadata: HashMap<String, String>,
+}
+
 /// Protocol buffer representation of intent request
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IntentRequestProto {
-    /// Signals to process
-    pub signals: Vec<SignalInputProto>,
+    /// Market data for feature computation
+    pub market_data: HashMap<String, MarketDataPointProto>,
+
+    /// Option chain data for feature computation
+    pub options_data: HashMap<String, OptionChainProto>,
+
+    /// Futures data for feature computation
+    pub futures_data: HashMap<String, FuturesDataProto>,
+
+    /// Additional context data
+    pub context: HashMap<String, String>,
 
     /// Request metadata
     pub metadata: HashMap<String, String>,
@@ -347,12 +399,26 @@ impl FromProto<SignalInputProto> for SignalInput {
 
 impl ToProto<IntentRequestProto> for IntentRequest {
     fn to_proto(&self) -> Result<IntentRequestProto, ApiError> {
-        let signals = self.signals.iter()
-            .map(|signal| signal.to_proto())
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut market_data = HashMap::new();
+        for (k, v) in &self.market_data {
+            market_data.insert(k.clone(), v.to_proto()?);
+        }
+
+        let mut options_data = HashMap::new();
+        for (k, v) in &self.options_data {
+            options_data.insert(k.clone(), v.to_proto()?);
+        }
+
+        let mut futures_data = HashMap::new();
+        for (k, v) in &self.futures_data {
+            futures_data.insert(k.clone(), v.to_proto()?);
+        }
 
         Ok(IntentRequestProto {
-            signals,
+            market_data,
+            options_data,
+            futures_data,
+            context: self.context.clone(),
             metadata: self.metadata.clone(),
             client_id: self.client_id.clone(),
             timestamp: self.timestamp,
@@ -363,12 +429,26 @@ impl ToProto<IntentRequestProto> for IntentRequest {
 
 impl FromProto<IntentRequestProto> for IntentRequest {
     fn from_proto(proto: IntentRequestProto) -> Result<Self, ApiError> {
-        let signals = proto.signals.into_iter()
-            .map(SignalInput::from_proto)
-            .collect::<Result<Vec<_>, _>>()?;
+        let mut market_data = HashMap::new();
+        for (k, v) in proto.market_data {
+            market_data.insert(k, MarketDataPoint::from_proto(v)?);
+        }
+
+        let mut options_data = HashMap::new();
+        for (k, v) in proto.options_data {
+            options_data.insert(k, OptionChain::from_proto(v)?);
+        }
+
+        let mut futures_data = HashMap::new();
+        for (k, v) in proto.futures_data {
+            futures_data.insert(k, FuturesData::from_proto(v)?);
+        }
 
         Ok(IntentRequest {
-            signals,
+            market_data,
+            options_data,
+            futures_data,
+            context: proto.context,
             metadata: proto.metadata,
             client_id: proto.client_id,
             timestamp: proto.timestamp,
@@ -580,5 +660,112 @@ mod tests {
     #[test]
     fn test_api_version_constant() {
         assert_eq!(API_VERSION, "v1.0.0");
+    }
+}
+
+// Implementations for new proto types
+impl ToProto<MarketDataPointProto> for crate::features::MarketDataPoint {
+    fn to_proto(&self) -> Result<MarketDataPointProto, ApiError> {
+        Ok(MarketDataPointProto {
+            symbol: self.symbol.clone(),
+            price: self.price,
+            volume: self.volume,
+            timestamp: self.timestamp,
+            metadata: self.metadata.clone(),
+        })
+    }
+}
+
+impl FromProto<MarketDataPointProto> for crate::features::MarketDataPoint {
+    fn from_proto(proto: MarketDataPointProto) -> Result<Self, ApiError> {
+        Ok(crate::features::MarketDataPoint {
+            symbol: proto.symbol,
+            price: proto.price,
+            volume: proto.volume,
+            timestamp: proto.timestamp,
+            metadata: proto.metadata,
+        })
+    }
+}
+
+impl ToProto<OptionChainProto> for crate::features::OptionChain {
+    fn to_proto(&self) -> Result<OptionChainProto, ApiError> {
+        let strikes = self.strikes.iter()
+            .map(|s| s.to_proto())
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(OptionChainProto {
+            underlying: self.underlying.clone(),
+            expiry: self.expiry,
+            strikes,
+            metadata: self.metadata.clone(),
+        })
+    }
+}
+
+impl FromProto<OptionChainProto> for crate::features::OptionChain {
+    fn from_proto(proto: OptionChainProto) -> Result<Self, ApiError> {
+        let strikes = proto.strikes.into_iter()
+            .map(crate::features::StrikeData::from_proto)
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(crate::features::OptionChain {
+            underlying: proto.underlying,
+            expiry: proto.expiry,
+            strikes,
+            metadata: proto.metadata,
+        })
+    }
+}
+
+impl ToProto<StrikeDataProto> for crate::features::StrikeData {
+    fn to_proto(&self) -> Result<StrikeDataProto, ApiError> {
+        Ok(StrikeDataProto {
+            strike: self.strike,
+            call_bid: self.call_bid,
+            call_ask: self.call_ask,
+            put_bid: self.put_bid,
+            put_ask: self.put_ask,
+            open_interest: self.open_interest,
+            volume: self.volume,
+        })
+    }
+}
+
+impl FromProto<StrikeDataProto> for crate::features::StrikeData {
+    fn from_proto(proto: StrikeDataProto) -> Result<Self, ApiError> {
+        Ok(crate::features::StrikeData {
+            strike: proto.strike,
+            call_bid: proto.call_bid,
+            call_ask: proto.call_ask,
+            put_bid: proto.put_bid,
+            put_ask: proto.put_ask,
+            open_interest: proto.open_interest,
+            volume: proto.volume,
+        })
+    }
+}
+
+impl ToProto<FuturesDataProto> for crate::features::FuturesData {
+    fn to_proto(&self) -> Result<FuturesDataProto, ApiError> {
+        Ok(FuturesDataProto {
+            symbol: self.symbol.clone(),
+            price: self.price,
+            open_interest: self.open_interest,
+            timestamp: self.timestamp,
+            metadata: self.metadata.clone(),
+        })
+    }
+}
+
+impl FromProto<FuturesDataProto> for crate::features::FuturesData {
+    fn from_proto(proto: FuturesDataProto) -> Result<Self, ApiError> {
+        Ok(crate::features::FuturesData {
+            symbol: proto.symbol,
+            price: proto.price,
+            open_interest: proto.open_interest,
+            timestamp: proto.timestamp,
+            metadata: proto.metadata,
+        })
     }
 }

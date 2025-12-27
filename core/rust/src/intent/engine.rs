@@ -111,7 +111,7 @@ impl IntentEngine {
         let aggregation_result = regime_aggregator.aggregate(signals)?;
 
         // Map to intent vector
-        let intent_vector = self.create_intent_vector(aggregation_result, regime);
+        let intent_vector = self.create_intent_vector(&aggregation_result, &regime);
 
         // Generate alternatives if enabled
         let alternatives = if self.config.enable_alternatives {
@@ -220,7 +220,7 @@ impl IntentEngine {
     }
 
     /// Create intent vector from aggregation result
-    fn create_intent_vector(&self, aggregation: AggregationResult, regime: MarketRegime) -> IntentVector {
+    fn create_intent_vector(&self, aggregation: &AggregationResult, regime: &MarketRegime) -> IntentVector {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
@@ -232,7 +232,7 @@ impl IntentEngine {
         IntentVector {
             pressure: aggregation.pressure,
             confidence: final_confidence,
-            signals: aggregation.contributions,
+            signals: aggregation.contributions.clone(),
             timestamp,
             regime: regime.to_string(),
         }
@@ -294,7 +294,7 @@ impl IntentEngine {
                 .collect();
 
             if let Ok(equal_aggregation) = equal_aggregator.aggregate(signals) {
-                let mut alt3 = self.create_intent_vector(equal_aggregation, MarketRegime::Mixed);
+                let mut alt3 = self.create_intent_vector(&equal_aggregation, &MarketRegime::Mixed);
                 alt3.regime = "equal_weight".to_string();
                 alternatives.push(alt3);
             }

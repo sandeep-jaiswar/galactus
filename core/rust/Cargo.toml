@@ -12,10 +12,16 @@ license = "TBD"
 [dependencies]
 # Core functionality (to be added as needed after promotion)
 chrono = { version = "0.4", features = ["serde"] }  # Date/time handling for events
+ordered-float = "4.0"  # Ordered floating point comparisons
 
-# serde = { version = "1.0", features = ["derive"] }  # Serialization for data structures (enable when needed)
-# tokio = { version = "1", features = ["full"] }      # Async runtime
+serde = { version = "1.0", features = ["derive"] }  # Serialization for data structures (enable when needed)
+tokio = { version = "1", features = ["full"] }      # Async runtime
 # polars = "0.35"                                      # Data processing
+
+# API dependencies
+tonic = "0.12"  # gRPC framework
+prost = "0.13"  # Protocol buffers
+warp = "0.3"    # HTTP web framework
 
 [dev-dependencies]
 # Testing utilities
