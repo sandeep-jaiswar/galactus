@@ -53,20 +53,44 @@ Galactus will **never**:
 - Forecast returns
 - Estimate upside/downside targets
 - Compete with time-series prediction models
+- Provide prediction guarantees or warranties
+- Make promises about accuracy or reliability of future outcomes
 
 This includes:
 - Linear regression on price
 - ARIMA-style forecasting
 - Deep learning price models
 - Pattern-based chart prediction
+- Guaranteed predictions or assured outcomes
+- Any form of prediction warranty or performance guarantee
 
 **Rationale**  
 Price is an outcome, not a primitive.  
-Predicting it obscures the causal structure Galactus is designed to reveal.
+Predicting it obscures the causal structure Galactus is designed to reveal.  
+Guarantees on future outcomes are fundamentally incompatible with market uncertainty and would create false expectations.
 
 ---
 
-## Category 3 — Indicator Aggregation Platforms
+## Category 3 — Alpha Generation & Performance Competition
+
+Galactus will **never**:
+
+- Claim to generate alpha or excess returns
+- Compete on performance metrics (Sharpe ratio, win rate, return percentages)
+- Optimize for beating benchmark indices
+- Market itself as a source of trading edge or competitive advantage
+- Promise outperformance or superior returns
+- Measure success primarily through PnL or profitability metrics
+
+**Rationale**  
+Alpha generation requires trading decisions, risk management, and execution—all outside Galactus's scope.  
+Galactus provides **structural inference**, not investment performance.  
+Any alpha derived from its outputs is a downstream consequence of external decision-making, not a direct system output.  
+Competing on performance metrics encourages overfitting and obscures the true purpose: understanding capital behavior.
+
+---
+
+## Category 4 — Indicator Aggregation Platforms
 
 Galactus will **never**:
 
@@ -81,7 +105,7 @@ Indicator aggregation optimizes for familiarity, not truth.
 
 ---
 
-## Category 4 — Black-Box Intelligence
+## Category 5 — Black-Box Intelligence
 
 Galactus will **never**:
 
@@ -99,7 +123,7 @@ Explainability is a core feature, not a trade-off.
 
 ---
 
-## Category 5 — Retail Engagement & Gamification
+## Category 6 — Retail Engagement & Gamification
 
 Galactus will **never**:
 
@@ -119,7 +143,7 @@ Restraint beats persuasion.
 
 ---
 
-## Category 6 — Personalized Advice
+## Category 7 — Personalized Advice
 
 Galactus will **never**:
 
@@ -134,7 +158,7 @@ Galactus operates at the **market-structure level**, not the individual level.
 
 ---
 
-## Category 7 — Latency Arms Race
+## Category 8 — Latency Arms Race
 
 Galactus will **never**:
 
@@ -149,7 +173,7 @@ Correctness under stress matters more than being first.
 
 ---
 
-## Category 8 — Narrative & News Interpretation Engines
+## Category 9 — Narrative & News Interpretation Engines
 
 Galactus will **never**:
 
@@ -164,7 +188,7 @@ Narratives explain behavior retroactively; they rarely predict constraints.
 
 ---
 
-## Category 9 — Over-Optimization & Hyper-Tuning
+## Category 10 — Over-Optimization & Hyper-Tuning
 
 Galactus will **never**:
 
@@ -178,7 +202,7 @@ Stability beats sharpness.
 
 ---
 
-## Category 10 — Silent Scope Expansion
+## Category 11 — Silent Scope Expansion
 
 Galactus will **never**:
 
