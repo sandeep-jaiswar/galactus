@@ -1,13 +1,13 @@
 """
-NSE Data Scraper - Bronze Layer
+NSE Data Scraper - Event Publisher
 
-This module downloads data from NSE and stores it in the Bronze layer
+This module downloads data from NSE and publishes raw events to Kafka
 EXACTLY as published by NSE - no transformations, no cleaning.
 
 Key Principles:
-- Raw data storage only
-- Immutable files
-- Date-partitioned
+- Raw data events only
+- Immutable payloads
+- Event-driven architecture
 - Preserve NSE naming conventions
 - Explicit error handling
 """
@@ -21,6 +21,8 @@ import hashlib
 
 import requests
 
+from utils.kafka_utils import producer
+
 # Setup logger
 logger = logging.getLogger(__name__)
 
@@ -32,29 +34,27 @@ class NSEDownloadError(Exception):
 
 def download_bhavcopy(
     session_date: str,
-    output_dir: Optional[Path] = None,
-    max_retries: int = 3,
+    max_retries: int = 1,
     retry_delay: int = 5,
     timeout: int = 30
-) -> Path:
+) -> Optional[str]:
     """
-    Download NSE bhavcopy data and store in Bronze layer
+    Download NSE bhavcopy data and publish to Kafka
     
-    This function downloads raw CSV data from NSE and stores it immutably
-    in the Bronze layer with no transformations.
+    This function downloads raw CSV data from NSE, publishes it as an event
+    to Kafka, and returns the content for immediate processing.
     
     Args:
         session_date: Trading date in YYYY-MM-DD format
-        output_dir: Optional custom output directory (defaults to Bronze layer)
         max_retries: Number of retry attempts on failure
         retry_delay: Delay in seconds between retries
         timeout: HTTP request timeout in seconds
     
     Returns:
-        Path to the downloaded CSV file in Bronze layer
+        CSV content as string if successful, None if no data available (404)
     
     Raises:
-        NSEDownloadError: If download fails after all retries
+        NSEDownloadError: If download fails due to network/other errors
         ValueError: If date format is invalid
     """
     # Validate date format
@@ -66,20 +66,6 @@ def download_bhavcopy(
     # Format date for NSE URL
     session_date_str = date_obj.strftime("%d%m%Y")
     url = f"https://nsearchives.nseindia.com/products/content/sec_bhavdata_full_{session_date_str}.csv"
-    
-    # Determine output directory - Bronze layer with date partitioning
-    if output_dir is None:
-        try:
-            from conf.config import config
-            output_dir = config.get_bronze_path('bhavcopy', session_date)
-        except ImportError:
-            # Fallback if config not available
-            output_dir = Path(f"/tmp/galactus/bronze/bhavcopy/date={session_date}")
-    
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Preserve NSE filename convention in Bronze
-    file_path = output_dir / f"sec_bhavdata_full_{session_date_str}.csv"
     
     # NSE requires browser-like headers
     headers = {
@@ -101,29 +87,41 @@ def download_bhavcopy(
             response = requests.get(url, headers=headers, timeout=timeout)
             
             if response.status_code == 200:
-                # Write raw content to Bronze layer
-                with open(file_path, 'wb') as f:
-                    f.write(response.content)
+                # Calculate checksum of raw content
+                content = response.content
+                checksum = hashlib.sha256(content).hexdigest()
                 
-                # Verify file was written
-                if not file_path.exists() or file_path.stat().st_size == 0:
-                    raise NSEDownloadError(f"Downloaded file is empty or not created: {file_path}")
+                # Publish raw event to Kafka
+                event_payload = {
+                    "filename": f"sec_bhavdata_full_{session_date_str}.csv",
+                    "content": content.decode('utf-8', errors='replace'),  # Decode for JSON serialization
+                    "size_bytes": len(content),
+                    "checksum": checksum
+                }
                 
-                # Calculate and log file hash for auditability
-                file_hash = _calculate_file_hash(file_path)
-                logger.info(
-                    f"Successfully downloaded bhavcopy for {session_date} "
-                    f"to {file_path} (size={file_path.stat().st_size} bytes, sha256={file_hash})"
+                success = producer.publish_nse_event(
+                    topic="nse.raw.bhavcopy.cash",
+                    dataset="bhavcopy",
+                    payload=event_payload,
+                    event_time=date_obj
                 )
                 
-                return file_path
+                if success:
+                    logger.info(
+                        f"Successfully published bhavcopy event for {session_date} "
+                        f"(size={len(content)} bytes, sha256={checksum})"
+                    )
+                    return content.decode('utf-8', errors='replace')
+                else:
+                    raise NSEDownloadError(f"Failed to publish bhavcopy event to Kafka for {session_date}")
             
             elif response.status_code == 404:
                 # No data for this date - could be holiday/weekend
-                raise NSEDownloadError(
+                logger.info(
                     f"No bhavcopy data available for {session_date} (HTTP 404). "
-                    "This date may be a non-trading day."
+                    "This date may be a non-trading day. Skipping."
                 )
+                return None
             else:
                 raise NSEDownloadError(
                     f"Failed to download bhavcopy for {session_date}. "
@@ -157,22 +155,4 @@ def download_bhavcopy(
 
     logger.error(error_msg)
     raise NSEDownloadError(error_msg) from last_error
-
-
-def _calculate_file_hash(file_path: Path) -> str:
-    """
-    Calculate SHA-256 hash of a file for auditability
-    
-    Args:
-        file_path: Path to the file
-    
-    Returns:
-        Hexadecimal hash string
-    """
-    sha256_hash = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        # Read in chunks to handle large files
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha256_hash.update(byte_block)
-    return sha256_hash.hexdigest()
 

@@ -192,12 +192,17 @@ def process_date(spark: 'SparkSession', session_date: str, hudi_base_path: str) 
 
     try:
         # Download bhavcopy
-        csv_path = download_bhavcopy(session_date)
-        logger.info(f"Downloaded bhavcopy to: {csv_path}")
+        csv_content = download_bhavcopy(session_date)
+        
+        if csv_content is None:
+            logger.info(f"No bhavcopy data available for {session_date} (non-trading day or holiday). Skipping.")
+            return True  # Not an error, just no data
+        
+        logger.info(f"Downloaded bhavcopy content for {session_date} ({len(csv_content)} characters)")
 
         # Process data into Silver schema using shared processor
         try:
-            df = process_bhavcopy_to_silver(spark, Path(csv_path), session_date)
+            df = process_bhavcopy_to_silver(spark, csv_content, session_date)
         except SilverProcessingError as spe:
             logger.error(f"Failed to process bhavcopy data for {session_date}: {spe}")
             return False

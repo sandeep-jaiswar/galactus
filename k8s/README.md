@@ -12,6 +12,7 @@ This guide explains how to deploy Galactus on Kubernetes.
 
 ```bash
 # Apply all manifests in order
+kubectl apply -f k8s/kafka.yaml
 kubectl apply -f k8s/clickhouse.yaml
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/pvc.yaml
@@ -23,7 +24,23 @@ kubectl apply -f k8s/cronjob.yaml
 
 ## Step-by-Step Deployment
 
-### 1. Create Namespace and ClickHouse
+### 1. Create Namespace and Kafka
+
+```bash
+kubectl apply -f k8s/kafka.yaml
+```
+
+This creates:
+- Zookeeper Deployment and Service
+- Kafka Deployment and Service
+
+Verify:
+```bash
+kubectl get pods -n galactus
+kubectl logs -n galactus kafka-...
+```
+
+### 2. Create ClickHouse
 
 ```bash
 kubectl apply -f k8s/clickhouse.yaml

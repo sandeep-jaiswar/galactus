@@ -28,6 +28,10 @@ spec:
               value: "/app/data"
             - name: HUDI_BASE_PATH
               value: "/app/data/silver"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: "PLAINTEXT"
             command:
             - /bin/bash
             - -c

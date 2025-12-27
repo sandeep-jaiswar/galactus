@@ -48,6 +48,13 @@ class GalactusConfig:
         self.SPARK_DRIVER_MEMORY = os.getenv('SPARK_DRIVER_MEMORY', '4g')
         self.SPARK_EXECUTOR_MEMORY = os.getenv('SPARK_EXECUTOR_MEMORY', '4g')
         
+        # Kafka configuration
+        self.KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+        self.KAFKA_SECURITY_PROTOCOL = os.getenv('KAFKA_SECURITY_PROTOCOL', 'PLAINTEXT')
+        self.KAFKA_SASL_MECHANISM = os.getenv('KAFKA_SASL_MECHANISM', '')
+        self.KAFKA_SASL_USERNAME = os.getenv('KAFKA_SASL_USERNAME', '')
+        self.KAFKA_SASL_PASSWORD = os.getenv('KAFKA_SASL_PASSWORD', '')
+        
         # NSE configuration
         self.NSE_DOWNLOAD_TIMEOUT = int(os.getenv('NSE_DOWNLOAD_TIMEOUT', '30'))
         self.NSE_RETRY_ATTEMPTS = int(os.getenv('NSE_RETRY_ATTEMPTS', '3'))

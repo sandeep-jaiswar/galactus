@@ -8,28 +8,35 @@ Build a financial research system that prioritizes **correctness, auditability, 
 
 ## 🏗️ Architecture
 
-Galactus follows a strict layered data architecture:
+Galactus follows a strict layered data architecture with event-driven ingestion:
 
 ```
-Scraping → Bronze (Raw) → Silver (Hudi) → Gold (Analytics/ClickHouse)
+Scraping → Kafka (Events) → Spark Streaming → Hudi (Bronze/Silver/Gold) → ClickHouse
 ```
 
 ### Data Layers
 
-- **Bronze Layer**: Immutable raw data exactly as published by NSE
-  - No transformations, no cleaning
-  - Date-partitioned
-  - Preserves NSE file naming conventions
-  - Audit trail with file hashes
+- **Kafka Layer**: Event backbone for decoupling ingestion
+  - Raw events from NSE scrapers
+  - Topics: `nse.raw.bhavcopy.cash`, `nse.raw.announcements`, etc.
+  - Enables retry, replay, and parallel processing
+
+- **Bronze Layer**: Immutable raw data in Apache Hudi
+  - Raw events stored as-is
+  - COPY_ON_WRITE tables
+  - Partitioned by event_time
+  - Audit trail with checksums
 
 - **Silver Layer**: Clean, validated, schema-enforced data in Apache Hudi
+  - Deduplicated and corrected data
+  - MERGE_ON_READ tables for frequent updates
   - Explicit schemas with financial data types (Decimal for prices)
-  - Data quality validation
   - Point-in-time correctness
   - System of record
 
-- **Gold Layer**: Derived datasets and aggregations
-  - Synced to ClickHouse for low-latency analytics
+- **Gold Layer**: Derived datasets and aggregations in Apache Hudi
+  - Analytics-ready data
+  - Synced to ClickHouse for low-latency queries
   - Feature tables for research
   - Backtest-ready datasets
 
@@ -43,10 +50,10 @@ git clone https://github.com/sandeep-jaiswar/galactus.git
 cd galactus
 
 # Build and start services
-docker-compose up -d
+docker compose up -d
 
 # Access the application container
-docker-compose exec galactus bash
+docker compose exec galactus bash
 
 # Run a daily ingestion job
 spark-submit \
@@ -127,6 +134,23 @@ spark-submit \
   /path/to/hudi/base
 ```
 
+### Streaming Ingestion
+
+Run continuous streaming ingestion from Kafka to Hudi:
+
+```bash
+spark-submit \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.4.0,org.apache.hudi:hudi-spark3.4-bundle_2.12:0.15.0 \
+  --master local[*] \
+  jobs/spark_streaming_ingest.py
+```
+
+This job:
+- Consumes from Kafka topics (`nse.raw.*`)
+- Writes to Bronze Hudi tables
+- Processes to Silver and Gold layers
+- Runs continuously for real-time ingestion
+
 ### ClickHouse Sync
 
 Sync Silver (Hudi) data to ClickHouse:
@@ -161,17 +185,19 @@ galactus/
 │   ├── config.py          # Centralized configuration
 │   └── hudi.py            # Hudi write options
 ├── jobs/                   # Data ingestion jobs
-│   ├── ingest_bhavcopy_daily_v2.py    # Daily ingestion (improved)
-│   └── ingest_bhavcopy_historical.py  # Historical backfill
+│   ├── ingest_bhavcopy_daily.py      # Daily ingestion (batch)
+│   ├── ingest_bhavcopy_historical.py # Historical backfill
+│   └── spark_streaming_ingest.py     # Streaming ingestion from Kafka
 ├── utils/                  # Utility modules
-│   ├── nse_download.py    # NSE data scraper (Bronze layer)
+│   ├── nse_download.py    # NSE data scraper (publishes to Kafka)
 │   ├── silver_processor.py # Silver layer transformations
 │   ├── hudi_clickhouse_sync.py
+│   ├── kafka_utils.py     # Kafka producer/consumer utilities
 │   └── logging_utils.py   # Logging utilities
 ├── k8s/                    # Kubernetes manifests
 ├── data/                   # Data storage (gitignored)
-│   ├── bronze/            # Raw NSE data
-│   ├── silver/            # Hudi tables
+│   ├── bronze/            # Raw NSE data in Hudi
+│   ├── silver/            # Cleaned Hudi tables
 │   └── gold/              # Derived datasets
 ├── Dockerfile             # Docker image definition
 ├── docker-compose.yml     # Local development setup

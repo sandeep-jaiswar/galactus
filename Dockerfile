@@ -16,7 +16,7 @@ RUN ln -s /usr/bin/python3 /usr/bin/python || true
 RUN ln -s /usr/bin/pip3 /usr/bin/pip || true
 
 # Set Java environment
-ENV JAVA_HOME=/usr/local/openjdk-11
+ENV JAVA_HOME=/opt/java/openjdk
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Install Spark

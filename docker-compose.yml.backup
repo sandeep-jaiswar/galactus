@@ -30,7 +30,53 @@ services:
         condition: service_healthy
     networks:
       - galactus-network
-    command: tail -f /dev/null
+    command: >
+      bash -c "
+        echo 'Waiting for Kafka to be ready...' &&
+        python -c '
+        import socket
+        import time
+        import sys
+        host, port = \"kafka\", 29092
+        for i in range(60):
+            try:        import socket
+        import time
+        import sys
+        host, port = \"kafka\", 29092
+        for i in range(60):
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(1)
+                result = sock.connect_ex((host, port))
+                sock.close()
+                if result == 0:
+                    print(\"Kafka is ready!\")
+                    sys.exit(0)
+            except:
+                pass
+            print(f\"Waiting for Kafka... ({i+1}/60)\")
+            time.sleep(2)
+        print(\"Timeout waiting for Kafka\")
+        sys.exit(1)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(1)
+                result = sock.connect_ex((host, port))
+                sock.close()
+                if result == 0:
+                    print(\"Kafka is ready!\")
+                    sys.exit(0)
+            except:
+                pass
+            print(f\"Waiting for Kafka... ({i+1}/60)\")
+            time.sleep(2)
+        print(\"Timeout waiting for Kafka\")
+        sys.exit(1)
+        ' &&
+        echo 'Creating topics...' &&
+        python utils/create_kafka_topics.py &&
+        echo 'Topics created. Starting application...' &&
+        tail -f /dev/null
+      "
 
   # Zookeeper for Kafka
   zookeeper:
@@ -66,7 +112,11 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-broker-api-versions --bootstrap-server localhost:9092",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

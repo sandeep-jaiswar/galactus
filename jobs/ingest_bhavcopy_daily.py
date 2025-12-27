@@ -188,61 +188,70 @@ def main():
         logger.info("=" * 80)
         
         try:
-            bronze_csv_path = download_bhavcopy(
+            csv_content = download_bhavcopy(
                 session_date=trade_date,
                 max_retries=config.NSE_RETRY_ATTEMPTS,
                 retry_delay=config.NSE_RETRY_DELAY,
                 timeout=config.NSE_DOWNLOAD_TIMEOUT
             )
-            logger.info(f"Bronze layer file: {bronze_csv_path}")
+            
+            if csv_content is None:
+                logger.warning(f"No bhavcopy data available for {trade_date}. This may be a non-trading day.")
+                logger.info("Daily ingestion completed (no data to process)")
+                success = True
+                input_records = 0
+                output_records = 0
+            else:
+                logger.info(f"Downloaded CSV content for {trade_date} ({len(csv_content)} characters)")
         except NSEDownloadError as e:
             logger.error(f"Failed to download from NSE: {e}")
             sys.exit(1)
         
-        # Step 2: Create Spark session
-        spark = create_spark_session(trade_date)
-        
-        # Step 3: Transform to Silver layer
-        logger.info("=" * 80)
-        logger.info("STEP 2: Processing to Silver Layer")
-        logger.info("=" * 80)
-        
-        try:
-            df_silver = process_bhavcopy_to_silver(
-                spark=spark,
-                bronze_csv_path=bronze_csv_path,
-                trade_date=trade_date
-            )
+if csv_content is not None:
+            # Step 2: Create Spark session
+            spark = create_spark_session(trade_date)
             
-            if df_silver is None:
-                logger.error("Silver processing returned no data")
+            # Step 3: Transform to Silver layer
+            logger.info("=" * 80)
+            logger.info("STEP 2: Processing to Silver Layer")
+            logger.info("=" * 80)
+            
+            try:
+                df_silver = process_bhavcopy_to_silver(
+                    spark=spark,
+                    csv_content=csv_content,
+                    trade_date=trade_date
+                )
+                
+                if df_silver is None:
+                    logger.error("Silver processing returned no data")
+                    sys.exit(1)
+                
+                input_records = df_silver.count()
+                output_records = input_records  # After validation
+            
+            except SilverProcessingError as e:
+                logger.error(f"Silver processing failed: {e}")
                 sys.exit(1)
             
-            input_records = df_silver.count()
-            output_records = input_records  # After validation
+            # Step 4: Write to Hudi
+            logger.info("=" * 80)
+            logger.info("STEP 3: Writing to Hudi")
+            logger.info("=" * 80)
             
-        except SilverProcessingError as e:
-            logger.error(f"Silver processing failed: {e}")
-            sys.exit(1)
-        
-        # Step 4: Write to Hudi
-        logger.info("=" * 80)
-        logger.info("STEP 3: Writing to Hudi")
-        logger.info("=" * 80)
-        
-        table_name = "sec_bhavdata"
-        if not write_to_hudi(spark, df_silver, table_name, hudi_base_path, trade_date):
-            logger.error("Failed to write to Hudi")
-            sys.exit(1)
-        
-        # Log data lineage
-        log_data_lineage(
-            logger,
-            dataset_name=table_name,
-            date_range=trade_date,
-            input_records=input_records,
-            output_records=output_records
-        )
+            table_name = "sec_bhavdata"
+            if not write_to_hudi(spark, df_silver, table_name, hudi_base_path, trade_date):
+                logger.error("Failed to write to Hudi")
+                sys.exit(1)
+            
+            # Log data lineage
+            log_data_lineage(
+                logger,
+                dataset_name=table_name,
+                date_range=trade_date,
+                input_records=input_records,
+                output_records=output_records
+            )
         
         success = True
         
