@@ -26,16 +26,22 @@ CURRENT_BRANCH="${GITHUB_HEAD_REF:-$(git rev-parse --abbrev-ref HEAD)}"
 echo "Comparing: $CURRENT_BRANCH against $BASE_BRANCH"
 echo ""
 
-# For local testing or when base branch doesn't exist, use HEAD~1
+# Determine the base reference for diff operations
 if ! git rev-parse "$BASE_BRANCH" >/dev/null 2>&1; then
     echo -e "${YELLOW}⚠️  Base branch '$BASE_BRANCH' not found, using HEAD~1 for comparison${NC}"
     BASE_REF="HEAD~1"
+    # Verify HEAD~1 is available
+    if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
+        echo -e "${RED}❌ Cannot determine base reference for comparison${NC}"
+        echo "This might be a single-commit repository or detached HEAD state."
+        exit 1
+    fi
 else
     BASE_REF="$BASE_BRANCH"
 fi
 
 # Get list of changed files (excluding certain patterns)
-CHANGED_FILES=$(git diff --name-only "$BASE_REF" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null || echo "")
+CHANGED_FILES=$(git diff --name-only "$BASE_REF" 2>/dev/null || echo "")
 
 if [ -z "$CHANGED_FILES" ]; then
     echo -e "${GREEN}✅ No changes detected${NC}"
@@ -48,11 +54,22 @@ echo "$CHANGED_FILES" | sed 's/^/  /'
 echo ""
 
 # Categorize changes
+# Exclude workflow files, docs, README, md files, and validate scripts from code changes
 CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(rs|py|toml|yaml|yml|json)$' | grep -v -E '^(docs/|README|\.md$|scripts/validate_|\.github/workflows/)' || true)
 DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst|txt)$|^docs/' || true)
 RUST_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.rs$|core/rust/' || true)
 PYTHON_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.py$|research/python/' || true)
+# Handle workflow files separately as they're important configuration
+WORKFLOW_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.github/workflows/.*\.(yml|yaml)$' || true)
 CONFIG_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.(toml|yaml|yml|json)$' || true)
+# Combine workflow changes with other config changes
+if [ -n "$WORKFLOW_CHANGES" ]; then
+    if [ -n "$CONFIG_CHANGES" ]; then
+        CONFIG_CHANGES=$(printf "%s\n%s" "$CONFIG_CHANGES" "$WORKFLOW_CHANGES")
+    else
+        CONFIG_CHANGES="$WORKFLOW_CHANGES"
+    fi
+fi
 
 # Check 1: Core Rust changes should have documentation updates
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -154,8 +171,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 if [ -n "$CONFIG_CHANGES" ]; then
-    # Filter out minor config files
-    SIGNIFICANT_CONFIG=$(echo "$CONFIG_CHANGES" | grep -E 'Cargo.toml|pyproject.toml|\.github/workflows/' || true)
+    # Filter out minor config files - only look for significant configuration
+    SIGNIFICANT_CONFIG=$(echo "$CONFIG_CHANGES" | grep -E 'Cargo\.toml|pyproject\.toml|\.github/workflows/.*\.(yml|yaml)$' || true)
     
     if [ -n "$SIGNIFICANT_CONFIG" ]; then
         echo "Significant configuration changes detected:"
