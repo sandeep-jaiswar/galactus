@@ -16,8 +16,8 @@ pub enum MetricType {
     /// Gauge that can increase or decrease
     Gauge { value: f64 },
     /// Histogram with buckets
-    Histogram { 
-        count: u64, 
+    Histogram {
+        count: u64,
         sum: f64,
         buckets: Vec<(f64, u64)>,
     },
@@ -47,7 +47,7 @@ impl MetricsCollector {
         let collector = Self {
             metrics: Arc::new(Mutex::new(HashMap::new())),
         };
-        
+
         // Initialize standard metrics
         collector.init_standard_metrics();
         collector
@@ -74,10 +74,7 @@ impl MetricsCollector {
         );
 
         // Stability score gauge
-        self.register_gauge(
-            "galactus_stability_score",
-            "Current stability score (0-1)",
-        );
+        self.register_gauge("galactus_stability_score", "Current stability score (0-1)");
 
         // Inference latency histogram
         self.register_histogram(
@@ -93,10 +90,7 @@ impl MetricsCollector {
         );
 
         // Active signals gauge
-        self.register_gauge(
-            "galactus_active_signals",
-            "Number of active signals",
-        );
+        self.register_gauge("galactus_active_signals", "Number of active signals");
     }
 
     /// Register a counter metric
@@ -128,7 +122,7 @@ impl MetricsCollector {
     /// Register a histogram metric
     fn register_histogram(&self, name: &str, help: &str, buckets: Vec<f64>) {
         let bucket_counters = buckets.iter().map(|&b| (b, 0u64)).collect();
-        
+
         let metric = Metric {
             name: name.to_string(),
             labels: HashMap::new(),
@@ -173,10 +167,15 @@ impl MetricsCollector {
     pub fn observe_histogram(&self, name: &str, value: f64) {
         let mut metrics = self.metrics.lock().unwrap();
         if let Some(metric) = metrics.get_mut(name) {
-            if let MetricType::Histogram { count, sum, buckets } = &mut metric.metric_type {
+            if let MetricType::Histogram {
+                count,
+                sum,
+                buckets,
+            } = &mut metric.metric_type
+            {
                 *count += 1;
                 *sum += value;
-                
+
                 // Increment bucket counters
                 for (bucket_limit, bucket_count) in buckets.iter_mut() {
                     if value <= *bucket_limit {
@@ -201,7 +200,7 @@ impl MetricsCollector {
         for metric in metrics.values() {
             // Add help text
             output.push_str(&format!("# HELP {} {}\n", metric.name, metric.help));
-            
+
             // Add type
             let type_str = match metric.metric_type {
                 MetricType::Counter { .. } => "counter",
@@ -218,14 +217,21 @@ impl MetricsCollector {
                 MetricType::Gauge { value } => {
                     output.push_str(&format!("{} {}\n", metric.name, value));
                 }
-                MetricType::Histogram { count, sum, buckets } => {
+                MetricType::Histogram {
+                    count,
+                    sum,
+                    buckets,
+                } => {
                     for (bucket_limit, bucket_count) in buckets {
                         output.push_str(&format!(
                             "{}_bucket{{le=\"{}\"}} {}\n",
                             metric.name, bucket_limit, bucket_count
                         ));
                     }
-                    output.push_str(&format!("{}_bucket{{le=\"+Inf\"}} {}\n", metric.name, count));
+                    output.push_str(&format!(
+                        "{}_bucket{{le=\"+Inf\"}} {}\n",
+                        metric.name, count
+                    ));
                     output.push_str(&format!("{}_sum {}\n", metric.name, sum));
                     output.push_str(&format!("{}_count {}\n", metric.name, count));
                 }
@@ -250,15 +256,16 @@ mod tests {
     #[test]
     fn test_counter_increment() {
         let collector = MetricsCollector::new();
-        
+
         collector.increment_counter("galactus_inference_operations_total");
         collector.increment_counter("galactus_inference_operations_total");
-        
+
         let metrics = collector.get_metrics();
-        let counter = metrics.iter()
+        let counter = metrics
+            .iter()
             .find(|m| m.name == "galactus_inference_operations_total")
             .unwrap();
-        
+
         if let MetricType::Counter { value } = counter.metric_type {
             assert_eq!(value, 2);
         } else {
@@ -269,14 +276,15 @@ mod tests {
     #[test]
     fn test_gauge_set() {
         let collector = MetricsCollector::new();
-        
+
         collector.set_gauge("galactus_confidence_score", 0.85);
-        
+
         let metrics = collector.get_metrics();
-        let gauge = metrics.iter()
+        let gauge = metrics
+            .iter()
             .find(|m| m.name == "galactus_confidence_score")
             .unwrap();
-        
+
         if let MetricType::Gauge { value } = gauge.metric_type {
             assert_eq!(value, 0.85);
         } else {
@@ -287,15 +295,16 @@ mod tests {
     #[test]
     fn test_histogram_observe() {
         let collector = MetricsCollector::new();
-        
+
         collector.observe_histogram("galactus_inference_latency_seconds", 0.015);
         collector.observe_histogram("galactus_inference_latency_seconds", 0.025);
-        
+
         let metrics = collector.get_metrics();
-        let histogram = metrics.iter()
+        let histogram = metrics
+            .iter()
             .find(|m| m.name == "galactus_inference_latency_seconds")
             .unwrap();
-        
+
         if let MetricType::Histogram { count, sum, .. } = histogram.metric_type {
             assert_eq!(count, 2);
             assert!((sum - 0.04).abs() < 0.001);
@@ -309,9 +318,9 @@ mod tests {
         let collector = MetricsCollector::new();
         collector.increment_counter("galactus_inference_operations_total");
         collector.set_gauge("galactus_confidence_score", 0.9);
-        
+
         let output = collector.export_prometheus();
-        
+
         assert!(output.contains("# HELP galactus_inference_operations_total"));
         assert!(output.contains("# TYPE galactus_inference_operations_total counter"));
         assert!(output.contains("galactus_inference_operations_total 1"));
@@ -323,10 +332,10 @@ mod tests {
     fn test_standard_metrics_initialized() {
         let collector = MetricsCollector::new();
         let metrics = collector.get_metrics();
-        
+
         // Check that standard metrics are present
         let metric_names: Vec<&str> = metrics.iter().map(|m| m.name.as_str()).collect();
-        
+
         assert!(metric_names.contains(&"galactus_inference_operations_total"));
         assert!(metric_names.contains(&"galactus_data_quality_score"));
         assert!(metric_names.contains(&"galactus_confidence_score"));

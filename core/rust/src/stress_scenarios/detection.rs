@@ -121,9 +121,7 @@ impl StressScenarioDetector {
     /// Detects stress scenarios based on regime state and returns the most severe
     pub fn detect_most_severe(&self, regime: &RegimeState) -> Option<StressScenario> {
         let scenarios = self.detect_from_regime(regime);
-        scenarios
-            .into_iter()
-            .max_by_key(|s| s.severity)
+        scenarios.into_iter().max_by_key(|s| s.severity)
     }
 }
 
@@ -250,8 +248,11 @@ pub fn detect_constraint_overlap(
     let constraint_count = active_constraints.len();
 
     if constraint_count >= 2 {
-        let params =
-            ConstraintOverlapParams::new(constraint_count, are_constraints_offsetting, active_constraints.clone());
+        let params = ConstraintOverlapParams::new(
+            constraint_count,
+            are_constraints_offsetting,
+            active_constraints.clone(),
+        );
 
         let description = format!(
             "Multiple constraints active: {} ({})",
@@ -281,7 +282,9 @@ pub fn detect_constraint_overlap(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::regime::{DerivativesDominance, ParticipationRegime, RegimeConfidence, TimeConstraint};
+    use crate::regime::{
+        DerivativesDominance, ParticipationRegime, RegimeConfidence, TimeConstraint,
+    };
 
     #[test]
     fn test_detect_liquidity_stress() {
@@ -350,10 +353,7 @@ mod tests {
         let critical = detect_expiry_compression(0.5, 3.5, true, 100000, 1000000);
         assert!(critical.is_some());
         let scenario = critical.unwrap();
-        assert_eq!(
-            scenario.category,
-            StressScenarioCategory::ExpiryCompression
-        );
+        assert_eq!(scenario.category, StressScenarioCategory::ExpiryCompression);
         assert!(scenario.tags.contains(&"critical_expiry".to_string()));
 
         let approaching = detect_expiry_compression(12.0, 1.8, false, 50000, 1000000);
@@ -370,10 +370,7 @@ mod tests {
         let critical = detect_data_degradation(false, true, false, 20, 0.2, 1000000);
         assert!(critical.is_some());
         let scenario = critical.unwrap();
-        assert_eq!(
-            scenario.category,
-            StressScenarioCategory::DataDegradation
-        );
+        assert_eq!(scenario.category, StressScenarioCategory::DataDegradation);
         assert!(scenario.tags.contains(&"halt_inference".to_string()));
         assert!(scenario.should_suppress_inference());
 
@@ -397,10 +394,7 @@ mod tests {
         );
         assert!(severe.is_some());
         let scenario = severe.unwrap();
-        assert_eq!(
-            scenario.category,
-            StressScenarioCategory::ConstraintOverlap
-        );
+        assert_eq!(scenario.category, StressScenarioCategory::ConstraintOverlap);
         assert!(scenario.is_critical());
 
         let no_overlap = detect_constraint_overlap(vec!["expiry".to_string()], false, 1000000);

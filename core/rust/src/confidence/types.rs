@@ -5,10 +5,10 @@
 pub struct OverallConfidence {
     /// Overall confidence score [0.0, 1.0]
     pub score: f64,
-    
+
     /// Component confidence scores
     pub components: ConfidenceComponents,
-    
+
     /// Confidence level classification
     pub level: ConfidenceLevel,
 }
@@ -40,10 +40,10 @@ pub enum ConfidenceLevel {
 pub struct StabilityIndicator {
     /// Overall stability score [0.0, 1.0]
     pub score: f64,
-    
+
     /// Component stability scores
     pub components: StabilityComponents,
-    
+
     /// Stability level classification
     pub level: StabilityLevel,
 }
@@ -72,13 +72,13 @@ pub enum StabilityLevel {
 pub struct UncertaintyMetadata {
     /// Explicit assumptions made in the inference
     pub assumptions: Vec<String>,
-    
+
     /// Flags indicating known ambiguities
     pub ambiguity_flags: Vec<String>,
-    
+
     /// Known limitations of the inference
     pub known_limitations: Vec<String>,
-    
+
     /// Confidence bounds (lower, upper)
     pub confidence_bounds: (f64, f64),
 }
@@ -88,10 +88,10 @@ pub struct UncertaintyMetadata {
 pub enum SilenceDecision {
     /// Output inference normally
     Proceed,
-    
+
     /// Output with explicit warnings
     ProceedWithWarning(Vec<String>),
-    
+
     /// Suppress inference completely
     Suppress(SuppressionReason),
 }
@@ -101,16 +101,16 @@ pub enum SilenceDecision {
 pub enum SuppressionReason {
     /// overall_confidence < 0.30
     InsufficientConfidence,
-    
+
     /// data_quality_confidence < 0.50
     DataQualityBelowThreshold,
-    
+
     /// regime_confidence < 0.30
     RegimeIndeterminate,
-    
+
     /// structural_confidence < 0.40 && signal_confidence < 0.40
     StructuralFoundationInsufficient,
-    
+
     /// overall_stability < 0.20
     InferenceTooUnstable,
 }
@@ -147,15 +147,11 @@ impl SuppressionReason {
     /// Get human-readable message for suppression reason
     pub fn message(&self) -> &'static str {
         match self {
-            SuppressionReason::InsufficientConfidence => {
-                "Insufficient confidence for inference"
-            }
+            SuppressionReason::InsufficientConfidence => "Insufficient confidence for inference",
             SuppressionReason::DataQualityBelowThreshold => {
                 "Data quality below acceptable threshold"
             }
-            SuppressionReason::RegimeIndeterminate => {
-                "Regime classification indeterminate"
-            }
+            SuppressionReason::RegimeIndeterminate => "Regime classification indeterminate",
             SuppressionReason::StructuralFoundationInsufficient => {
                 "Structural foundation insufficient"
             }
@@ -200,13 +196,13 @@ mod tests {
             ConfidenceLevel::from_scores(0.35, 0.25),
             ConfidenceLevel::Critical
         );
-        
+
         // Low confidence even with good stability
         assert_eq!(
             ConfidenceLevel::from_scores(0.35, 0.80),
             ConfidenceLevel::Critical
         );
-        
+
         // Low stability even with good confidence
         assert_eq!(
             ConfidenceLevel::from_scores(0.85, 0.25),
@@ -231,10 +227,16 @@ mod tests {
 
     #[test]
     fn test_suppression_reason_messages() {
-        assert!(!SuppressionReason::InsufficientConfidence.message().is_empty());
-        assert!(!SuppressionReason::DataQualityBelowThreshold.message().is_empty());
+        assert!(!SuppressionReason::InsufficientConfidence
+            .message()
+            .is_empty());
+        assert!(!SuppressionReason::DataQualityBelowThreshold
+            .message()
+            .is_empty());
         assert!(!SuppressionReason::RegimeIndeterminate.message().is_empty());
-        assert!(!SuppressionReason::StructuralFoundationInsufficient.message().is_empty());
+        assert!(!SuppressionReason::StructuralFoundationInsufficient
+            .message()
+            .is_empty());
         assert!(!SuppressionReason::InferenceTooUnstable.message().is_empty());
     }
 }

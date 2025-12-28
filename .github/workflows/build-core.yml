@@ -1,0 +1,60 @@
+name: Build Core (Rust)
+
+on:
+  push:
+    branches: [ production ]
+    paths:
+      - 'core/rust/**'
+      - '.github/workflows/build-core.yml'
+  pull_request:
+    branches: [ production ]
+    paths:
+      - 'core/rust/**'
+      - '.github/workflows/build-core.yml'
+
+jobs:
+  build-and-test:
+    name: Build and Test Core
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install cargo audit
+        run: cargo install cargo-audit
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "core/rust"
+
+      - name: Check formatting
+        working-directory: core/rust
+        run: cargo fmt --check
+
+      - name: Run clippy
+        working-directory: core/rust
+        run: cargo clippy -- -D warnings
+
+      - name: Check compilation
+        working-directory: core/rust
+        run: cargo check
+
+      - name: Security audit
+        working-directory: core/rust
+        run: cargo audit
+        continue-on-error: true
+
+      - name: Build
+        working-directory: core/rust
+        run: cargo build --release
+
+      - name: Run tests
+        working-directory: core/rust
+        run: cargo test

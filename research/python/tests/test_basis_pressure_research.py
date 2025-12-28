@@ -4,17 +4,15 @@ Tests for Basis Pressure Research Module
 Tests the basis pressure signal implementation and validation.
 """
 
-import pytest
-import numpy as np
 from datetime import datetime
-from src.features.basis_pressure_research import (
-    compute_basis_pressure,
-    validate_basis_pressure_signal,
-    generate_synthetic_basis_data,
-    analyze_basis_pressure_patterns,
-    BasisPressureConfig,
-    BasisPressureResult,
-)
+
+import numpy as np
+import pytest
+
+from features.basis_pressure_research import (
+    BasisPressureConfig, BasisPressureResult, analyze_basis_pressure_patterns,
+    compute_basis_pressure, generate_synthetic_basis_data,
+    validate_basis_pressure_signal)
 
 
 class TestBasisPressureComputation:

@@ -4,11 +4,11 @@
 //! with connection resilience and event emission.
 
 use crate::data::CanonicalEvent;
-use crate::ingestion::sources::{DataSource, ConnectionState, SourceError};
-use tokio::sync::mpsc;
-use tokio::time::{interval, Duration};
+use crate::ingestion::sources::{ConnectionState, DataSource, SourceError};
 use std::sync::Arc;
+use tokio::sync::mpsc;
 use tokio::sync::RwLock;
+use tokio::time::{interval, Duration};
 
 /// Event stream errors
 #[derive(Debug, Clone)]
@@ -72,7 +72,9 @@ impl EventStream {
     pub async fn start(&mut self) -> Result<(), StreamError> {
         let mut is_running = self.is_running.write().await;
         if *is_running {
-            return Err(StreamError::ProcessingError("Stream already running".to_string()));
+            return Err(StreamError::ProcessingError(
+                "Stream already running".to_string(),
+            ));
         }
         *is_running = true;
         drop(is_running);
@@ -142,21 +144,22 @@ impl ResilientStream {
                 Ok(_) => {
                     println!("Connected successfully");
                     attempts = 0; // Reset on successful connection
-                    
+
                     // Monitor connection health
                     self.monitor_connection().await;
-                    
+
                     // If we get here, connection was lost
                     println!("Connection lost, attempting reconnect...");
                 }
                 Err(e) => {
                     attempts += 1;
                     println!("Connection failed (attempt {}): {}", attempts, e);
-                    
+
                     if attempts >= self.max_reconnect_attempts {
-                        return Err(StreamError::SourceError(
-                            format!("Max reconnection attempts ({}) exceeded", self.max_reconnect_attempts)
-                        ));
+                        return Err(StreamError::SourceError(format!(
+                            "Max reconnection attempts ({}) exceeded",
+                            self.max_reconnect_attempts
+                        )));
                     }
                 }
             }
@@ -203,9 +206,9 @@ impl EventHandler for EventLogger {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::StreamingConfig;
     use crate::data::*;
     use crate::ingestion::sources::WebSocketSource;
-    use crate::config::StreamingConfig;
     use chrono::Utc;
 
     fn create_test_config() -> StreamingConfig {
@@ -253,8 +256,11 @@ mod tests {
     #[tokio::test]
     async fn test_resilient_stream_creation() {
         let config = create_test_config();
-        let source = Box::new(WebSocketSource::new("wss://test.com".to_string(), config.clone()));
-        
+        let source = Box::new(WebSocketSource::new(
+            "wss://test.com".to_string(),
+            config.clone(),
+        ));
+
         let stream = ResilientStream::new(
             source,
             Duration::from_secs(config.reconnect_delay_seconds),

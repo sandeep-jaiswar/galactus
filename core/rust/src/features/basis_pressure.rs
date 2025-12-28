@@ -104,8 +104,15 @@ impl BasisPressureFeature {
     pub fn with_config(config: BasisPressureConfig) -> Self {
         Self { config }
     }
+}
 
-    /// Compute basis pressure from futures and spot prices
+impl Default for BasisPressureFeature {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl BasisPressureFeature {
     ///
     /// # Arguments
     /// * `futures_price` - Current futures price
@@ -149,7 +156,10 @@ impl BasisPressureFeature {
                 metadata: {
                     let mut meta = HashMap::new();
                     meta.insert("error".to_string(), "too_close_to_expiry".to_string());
-                    meta.insert("min_required".to_string(), self.config.min_time_to_expiry_days.to_string());
+                    meta.insert(
+                        "min_required".to_string(),
+                        self.config.min_time_to_expiry_days.to_string(),
+                    );
                     meta.insert("actual".to_string(), time_to_expiry_days.to_string());
                     meta
                 },
@@ -167,7 +177,10 @@ impl BasisPressureFeature {
                 metadata: {
                     let mut meta = HashMap::new();
                     meta.insert("error".to_string(), "too_far_from_expiry".to_string());
-                    meta.insert("max_allowed".to_string(), self.config.max_time_to_expiry_days.to_string());
+                    meta.insert(
+                        "max_allowed".to_string(),
+                        self.config.max_time_to_expiry_days.to_string(),
+                    );
                     meta.insert("actual".to_string(), time_to_expiry_days.to_string());
                     meta
                 },
@@ -217,7 +230,7 @@ impl BasisPressureFeature {
         }
 
         // Clamp to [-1, 1] range
-        pressure = pressure.max(-1.0).min(1.0);
+        pressure = pressure.clamp(-1.0, 1.0);
 
         // Compute confidence based on data quality and conditions
         let mut confidence = 1.0;
@@ -253,11 +266,17 @@ impl BasisPressureFeature {
                 let mut meta = HashMap::new();
                 meta.insert("futures_price".to_string(), format!("{:.2}", futures_price));
                 meta.insert("spot_price".to_string(), format!("{:.2}", spot_price));
-                meta.insert("risk_free_rate".to_string(), format!("{:.4}", risk_free_rate));
+                meta.insert(
+                    "risk_free_rate".to_string(),
+                    format!("{:.4}", risk_free_rate),
+                );
                 meta.insert("time_fraction".to_string(), format!("{:.4}", time_fraction));
                 meta.insert("raw_pressure".to_string(), format!("{:.6}", raw_pressure));
                 meta.insert("time_factor".to_string(), format!("{:.6}", time_factor));
-                meta.insert("computation_method".to_string(), "basis_pressure_v1".to_string());
+                meta.insert(
+                    "computation_method".to_string(),
+                    "basis_pressure_v1".to_string(),
+                );
                 meta
             },
         })
@@ -277,43 +296,68 @@ impl crate::features::registry::Feature for BasisPressureFeature {
         "1.0.0"
     }
 
-    fn compute(&self, inputs: &crate::features::registry::FeatureInputs) -> Result<crate::features::registry::FeatureResult, crate::features::registry::FeatureError> {
+    fn compute(
+        &self,
+        inputs: &crate::features::registry::FeatureInputs,
+    ) -> Result<crate::features::registry::FeatureResult, crate::features::registry::FeatureError>
+    {
         // Extract futures and spot data
-        let futures_data = inputs.futures_data.get("default")
-            .ok_or_else(|| crate::features::registry::FeatureError::InvalidInput(
+        let futures_data = inputs.futures_data.get("default").ok_or_else(|| {
+            crate::features::registry::FeatureError::InvalidInput(
                 "No futures data available".to_string(),
-            ))?;
+            )
+        })?;
 
         // Extract spot price from market data
-        let spot_price = inputs.market_data.values()
+        let spot_price = inputs
+            .market_data
+            .values()
             .find(|d| d.symbol == "SPOT")
             .map(|d| d.price)
             .or_else(|| {
                 // Try to get from context
-                inputs.context.get("spot_price")
+                inputs
+                    .context
+                    .get("spot_price")
                     .and_then(|s| s.parse::<f64>().ok())
             })
-            .ok_or_else(|| crate::features::registry::FeatureError::InvalidInput(
-                "No spot price available in market data or context".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                crate::features::registry::FeatureError::InvalidInput(
+                    "No spot price available in market data or context".to_string(),
+                )
+            })?;
 
         // Extract time to expiry from futures metadata or context
-        let time_to_expiry_days = futures_data.metadata.get("time_to_expiry_days")
+        let time_to_expiry_days = futures_data
+            .metadata
+            .get("time_to_expiry_days")
             .and_then(|s| s.parse::<f64>().ok())
             .or_else(|| {
-                inputs.context.get("time_to_expiry_days")
+                inputs
+                    .context
+                    .get("time_to_expiry_days")
                     .and_then(|s| s.parse::<f64>().ok())
             })
-            .ok_or_else(|| crate::features::registry::FeatureError::InvalidInput(
-                "No time to expiry available in futures metadata or context".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                crate::features::registry::FeatureError::InvalidInput(
+                    "No time to expiry available in futures metadata or context".to_string(),
+                )
+            })?;
 
         // Extract risk-free rate from context (optional)
-        let risk_free_rate = inputs.context.get("risk_free_rate")
+        let risk_free_rate = inputs
+            .context
+            .get("risk_free_rate")
             .and_then(|s| s.parse::<f64>().ok());
 
-        let result = self.compute_pressure(futures_data.price, spot_price, time_to_expiry_days, risk_free_rate)
-            .map_err(|e| crate::features::registry::FeatureError::ComputationFailure(e))?;
+        let result = self
+            .compute_pressure(
+                futures_data.price,
+                spot_price,
+                time_to_expiry_days,
+                risk_free_rate,
+            )
+            .map_err(crate::features::registry::FeatureError::ComputationFailure)?;
 
         Ok(crate::features::registry::FeatureResult {
             name: self.name().to_string(),
@@ -338,7 +382,9 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 30.0;
 
-        let result = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         // Futures at 105 vs fair value around 100 * exp(0.05 * 30/365) ≈ 100.41
         // So futures are overpriced, should show positive pressure
@@ -354,11 +400,13 @@ mod tests {
     fn test_underpriced_futures() {
         let feature = BasisPressureFeature::new();
 
-        let futures_price = 99.0;  // Underpriced futures
+        let futures_price = 99.0; // Underpriced futures
         let spot_price = 100.0;
         let time_to_expiry_days = 30.0;
 
-        let result = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         // Futures underpriced, should show negative pressure
         assert!(result.pressure < 0.0);
@@ -374,7 +422,9 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 0.5; // Half day
 
-        let result = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);
@@ -389,7 +439,9 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 400.0; // Over a year
 
-        let result = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);
@@ -407,11 +459,13 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 30.0;
 
-        let result = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         // Should be significantly damped due to weak signal
         assert!(result.pressure.abs() < 0.1); // Much smaller than it would be without damping
-        // The divergence might be larger due to the calculation method, but damping should still work
+                                              // The divergence might be larger due to the calculation method, but damping should still work
     }
 
     #[test]
@@ -439,8 +493,12 @@ mod tests {
         let spot_price = 100.0;
 
         // Test with different times to expiry
-        let result_short = feature.compute_pressure(futures_price, spot_price, 3.0, None).unwrap(); // < 7.0
-        let result_long = feature.compute_pressure(futures_price, spot_price, 200.0, None).unwrap(); // > 180.0
+        let result_short = feature
+            .compute_pressure(futures_price, spot_price, 3.0, None)
+            .unwrap(); // < 7.0
+        let result_long = feature
+            .compute_pressure(futures_price, spot_price, 200.0, None)
+            .unwrap(); // > 180.0
 
         // Closer to expiry should have lower confidence
         assert!(result_short.confidence < result_long.confidence);
@@ -454,8 +512,12 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 30.0;
 
-        let result1 = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
-        let result2 = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
+        let result1 = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
+        let result2 = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
 
         assert_eq!(result1.pressure, result2.pressure);
         assert_eq!(result1.confidence, result2.confidence);
@@ -470,8 +532,12 @@ mod tests {
         let spot_price = 100.0;
         let time_to_expiry_days = 30.0;
 
-        let result_default = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, None).unwrap();
-        let result_custom = feature.compute_pressure(futures_price, spot_price, time_to_expiry_days, Some(0.10)).unwrap();
+        let result_default = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, None)
+            .unwrap();
+        let result_custom = feature
+            .compute_pressure(futures_price, spot_price, time_to_expiry_days, Some(0.10))
+            .unwrap();
 
         // Higher risk-free rate should change the fair value calculation
         assert_ne!(result_default.fair_basis, result_custom.fair_basis);

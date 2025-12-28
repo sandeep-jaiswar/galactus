@@ -3,7 +3,8 @@ OI Decay Pressure Signal Research Implementation
 
 This module implements the OI decay pressure signal for research and validation.
 
-Hypothesis: Derivatives OI decay rate indicates forced position unwinding due to capital constraints.
+Hypothesis: Derivatives OI decay rate indicates forced position unwinding
+    due to capital constraints.
 
 Signal Logic:
 - Measures rate of open interest decrease across strike prices
@@ -18,11 +19,12 @@ Validation Requirements:
 - Cross-validation with known market events
 """
 
-from typing import Dict, List, Optional, Tuple, Any
 import warnings
-import numpy as np
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 from .isolation import mark_experimental
 
@@ -51,7 +53,10 @@ class OIDecayConfig:
 
 
 @mark_experimental(
-    hypothesis="Derivatives OI decay rate indicates forced position unwinding due to capital constraints",
+    hypothesis=(
+        "Derivatives OI decay rate indicates forced position unwinding "
+        "due to capital constraints"
+    ),
     assumptions=[
         "Clean derivatives market data available",
         "Sufficient market liquidity (>1000 contracts total OI)",
@@ -108,7 +113,10 @@ def compute_oi_decay_pressure(
 
     if len(current_oi) < config.min_strikes or len(previous_oi) < config.min_strikes:
         warnings.warn(
-            f"Insufficient strike data: current={len(current_oi)}, previous={len(previous_oi)}, min={config.min_strikes}"
+            (
+                f"Insufficient strike data: current={len(current_oi)}, "
+                f"previous={len(previous_oi)}, min={config.min_strikes}"
+            )
         )
         return OIDecayResult(
             pressure=0.0,

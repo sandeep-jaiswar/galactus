@@ -71,40 +71,42 @@ async fn main() {
     let state = Arc::new(AppState::new());
 
     // Health check endpoint
-    let health = warp::path!("api" / "v1" / "health")
-        .map({
-            let state = state.clone();
-            move || {
-                let uptime = state.start_time.elapsed().as_secs();
-                let components = HashMap::from([
-                    ("inference_engine".to_string(), "healthy".to_string()),
-                    ("data_processing".to_string(), "healthy".to_string()),
-                ]);
+    let health = warp::path!("api" / "v1" / "health").map({
+        let state = state.clone();
+        move || {
+            let uptime = state.start_time.elapsed().as_secs();
+            let components = HashMap::from([
+                ("inference_engine".to_string(), "healthy".to_string()),
+                ("data_processing".to_string(), "healthy".to_string()),
+            ]);
 
-                warp::reply::json(&HealthResponse {
-                    status: "healthy".to_string(),
-                    uptime_seconds: uptime,
-                    components,
-                })
-            }
-        });
+            warp::reply::json(&HealthResponse {
+                status: "healthy".to_string(),
+                uptime_seconds: uptime,
+                components,
+            })
+        }
+    });
 
     // Metrics endpoint
-    let metrics = warp::path!("api" / "v1" / "metrics")
-        .map({
-            let state = state.clone();
-            move || {
-                let request_count = state.request_count.try_lock().map(|guard| *guard).unwrap_or(0);
-                warp::reply::json(&MetricsResponse {
-                    galactus_inference_operations_total: request_count,
-                    galactus_data_quality_score: 0.95,
-                    galactus_confidence_score: 0.87,
-                    galactus_stability_score: 0.92,
-                    galactus_active_signals: 3,
-                    galactus_silence_suppressions_total: 0,
-                })
-            }
-        });
+    let metrics = warp::path!("api" / "v1" / "metrics").map({
+        let state = state.clone();
+        move || {
+            let request_count = state
+                .request_count
+                .try_lock()
+                .map(|guard| *guard)
+                .unwrap_or(0);
+            warp::reply::json(&MetricsResponse {
+                galactus_inference_operations_total: request_count,
+                galactus_data_quality_score: 0.95,
+                galactus_confidence_score: 0.87,
+                galactus_stability_score: 0.92,
+                galactus_active_signals: 3,
+                galactus_silence_suppressions_total: 0,
+            })
+        }
+    });
 
     // Intent inference endpoint
     let intent = warp::path!("api" / "v1" / "intent")
@@ -122,7 +124,9 @@ async fn main() {
                     }
 
                     // Convert API signals to internal format
-                    let signals: Vec<SignalInput> = request.signals.into_iter()
+                    let signals: Vec<SignalInput> = request
+                        .signals
+                        .into_iter()
                         .map(|s| SignalInput {
                             name: s.name,
                             value: s.value,
@@ -171,7 +175,7 @@ async fn main() {
     // Configure CORS based on environment variable or default to localhost
     let cors_allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
         .unwrap_or_else(|_| "http://localhost:3000".to_string());
-    
+
     let cors = if cors_allowed_origins == "*" {
         warp::cors()
             .allow_any_origin()
@@ -184,7 +188,9 @@ async fn main() {
             .allow_headers(vec!["content-type"])
     };
 
-    let routes = health.or(metrics).or(intent)
+    let routes = health
+        .or(metrics)
+        .or(intent)
         .with(cors)
         .recover(handle_rejection);
 
@@ -193,9 +199,7 @@ async fn main() {
     println!("   Metrics: GET /api/v1/metrics");
     println!("   Intent: POST /api/v1/intent");
 
-    warp::serve(routes)
-        .run(([0, 0, 0, 0], 8080))
-        .await;
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await;
 }
 
 #[derive(Debug)]
@@ -204,7 +208,9 @@ enum ApiError {
 }
 impl warp::reject::Reject for ApiError {}
 
-async fn handle_rejection(err: warp::Rejection) -> Result<impl warp::Reply, std::convert::Infallible> {
+async fn handle_rejection(
+    err: warp::Rejection,
+) -> Result<impl warp::Reply, std::convert::Infallible> {
     if let Some(api_err) = err.find::<ApiError>() {
         match api_err {
             ApiError::InferenceError => Ok(warp::reply::with_status(

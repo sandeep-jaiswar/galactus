@@ -189,8 +189,6 @@ impl DataDegradationParams {
             StressSeverity::Severe
         } else if self.staleness_minutes > 30 || self.missing_data_pct > 0.2 {
             StressSeverity::Moderate
-        } else if self.staleness_minutes > 10 || self.missing_data_pct > 0.05 {
-            StressSeverity::Mild
         } else {
             StressSeverity::Mild
         }

@@ -8,44 +8,46 @@
 //! The safe engine enforces the principle: "Incorrect silence is preferable to confident error"
 //! by evaluating kill switch conditions before allowing inference to proceed.
 
-use super::{IntentEngine, IntentResult, IntentError, IntentConfig, SignalInput};
-use crate::confidence::types::{OverallConfidence, StabilityIndicator, ConfidenceComponents, StabilityComponents, ConfidenceLevel, StabilityLevel};
+use super::{IntentConfig, IntentEngine, IntentError, IntentResult, SignalInput};
+use crate::confidence::types::{
+    ConfidenceComponents, ConfidenceLevel, OverallConfidence, StabilityComponents,
+    StabilityIndicator, StabilityLevel,
+};
 use crate::kill_switch::{
-    KillSwitchEvaluator, KillSwitchConfig, KillSwitchDecision,
-    DataQualityMetrics, RegimeAssessment, StructuralValidation,
+    DataQualityMetrics, KillSwitchConfig, KillSwitchDecision, KillSwitchEvaluator,
+    RegimeAssessment, StructuralValidation,
 };
 
 /// Safe intent engine that integrates kill switch evaluation
 pub struct SafeIntentEngine {
     /// Core intent engine
     engine: IntentEngine,
-    
+
     /// Kill switch evaluator
     kill_switch: KillSwitchEvaluator,
-    
+
     /// Whether to enforce kill switch (can be disabled for testing)
     enforce_kill_switch: bool,
 }
 
 impl SafeIntentEngine {
     /// Create a new safe intent engine with given configurations
-    pub fn new(
-        intent_config: IntentConfig,
-        kill_switch_config: KillSwitchConfig,
-    ) -> Self {
+    pub fn new(intent_config: IntentConfig, kill_switch_config: KillSwitchConfig) -> Self {
         Self {
             engine: IntentEngine::new(intent_config),
             kill_switch: KillSwitchEvaluator::new(kill_switch_config),
             enforce_kill_switch: true,
         }
     }
-    
-    /// Create a new safe engine with default configurations
-    pub fn default() -> Self {
+}
+
+impl Default for SafeIntentEngine {
+    fn default() -> Self {
         Self::new(IntentConfig::default(), KillSwitchConfig::default())
     }
-    
-    /// Process signals with kill switch evaluation
+}
+
+impl SafeIntentEngine {
     ///
     /// This is the main entry point that:
     /// 1. Validates data quality and structural conditions
@@ -73,17 +75,17 @@ impl SafeIntentEngine {
         // Step 1: Perform core inference (this gives us confidence/stability)
         // TODO: Refactor to validate data quality first before inference
         let inference_result = self.engine.process(signals)?;
-        
+
         // Step 2: Extract or compute confidence and stability
         // TODO: Replace placeholder with actual confidence system integration
         // In production, these should come from the inference engine's internal
         // confidence computation module, not be extracted post-hoc.
         let confidence = self.extract_confidence(&inference_result);
         let stability = self.extract_stability(&inference_result);
-        
+
         // Step 3: Assess regime from the result
         let regime = self.assess_regime(&inference_result);
-        
+
         // Step 4: Evaluate kill switch conditions
         if self.enforce_kill_switch {
             let kill_decision = self.kill_switch.evaluate(
@@ -93,32 +95,32 @@ impl SafeIntentEngine {
                 &confidence,
                 &stability,
             );
-            
+
             match kill_decision {
                 KillSwitchDecision::Halt(conditions) => {
                     // Mandatory halt - return error with details
-                    let reasons: Vec<String> = conditions.iter()
+                    let reasons: Vec<String> = conditions
+                        .iter()
                         .map(|c| format!("{}: {}", c.condition_type.description(), c.description))
                         .collect();
-                    return Err(IntentError::KillSwitchTriggered(
-                        format!("Inference halted due to {} kill condition(s): {}", 
-                            conditions.len(),
-                            reasons.join("; ")
-                        )
-                    ));
+                    Err(IntentError::KillSwitchTriggered(format!(
+                        "Inference halted due to {} kill condition(s): {}",
+                        conditions.len(),
+                        reasons.join("; ")
+                    )))
                 }
                 KillSwitchDecision::PartialSuppress(conditions) => {
                     // Partial suppression - could implement signal filtering here
                     // For now, return error to be conservative
-                    let reasons: Vec<String> = conditions.iter()
+                    let reasons: Vec<String> = conditions
+                        .iter()
                         .map(|c| format!("{}: {}", c.condition_type.description(), c.description))
                         .collect();
-                    return Err(IntentError::KillSwitchTriggered(
-                        format!("Inference partially suppressed due to {} condition(s): {}", 
-                            conditions.len(),
-                            reasons.join("; ")
-                        )
-                    ));
+                    Err(IntentError::KillSwitchTriggered(format!(
+                        "Inference partially suppressed due to {} condition(s): {}",
+                        conditions.len(),
+                        reasons.join("; ")
+                    )))
                 }
                 KillSwitchDecision::ProceedWithWarnings(warnings) => {
                     // Attach warnings to result metadata
@@ -126,27 +128,37 @@ impl SafeIntentEngine {
                     for (i, warning) in warnings.iter().enumerate() {
                         result.metadata.insert(
                             format!("kill_switch_warning_{}", i),
-                            format!("{}: {}", warning.condition_type.description(), warning.description),
+                            format!(
+                                "{}: {}",
+                                warning.condition_type.description(),
+                                warning.description
+                            ),
                         );
                     }
-                    result.metadata.insert("kill_switch_status".to_string(), "warning".to_string());
-                    return Ok(result);
+                    result
+                        .metadata
+                        .insert("kill_switch_status".to_string(), "warning".to_string());
+                    Ok(result)
                 }
                 KillSwitchDecision::Proceed => {
                     // Safe to proceed - add status to metadata
                     let mut result = inference_result;
-                    result.metadata.insert("kill_switch_status".to_string(), "passed".to_string());
-                    return Ok(result);
+                    result
+                        .metadata
+                        .insert("kill_switch_status".to_string(), "passed".to_string());
+                    Ok(result)
                 }
             }
         } else {
             // Kill switch disabled - return result with note
             let mut result = inference_result;
-            result.metadata.insert("kill_switch_status".to_string(), "disabled".to_string());
+            result
+                .metadata
+                .insert("kill_switch_status".to_string(), "disabled".to_string());
             Ok(result)
         }
     }
-    
+
     /// Process signals using default data quality and structural validation
     ///
     /// This is a convenience method that assumes data is valid.
@@ -159,23 +171,23 @@ impl SafeIntentEngine {
             max_time_ambiguity: 0,
             ordering_consistent: true,
         };
-        
+
         let structural = StructuralValidation {
             constraints_valid: true,
             forced_flow_consistent: true,
             violations: vec![],
         };
-        
+
         self.process_safe(signals, data_quality, structural)
     }
-    
+
     /// Extract confidence from intent result
     ///
     /// In production, this would use actual confidence computation from the engine.
     /// For now, we create a placeholder based on the intent confidence.
     fn extract_confidence(&self, result: &IntentResult) -> OverallConfidence {
         let base_confidence = result.intent.confidence;
-        
+
         // Create reasonable component values
         let components = ConfidenceComponents {
             data_quality: (base_confidence * 0.95).min(1.0),
@@ -183,53 +195,54 @@ impl SafeIntentEngine {
             regime_consistency: (base_confidence * 0.85).min(1.0),
             signal_agreement: base_confidence,
         };
-        
+
         let level = ConfidenceLevel::from_scores(base_confidence, 0.7);
-        
+
         OverallConfidence {
             score: base_confidence,
             components,
             level,
         }
     }
-    
+
     /// Extract stability from intent result
     ///
     /// In production, this would use actual stability computation.
     /// For now, we create a reasonable placeholder.
     fn extract_stability(&self, result: &IntentResult) -> StabilityIndicator {
         let base_stability = result.intent.confidence * 0.9;
-        
+
         let components = StabilityComponents {
             temporal: base_stability,
             sensitivity: base_stability * 0.95,
             regime: base_stability * 0.9,
         };
-        
+
         let level = StabilityLevel::from_score(base_stability);
-        
+
         StabilityIndicator {
             score: base_stability,
             components,
             level,
         }
     }
-    
+
     /// Assess regime from intent result
     fn assess_regime(&self, result: &IntentResult) -> RegimeAssessment {
         // Extract regime confidence from metadata if available
-        let regime_confidence = result.metadata
+        let regime_confidence = result
+            .metadata
             .get("regime_confidence")
             .and_then(|s| s.parse::<f64>().ok())
             .unwrap_or(0.8);
-        
+
         RegimeAssessment {
             regime_confidence,
             has_conflicts: false,
             conflicts: vec![],
         }
     }
-    
+
     /// Enable or disable kill switch enforcement
     ///
     /// Use this carefully - disabling kill switch should only be done
@@ -237,12 +250,12 @@ impl SafeIntentEngine {
     pub fn set_enforce_kill_switch(&mut self, enforce: bool) {
         self.enforce_kill_switch = enforce;
     }
-    
+
     /// Get reference to the underlying intent engine
     pub fn engine(&self) -> &IntentEngine {
         &self.engine
     }
-    
+
     /// Get reference to the kill switch evaluator
     pub fn kill_switch(&self) -> &KillSwitchEvaluator {
         &self.kill_switch
@@ -254,7 +267,7 @@ mod tests {
     use super::*;
     use std::collections::HashMap;
     use std::time::{SystemTime, UNIX_EPOCH};
-    
+
     fn create_test_signal(name: &str, value: f64, confidence: f64) -> SignalInput {
         SignalInput {
             name: name.to_string(),
@@ -267,7 +280,7 @@ mod tests {
             metadata: HashMap::new(),
         }
     }
-    
+
     fn create_valid_data_quality() -> DataQualityMetrics {
         DataQualityMetrics {
             data_completeness: 0.95,
@@ -277,7 +290,7 @@ mod tests {
             ordering_consistent: true,
         }
     }
-    
+
     fn create_valid_structural() -> StructuralValidation {
         StructuralValidation {
             constraints_valid: true,
@@ -285,7 +298,7 @@ mod tests {
             violations: vec![],
         }
     }
-    
+
     #[test]
     fn test_safe_engine_with_valid_conditions() {
         let engine = SafeIntentEngine::default();
@@ -293,34 +306,28 @@ mod tests {
             create_test_signal("signal1", 0.5, 0.8),
             create_test_signal("signal2", 0.3, 0.9),
         ];
-        
+
         let result = engine.process_safe(
             signals,
             create_valid_data_quality(),
             create_valid_structural(),
         );
-        
+
         assert!(result.is_ok());
         let result = result.unwrap();
         assert_eq!(result.metadata.get("kill_switch_status").unwrap(), "passed");
     }
-    
+
     #[test]
     fn test_safe_engine_halts_on_data_integrity_failure() {
         let engine = SafeIntentEngine::default();
-        let signals = vec![
-            create_test_signal("signal1", 0.5, 0.8),
-        ];
-        
+        let signals = vec![create_test_signal("signal1", 0.5, 0.8)];
+
         let mut data_quality = create_valid_data_quality();
         data_quality.integrity_valid = false;
-        
-        let result = engine.process_safe(
-            signals,
-            data_quality,
-            create_valid_structural(),
-        );
-        
+
+        let result = engine.process_safe(signals, data_quality, create_valid_structural());
+
         assert!(result.is_err());
         match result {
             Err(IntentError::KillSwitchTriggered(msg)) => {
@@ -329,23 +336,17 @@ mod tests {
             _ => panic!("Expected KillSwitchTriggered error"),
         }
     }
-    
+
     #[test]
     fn test_safe_engine_halts_on_missing_data() {
         let engine = SafeIntentEngine::default();
-        let signals = vec![
-            create_test_signal("signal1", 0.5, 0.8),
-        ];
-        
+        let signals = vec![create_test_signal("signal1", 0.5, 0.8)];
+
         let mut data_quality = create_valid_data_quality();
         data_quality.data_completeness = 0.5; // Below threshold
-        
-        let result = engine.process_safe(
-            signals,
-            data_quality,
-            create_valid_structural(),
-        );
-        
+
+        let result = engine.process_safe(signals, data_quality, create_valid_structural());
+
         assert!(result.is_err());
         match result {
             Err(IntentError::KillSwitchTriggered(msg)) => {
@@ -354,24 +355,18 @@ mod tests {
             _ => panic!("Expected KillSwitchTriggered error"),
         }
     }
-    
+
     #[test]
     fn test_safe_engine_halts_on_structural_violation() {
         let engine = SafeIntentEngine::default();
-        let signals = vec![
-            create_test_signal("signal1", 0.5, 0.8),
-        ];
-        
+        let signals = vec![create_test_signal("signal1", 0.5, 0.8)];
+
         let mut structural = create_valid_structural();
         structural.constraints_valid = false;
         structural.violations = vec!["Constraint violation".to_string()];
-        
-        let result = engine.process_safe(
-            signals,
-            create_valid_data_quality(),
-            structural,
-        );
-        
+
+        let result = engine.process_safe(signals, create_valid_data_quality(), structural);
+
         assert!(result.is_err());
         match result {
             Err(IntentError::KillSwitchTriggered(msg)) => {
@@ -380,31 +375,28 @@ mod tests {
             _ => panic!("Expected KillSwitchTriggered error"),
         }
     }
-    
+
     #[test]
     fn test_safe_engine_with_kill_switch_disabled() {
         let mut engine = SafeIntentEngine::default();
         engine.set_enforce_kill_switch(false);
-        
-        let signals = vec![
-            create_test_signal("signal1", 0.5, 0.8),
-        ];
-        
+
+        let signals = vec![create_test_signal("signal1", 0.5, 0.8)];
+
         let mut data_quality = create_valid_data_quality();
         data_quality.integrity_valid = false; // Would normally halt
-        
-        let result = engine.process_safe(
-            signals,
-            data_quality,
-            create_valid_structural(),
-        );
-        
+
+        let result = engine.process_safe(signals, data_quality, create_valid_structural());
+
         // Should succeed because kill switch is disabled
         assert!(result.is_ok());
         let result = result.unwrap();
-        assert_eq!(result.metadata.get("kill_switch_status").unwrap(), "disabled");
+        assert_eq!(
+            result.metadata.get("kill_switch_status").unwrap(),
+            "disabled"
+        );
     }
-    
+
     #[test]
     fn test_safe_engine_convenience_method() {
         let engine = SafeIntentEngine::default();
@@ -412,7 +404,7 @@ mod tests {
             create_test_signal("signal1", 0.5, 0.8),
             create_test_signal("signal2", 0.3, 0.9),
         ];
-        
+
         let result = engine.process(signals);
         assert!(result.is_ok());
     }

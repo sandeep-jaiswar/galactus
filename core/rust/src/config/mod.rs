@@ -10,18 +10,18 @@
 //! - No secrets in config files (use environment variables)
 
 pub mod loader;
-pub mod validator;
 pub mod types;
+pub mod validator;
 
 pub use loader::{ConfigLoader, ConfigSource};
-pub use validator::{ConfigValidator, ValidationError};
 pub use types::{
-    GalactusConfig, DataIngestionConfig, IntentEngineConfig,
-    PersistenceConfig, StreamingConfig, ApiConfig,
+    ApiConfig, DataIngestionConfig, GalactusConfig, IntentEngineConfig, PersistenceConfig,
+    StreamingConfig,
 };
+pub use validator::{ConfigValidator, ValidationError};
 
-use std::sync::{Arc, RwLock};
 use std::path::PathBuf;
+use std::sync::{Arc, RwLock};
 
 /// Configuration manager with hot-reload support
 pub struct ConfigManager {
@@ -108,10 +108,18 @@ impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ConfigError::LoadError(msg) => write!(f, "Configuration load error: {}", msg),
-            ConfigError::ValidationError(msg) => write!(f, "Configuration validation error: {}", msg),
-            ConfigError::MissingRequired(field) => write!(f, "Missing required configuration: {}", field),
-            ConfigError::InvalidValue(field, reason) => write!(f, "Invalid value for {}: {}", field, reason),
-            ConfigError::EnvVarNotFound(var) => write!(f, "Environment variable not found: {}", var),
+            ConfigError::ValidationError(msg) => {
+                write!(f, "Configuration validation error: {}", msg)
+            }
+            ConfigError::MissingRequired(field) => {
+                write!(f, "Missing required configuration: {}", field)
+            }
+            ConfigError::InvalidValue(field, reason) => {
+                write!(f, "Invalid value for {}: {}", field, reason)
+            }
+            ConfigError::EnvVarNotFound(var) => {
+                write!(f, "Environment variable not found: {}", var)
+            }
             ConfigError::FileNotFound(path) => write!(f, "Configuration file not found: {}", path),
         }
     }

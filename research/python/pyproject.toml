@@ -3,6 +3,11 @@ name = "galactus-research"
 version = "0.1.0"
 description = "Galactus research and experimentation layer"
 authors = ["Galactus Research Team"]
+packages = [
+    { include = "data", from = "src" },
+    { include = "features", from = "src" },
+    { include = "validation", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"

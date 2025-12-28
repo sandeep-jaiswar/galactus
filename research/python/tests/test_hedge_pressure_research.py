@@ -4,17 +4,14 @@ Tests for Hedge Pressure Research Module
 Tests the hedge pressure signal implementation and validation.
 """
 
-import pytest
-import numpy as np
 from datetime import datetime
-from src.features.hedge_pressure_research import (
-    compute_hedge_pressure,
-    validate_hedge_pressure_signal,
-    generate_synthetic_hedge_data,
-    analyze_hedge_pressure_patterns,
-    HedgePressureConfig,
-    HedgePressureResult,
-)
+
+import pytest
+
+from features.hedge_pressure_research import (
+    HedgePressureConfig, HedgePressureResult, analyze_hedge_pressure_patterns,
+    compute_hedge_pressure, generate_synthetic_hedge_data,
+    validate_hedge_pressure_signal)
 
 
 class TestHedgePressureComputation:
@@ -85,7 +82,7 @@ class TestHedgePressureComputation:
 
     def test_invalid_inputs(self):
         """Test error handling for invalid inputs."""
-        with pytest.raises(ValueError, match="OI data must be dictionaries"):
+        with pytest.raises(TypeError, match="OI data must be dictionaries"):
             compute_hedge_pressure("invalid", {}, 18500)
 
         with pytest.raises(ValueError, match="Spot price must be a positive number"):

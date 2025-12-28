@@ -2,7 +2,7 @@
 //!
 //! Validates configuration values to ensure they meet system requirements.
 
-use super::{ConfigError, types::*};
+use super::{types::*, ConfigError};
 
 /// Validation error
 #[derive(Debug, Clone, PartialEq)]
@@ -145,14 +145,18 @@ impl ConfigValidator {
             ));
         }
 
-        if !config.nse_websocket_url.starts_with("ws://") && !config.nse_websocket_url.starts_with("wss://") {
+        if !config.nse_websocket_url.starts_with("ws://")
+            && !config.nse_websocket_url.starts_with("wss://")
+        {
             return Err(ConfigError::InvalidValue(
                 "streaming.nse_websocket_url".to_string(),
                 "Must start with ws:// or wss://".to_string(),
             ));
         }
 
-        if !config.bse_websocket_url.starts_with("ws://") && !config.bse_websocket_url.starts_with("wss://") {
+        if !config.bse_websocket_url.starts_with("ws://")
+            && !config.bse_websocket_url.starts_with("wss://")
+        {
             return Err(ConfigError::InvalidValue(
                 "streaming.bse_websocket_url".to_string(),
                 "Must start with ws:// or wss://".to_string(),

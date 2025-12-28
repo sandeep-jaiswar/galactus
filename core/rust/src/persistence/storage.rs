@@ -15,13 +15,17 @@ use std::sync::{Arc, Mutex};
 pub trait StorageBackend {
     /// Store a timestamped intent vector
     fn store(&mut self, intent: TimestampedIntent) -> Result<(), PersistenceError>;
-    
+
     /// Retrieve intent vectors within a time range
-    fn retrieve(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<TimestampedIntent>, PersistenceError>;
-    
+    fn retrieve(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> Result<Vec<TimestampedIntent>, PersistenceError>;
+
     /// Flush pending writes to disk
     fn flush(&mut self) -> Result<(), PersistenceError>;
-    
+
     /// Clean up old data based on retention policy
     fn cleanup(&mut self, before: DateTime<Utc>) -> Result<usize, PersistenceError>;
 }
@@ -38,11 +42,12 @@ impl FileStorageBackend {
     /// Create a new file storage backend
     pub fn new(config: PersistenceConfig) -> Result<Self, PersistenceError> {
         let storage_path = PathBuf::from(&config.storage_path);
-        
+
         // Create storage directory if it doesn't exist
         if !storage_path.exists() {
-            fs::create_dir_all(&storage_path)
-                .map_err(|e| PersistenceError::IoError(format!("Failed to create storage directory: {}", e)))?;
+            fs::create_dir_all(&storage_path).map_err(|e| {
+                PersistenceError::IoError(format!("Failed to create storage directory: {}", e))
+            })?;
         }
 
         Ok(Self {
@@ -64,7 +69,7 @@ impl FileStorageBackend {
         if self.current_file.is_none() {
             let now = Utc::now();
             let file_path = self.get_file_path(&now);
-            
+
             let file = OpenOptions::new()
                 .create(true)
                 .append(true)
@@ -84,8 +89,7 @@ impl FileStorageBackend {
         let json = serde_json::to_string(intent)
             .map_err(|e| PersistenceError::SerializationError(e.to_string()))?;
 
-        writeln!(file, "{}", json)
-            .map_err(|e| PersistenceError::IoError(e.to_string()))?;
+        writeln!(file, "{}", json).map_err(|e| PersistenceError::IoError(e.to_string()))?;
 
         Ok(())
     }
@@ -95,13 +99,13 @@ impl StorageBackend for FileStorageBackend {
     fn store(&mut self, intent: TimestampedIntent) -> Result<(), PersistenceError> {
         // Add to in-memory buffer
         let mut buffer = self.buffer.lock().unwrap();
-        
+
         // Check if buffer is full
         if buffer.len() >= self.config.max_memory_items {
             // Drop oldest item if buffer is full
             buffer.pop_front();
         }
-        
+
         buffer.push_back(intent.clone());
         drop(buffer);
 
@@ -111,7 +115,11 @@ impl StorageBackend for FileStorageBackend {
         Ok(())
     }
 
-    fn retrieve(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<TimestampedIntent>, PersistenceError> {
+    fn retrieve(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> Result<Vec<TimestampedIntent>, PersistenceError> {
         let mut results = Vec::new();
 
         // First check in-memory buffer
@@ -147,7 +155,7 @@ impl StorageBackend for FileStorageBackend {
         for entry in entries {
             let entry = entry.map_err(|e| PersistenceError::IoError(e.to_string()))?;
             let path = entry.path();
-            
+
             if let Some(filename) = path.file_name() {
                 if let Some(name) = filename.to_str() {
                     if name.starts_with("intents_") && name.ends_with(".jsonl") {
@@ -184,7 +192,11 @@ impl IntentStore {
     }
 
     /// Retrieve intent vectors within a time range
-    pub fn retrieve(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<TimestampedIntent>, PersistenceError> {
+    pub fn retrieve(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> Result<Vec<TimestampedIntent>, PersistenceError> {
         self.backend.retrieve(start, end)
     }
 
@@ -229,11 +241,8 @@ mod tests {
             regime: "test".to_string(),
         };
 
-        let timestamped = TimestampedIntent::new(
-            intent,
-            "NIFTY".to_string(),
-            vec!["test".to_string()],
-        );
+        let timestamped =
+            TimestampedIntent::new(intent, "NIFTY".to_string(), vec!["test".to_string()]);
 
         assert!(store.store(timestamped.clone()).is_ok());
         assert!(store.flush().is_ok());
@@ -241,7 +250,7 @@ mod tests {
         let start = Utc::now() - chrono::Duration::hours(1);
         let end = Utc::now() + chrono::Duration::hours(1);
         let results = store.retrieve(start, end).unwrap();
-        
+
         assert!(!results.is_empty());
     }
 

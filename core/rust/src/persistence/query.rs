@@ -3,7 +3,7 @@
 //! Provides a fluent API for querying stored intent vectors.
 
 use super::{PersistenceError, TimestampedIntent};
-use chrono::{DateTime, Utc, Duration};
+use chrono::{DateTime, Duration, Utc};
 
 /// Time range for queries
 #[derive(Debug, Clone)]
@@ -85,7 +85,9 @@ impl IntentQuery {
             .into_iter()
             .filter(|intent| {
                 // Check time range
-                if intent.timestamp < self.time_range.start || intent.timestamp > self.time_range.end {
+                if intent.timestamp < self.time_range.start
+                    || intent.timestamp > self.time_range.end
+                {
                     return false;
                 }
 
@@ -173,9 +175,9 @@ impl QueryBuilder {
 
     /// Build the query
     pub fn build(self) -> Result<IntentQuery, PersistenceError> {
-        let time_range = self.time_range.ok_or_else(|| {
-            PersistenceError::QueryError("Time range is required".to_string())
-        })?;
+        let time_range = self
+            .time_range
+            .ok_or_else(|| PersistenceError::QueryError("Time range is required".to_string()))?;
 
         Ok(IntentQuery {
             time_range,

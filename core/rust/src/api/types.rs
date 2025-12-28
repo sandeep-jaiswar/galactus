@@ -25,12 +25,12 @@
 //! - Size limits for collections
 //! - Timestamp validation
 
-use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
-use crate::intent::{IntentVector, IntentResult, SignalInput, SignalContribution};
-use crate::api::ApiError;
 use super::{IntentRequest, IntentResponse};
-use crate::features::{MarketDataPoint, OptionChain, FuturesData};
+use crate::api::ApiError;
+use crate::features::{FuturesData, MarketDataPoint, OptionChain};
+use crate::intent::{IntentResult, IntentVector, SignalContribution, SignalInput};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Protocol buffer representation of intent vector
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -263,14 +263,18 @@ pub trait ToProto<T> {
 
 /// Conversion trait from API types
 pub trait FromProto<T> {
-    fn from_proto(proto: T) -> Result<Self, ApiError> where Self: Sized;
+    fn from_proto(proto: T) -> Result<Self, ApiError>
+    where
+        Self: Sized;
 }
 
 impl ToProto<IntentVectorProto> for IntentVector {
     fn to_proto(&self) -> Result<IntentVectorProto, ApiError> {
         validate_intent_vector(self)?;
 
-        let signals = self.signals.values()
+        let signals = self
+            .signals
+            .values()
             .map(|contrib| contrib.to_proto())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -289,7 +293,9 @@ impl FromProto<IntentVectorProto> for IntentVector {
     fn from_proto(proto: IntentVectorProto) -> Result<Self, ApiError> {
         validate_intent_vector_proto(&proto)?;
 
-        let signals = proto.signals.into_iter()
+        let signals = proto
+            .signals
+            .into_iter()
             .map(|signal_proto| {
                 let name = signal_proto.name.clone();
                 SignalContribution::from_proto(signal_proto)
@@ -312,7 +318,9 @@ impl ToProto<SignalContributionProto> for SignalContribution {
         validate_signal_contribution(self)?;
 
         Ok(SignalContributionProto {
-            name: self.metadata.get("name")
+            name: self
+                .metadata
+                .get("name")
                 .cloned()
                 .unwrap_or_else(|| "unknown".to_string()),
             value: self.value,
@@ -339,7 +347,9 @@ impl FromProto<SignalContributionProto> for SignalContribution {
 impl ToProto<IntentResultProto> for IntentResult {
     fn to_proto(&self) -> Result<IntentResultProto, ApiError> {
         let intent = self.intent.to_proto()?;
-        let alternatives = self.alternatives.iter()
+        let alternatives = self
+            .alternatives
+            .iter()
             .map(|alt| alt.to_proto())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -356,7 +366,9 @@ impl ToProto<IntentResultProto> for IntentResult {
 impl FromProto<IntentResultProto> for IntentResult {
     fn from_proto(proto: IntentResultProto) -> Result<Self, ApiError> {
         let intent = IntentVector::from_proto(proto.intent)?;
-        let alternatives = proto.alternatives.into_iter()
+        let alternatives = proto
+            .alternatives
+            .into_iter()
             .map(IntentVector::from_proto)
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -484,19 +496,23 @@ impl FromProto<IntentResponseProto> for IntentResponse {
 // Validation functions
 fn validate_intent_vector(vector: &IntentVector) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&vector.pressure) {
-        return Err(ApiError::InvalidRequest(
-            format!("Intent pressure {} is outside valid range [-1.0, 1.0]", vector.pressure)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Intent pressure {} is outside valid range [-1.0, 1.0]",
+            vector.pressure
+        )));
     }
 
     if !(0.0..=1.0).contains(&vector.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Intent confidence {} is outside valid range [0.0, 1.0]", vector.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Intent confidence {} is outside valid range [0.0, 1.0]",
+            vector.confidence
+        )));
     }
 
     if vector.regime.trim().is_empty() {
-        return Err(ApiError::InvalidRequest("Intent regime cannot be empty".to_string()));
+        return Err(ApiError::InvalidRequest(
+            "Intent regime cannot be empty".to_string(),
+        ));
     }
 
     Ok(())
@@ -504,21 +520,24 @@ fn validate_intent_vector(vector: &IntentVector) -> Result<(), ApiError> {
 
 fn validate_signal_contribution(contrib: &SignalContribution) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&contrib.value) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution value {} is outside valid range [-1.0, 1.0]", contrib.value)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution value {} is outside valid range [-1.0, 1.0]",
+            contrib.value
+        )));
     }
 
     if !(0.0..=1.0).contains(&contrib.weight) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution weight {} is outside valid range [0.0, 1.0]", contrib.weight)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution weight {} is outside valid range [0.0, 1.0]",
+            contrib.weight
+        )));
     }
 
     if !(0.0..=1.0).contains(&contrib.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution confidence {} is outside valid range [0.0, 1.0]", contrib.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution confidence {} is outside valid range [0.0, 1.0]",
+            contrib.confidence
+        )));
     }
 
     Ok(())
@@ -526,19 +545,23 @@ fn validate_signal_contribution(contrib: &SignalContribution) -> Result<(), ApiE
 
 fn validate_signal_input(signal: &SignalInput) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&signal.value) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal value {} is outside valid range [-1.0, 1.0]", signal.value)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal value {} is outside valid range [-1.0, 1.0]",
+            signal.value
+        )));
     }
 
     if !(0.0..=1.0).contains(&signal.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal confidence {} is outside valid range [0.0, 1.0]", signal.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal confidence {} is outside valid range [0.0, 1.0]",
+            signal.confidence
+        )));
     }
 
     if signal.name.trim().is_empty() {
-        return Err(ApiError::InvalidRequest("Signal name cannot be empty".to_string()));
+        return Err(ApiError::InvalidRequest(
+            "Signal name cannot be empty".to_string(),
+        ));
     }
 
     Ok(())
@@ -546,19 +569,23 @@ fn validate_signal_input(signal: &SignalInput) -> Result<(), ApiError> {
 
 fn validate_intent_vector_proto(proto: &IntentVectorProto) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&proto.pressure) {
-        return Err(ApiError::InvalidRequest(
-            format!("Intent pressure {} is outside valid range [-1.0, 1.0]", proto.pressure)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Intent pressure {} is outside valid range [-1.0, 1.0]",
+            proto.pressure
+        )));
     }
 
     if !(0.0..=1.0).contains(&proto.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Intent confidence {} is outside valid range [0.0, 1.0]", proto.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Intent confidence {} is outside valid range [0.0, 1.0]",
+            proto.confidence
+        )));
     }
 
     if proto.regime.trim().is_empty() {
-        return Err(ApiError::InvalidRequest("Intent regime cannot be empty".to_string()));
+        return Err(ApiError::InvalidRequest(
+            "Intent regime cannot be empty".to_string(),
+        ));
     }
 
     Ok(())
@@ -566,21 +593,24 @@ fn validate_intent_vector_proto(proto: &IntentVectorProto) -> Result<(), ApiErro
 
 fn validate_signal_contribution_proto(proto: &SignalContributionProto) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&proto.value) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution value {} is outside valid range [-1.0, 1.0]", proto.value)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution value {} is outside valid range [-1.0, 1.0]",
+            proto.value
+        )));
     }
 
     if !(0.0..=1.0).contains(&proto.weight) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution weight {} is outside valid range [0.0, 1.0]", proto.weight)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution weight {} is outside valid range [0.0, 1.0]",
+            proto.weight
+        )));
     }
 
     if !(0.0..=1.0).contains(&proto.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal contribution confidence {} is outside valid range [0.0, 1.0]", proto.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal contribution confidence {} is outside valid range [0.0, 1.0]",
+            proto.confidence
+        )));
     }
 
     Ok(())
@@ -588,19 +618,23 @@ fn validate_signal_contribution_proto(proto: &SignalContributionProto) -> Result
 
 fn validate_signal_input_proto(proto: &SignalInputProto) -> Result<(), ApiError> {
     if !(-1.0..=1.0).contains(&proto.value) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal value {} is outside valid range [-1.0, 1.0]", proto.value)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal value {} is outside valid range [-1.0, 1.0]",
+            proto.value
+        )));
     }
 
     if !(0.0..=1.0).contains(&proto.confidence) {
-        return Err(ApiError::InvalidRequest(
-            format!("Signal confidence {} is outside valid range [0.0, 1.0]", proto.confidence)
-        ));
+        return Err(ApiError::InvalidRequest(format!(
+            "Signal confidence {} is outside valid range [0.0, 1.0]",
+            proto.confidence
+        )));
     }
 
     if proto.name.trim().is_empty() {
-        return Err(ApiError::InvalidRequest("Signal name cannot be empty".to_string()));
+        return Err(ApiError::InvalidRequest(
+            "Signal name cannot be empty".to_string(),
+        ));
     }
 
     Ok(())
@@ -690,7 +724,9 @@ impl FromProto<MarketDataPointProto> for crate::features::MarketDataPoint {
 
 impl ToProto<OptionChainProto> for crate::features::OptionChain {
     fn to_proto(&self) -> Result<OptionChainProto, ApiError> {
-        let strikes = self.strikes.iter()
+        let strikes = self
+            .strikes
+            .iter()
             .map(|s| s.to_proto())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -705,7 +741,9 @@ impl ToProto<OptionChainProto> for crate::features::OptionChain {
 
 impl FromProto<OptionChainProto> for crate::features::OptionChain {
     fn from_proto(proto: OptionChainProto) -> Result<Self, ApiError> {
-        let strikes = proto.strikes.into_iter()
+        let strikes = proto
+            .strikes
+            .into_iter()
             .map(crate::features::StrikeData::from_proto)
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -773,8 +811,10 @@ impl FromProto<FuturesDataProto> for crate::features::FuturesData {
 // BatchIntentRequest conversions
 impl FromProto<BatchIntentRequestProto> for crate::api::BatchIntentRequest {
     fn from_proto(proto: BatchIntentRequestProto) -> Result<Self, ApiError> {
-        let requests = proto.requests.into_iter()
-            .map(|r| crate::api::IntentRequest::from_proto(r))
+        let requests = proto
+            .requests
+            .into_iter()
+            .map(crate::api::IntentRequest::from_proto)
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(crate::api::BatchIntentRequest {

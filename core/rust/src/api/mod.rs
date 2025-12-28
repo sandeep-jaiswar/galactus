@@ -35,22 +35,22 @@
 //! - `GET /api/v1/metrics`: Service metrics
 
 pub mod grpc;
-pub mod http;
-pub mod types;
 pub mod health;
+pub mod http;
 pub mod metrics;
+pub mod types;
 
 // Re-export main types for convenience
 pub use grpc::IntentService as GrpcIntentService;
+pub use health::{HealthCheckResponse, HealthChecker};
 pub use http::IntentApi as HttpIntentApi;
-pub use health::{HealthChecker, HealthCheckResponse};
 pub use metrics::MetricsCollector;
 
 // Core types for API communication
-use std::collections::HashMap;
-use serde::Serialize;
+use crate::features::{FuturesData, MarketDataPoint, OptionChain};
 use crate::intent::IntentResult;
-use crate::features::{MarketDataPoint, OptionChain, FuturesData};
+use serde::Serialize;
+use std::collections::HashMap;
 
 /// Request for intent computation
 #[derive(Debug, Clone)]
@@ -174,7 +174,7 @@ impl Default for ApiConfig {
         Self {
             max_signals_per_request: 10,
             max_batch_size: 100,
-            request_timeout_ms: 5000, // 5 seconds
+            request_timeout_ms: 5000,            // 5 seconds
             max_request_size_bytes: 1024 * 1024, // 1MB
             enable_auth: true,
             rate_limit_rps: 100,

@@ -34,8 +34,8 @@
 //! - Cross-validation with known market events
 //! - Comprehensive unit test coverage
 
+use crate::features::registry::{Feature, FeatureError, FeatureInputs, FeatureResult};
 use std::collections::HashMap;
-use crate::features::registry::{Feature, FeatureResult, FeatureError, FeatureInputs};
 
 /// Configuration for OI decay computation
 #[derive(Debug, Clone)]
@@ -99,8 +99,15 @@ impl OIDecayFeature {
     pub fn with_config(config: OIDecayConfig) -> Self {
         Self { config }
     }
+}
 
-    /// Compute OI decay pressure from current and previous OI data
+impl Default for OIDecayFeature {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl OIDecayFeature {
     ///
     /// # Arguments
     /// * `current_oi` - Current open interest by strike price
@@ -118,11 +125,12 @@ impl OIDecayFeature {
         // Input validation
         if time_delta_hours <= 0.0 {
             return Err(FeatureError::InvalidInput(
-                "Time delta must be positive".to_string()
+                "Time delta must be positive".to_string(),
             ));
         }
 
-        if current_oi.len() < self.config.min_strikes || previous_oi.len() < self.config.min_strikes {
+        if current_oi.len() < self.config.min_strikes || previous_oi.len() < self.config.min_strikes
+        {
             return Ok(OIDecayResult {
                 pressure: 0.0,
                 total_decay: 0,
@@ -159,7 +167,7 @@ impl OIDecayFeature {
             valid_strikes += 1;
 
             if change < 0 {
-                total_decay += change.abs() as u64;
+                total_decay += change.unsigned_abs();
             } else {
                 total_build += change as u64;
             }
@@ -202,7 +210,7 @@ impl OIDecayFeature {
         let confidence = activity_confidence * coverage_confidence;
 
         // Clamp to [-1, 1] range
-        let final_pressure = adjusted_pressure.max(-1.0).min(1.0);
+        let final_pressure = adjusted_pressure.clamp(-1.0, 1.0);
 
         let mut metadata = HashMap::new();
         metadata.insert("total_change".to_string(), total_change.to_string());
@@ -256,7 +264,10 @@ impl Feature for OIDecayFeature {
 }
 
 /// Extract OI data from feature inputs
-fn extract_oi_data(inputs: &FeatureInputs, key: &str) -> Result<HashMap<String, u64>, FeatureError> {
+fn extract_oi_data(
+    inputs: &FeatureInputs,
+    key: &str,
+) -> Result<HashMap<String, u64>, FeatureError> {
     // Try to get from context first (serialized data)
     if let Some(_data_str) = inputs.context.get(key) {
         // In production, this would be proper deserialization
@@ -273,10 +284,9 @@ fn extract_oi_data(inputs: &FeatureInputs, key: &str) -> Result<HashMap<String, 
 fn extract_time_delta(inputs: &FeatureInputs) -> Result<f64, FeatureError> {
     // Try to get from context
     if let Some(delta_str) = inputs.context.get("time_delta_hours") {
-        delta_str.parse::<f64>()
-            .map_err(|_| FeatureError::InvalidInput(
-                "Invalid time_delta_hours format".to_string()
-            ))
+        delta_str
+            .parse::<f64>()
+            .map_err(|_| FeatureError::InvalidInput("Invalid time_delta_hours format".to_string()))
     } else {
         // Default to 1 hour if not specified
         Ok(1.0)
@@ -297,8 +307,8 @@ mod tests {
         current.insert("110.0".to_string(), 600);
 
         previous.insert("100.0".to_string(), 1200); // -200 decay
-        previous.insert("105.0".to_string(), 750);  // +50 build
-        previous.insert("110.0".to_string(), 650);  // -50 decay
+        previous.insert("105.0".to_string(), 750); // +50 build
+        previous.insert("110.0".to_string(), 650); // -50 decay
 
         (current, previous)
     }
@@ -308,7 +318,9 @@ mod tests {
         let feature = OIDecayFeature::new();
         let (current_oi, previous_oi) = create_test_oi_data();
 
-        let result = feature.compute_pressure(&current_oi, &previous_oi, 1.0).unwrap();
+        let result = feature
+            .compute_pressure(&current_oi, &previous_oi, 1.0)
+            .unwrap();
 
         // Expected: total_decay = 250, total_build = 50, total_change = 300
         // pressure = (50 - 250) / 300 = -200/300 = -0.667
@@ -328,7 +340,9 @@ mod tests {
         let (current_oi, previous_oi) = create_test_oi_data();
 
         // Faster decay (0.5 hours) should amplify signal
-        let result = feature.compute_pressure(&current_oi, &previous_oi, 0.5).unwrap();
+        let result = feature
+            .compute_pressure(&current_oi, &previous_oi, 0.5)
+            .unwrap();
 
         // time_factor = 1.0 / (0.5^1.0) = 2.0, but capped at max_time_factor = 1.0
         assert_eq!(result.time_factor, 1.0);
@@ -341,7 +355,9 @@ mod tests {
         let current_oi = HashMap::new();
         let previous_oi = HashMap::new();
 
-        let result = feature.compute_pressure(&current_oi, &previous_oi, 1.0).unwrap();
+        let result = feature
+            .compute_pressure(&current_oi, &previous_oi, 1.0)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);
@@ -356,14 +372,20 @@ mod tests {
             ("95.0".to_string(), 1000),
             ("100.0".to_string(), 1000),
             ("105.0".to_string(), 1000),
-        ].into_iter().collect();
+        ]
+        .into_iter()
+        .collect();
         let previous_oi = [
             ("95.0".to_string(), 1000),
             ("100.0".to_string(), 1000),
             ("105.0".to_string(), 1000),
-        ].into_iter().collect();
+        ]
+        .into_iter()
+        .collect();
 
-        let result = feature.compute_pressure(&current_oi, &previous_oi, 1.0).unwrap();
+        let result = feature
+            .compute_pressure(&current_oi, &previous_oi, 1.0)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);

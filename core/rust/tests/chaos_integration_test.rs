@@ -9,7 +9,7 @@ use galactus_core::stress_scenarios::*;
 fn test_confidence_with_missing_data() {
     // Simulate missing data fields
     let data_input = DataQualityInput {
-        fields_present: 5,  // Only half of required fields
+        fields_present: 5, // Only half of required fields
         fields_required: 10,
         delay_seconds: 0.0,
         acceptable_delay_threshold: 60.0,
@@ -73,8 +73,14 @@ fn test_confidence_with_missing_data() {
     // System should degrade gracefully with missing data
     // The score may not be below 0.5 if other components are strong
     // The key is that data quality component should reflect the issue
-    assert!(confidence.score >= 0.0 && confidence.score <= 1.0, "Confidence must be in valid range");
-    assert!(confidence.components.data_quality < 0.6, "Data quality should be degraded with missing fields");
+    assert!(
+        confidence.score >= 0.0 && confidence.score <= 1.0,
+        "Confidence must be in valid range"
+    );
+    assert!(
+        confidence.components.data_quality < 0.6,
+        "Data quality should be degraded with missing fields"
+    );
 }
 
 #[test]
@@ -85,7 +91,7 @@ fn test_confidence_with_contradictory_signals() {
         fields_required: 10,
         delay_seconds: 0.0,
         acceptable_delay_threshold: 60.0,
-        contradictions_detected: 4,  // High contradictions
+        contradictions_detected: 4, // High contradictions
         total_cross_checks: 5,
     };
 
@@ -94,12 +100,12 @@ fn test_confidence_with_contradictory_signals() {
         expected_constraints: 3,
         aligned_signals: 2,
         total_signals: 5,
-        contradictory_signals: 3,  // Many contradictions
+        contradictory_signals: 3, // Many contradictions
     };
 
     let regime_input = RegimeConsistencyInput {
-        regime_probabilities: vec![0.4, 0.35, 0.25],  // Uncertain regime
-        regime_transitions: 5,  // Frequent transitions
+        regime_probabilities: vec![0.4, 0.35, 0.25], // Uncertain regime
+        regime_transitions: 5,                       // Frequent transitions
         lookback_window: 10,
         consistent_signals: 4,
         total_signals_in_regime: 10,
@@ -108,7 +114,7 @@ fn test_confidence_with_contradictory_signals() {
     let signal_input = SignalAgreementInput {
         agreeing_signals: 1,
         total_signals: 4,
-        offsetting_pressure: 80.0,  // High offsetting pressure
+        offsetting_pressure: 80.0, // High offsetting pressure
         total_pressure: 100.0,
         aggregation_method_documented: true,
     };
@@ -143,7 +149,10 @@ fn test_confidence_with_contradictory_signals() {
     );
 
     // Should have very low confidence with contradictions
-    assert!(confidence.score < 0.3, "Confidence should be very low with contradictions");
+    assert!(
+        confidence.score < 0.3,
+        "Confidence should be very low with contradictions"
+    );
     assert!(confidence.components.data_quality < 0.5);
     assert!(confidence.components.structural_alignment < 0.3);
 }
@@ -154,7 +163,7 @@ fn test_extreme_data_delay() {
     let data_input = DataQualityInput {
         fields_present: 10,
         fields_required: 10,
-        delay_seconds: 600.0,  // 10 minute delay
+        delay_seconds: 600.0, // 10 minute delay
         acceptable_delay_threshold: 60.0,
         contradictions_detected: 0,
         total_cross_checks: 5,
@@ -261,7 +270,7 @@ fn test_volatile_inference_values() {
     let temporal_input = TemporalStabilityInput {
         consistent_events: 3,
         total_events_in_window: 10,
-        inference_values: vec![100.0, 150.0, 80.0, 200.0, 50.0],  // Wild swings
+        inference_values: vec![100.0, 150.0, 80.0, 200.0, 50.0], // Wild swings
         time_since_last_confirmation: 30.0,
         half_life: 300.0,
     };
@@ -269,7 +278,7 @@ fn test_volatile_inference_values() {
     // High sensitivity to perturbations
     let sensitivity_input = SensitivityStabilityInput {
         inference_baseline: 100.0,
-        inference_perturbed: vec![150.0, 50.0, 180.0, 30.0],  // Large changes
+        inference_perturbed: vec![150.0, 50.0, 180.0, 30.0], // Large changes
     };
 
     let regime_stability_input = RegimeStabilityInput {
@@ -283,16 +292,21 @@ fn test_volatile_inference_values() {
 
     // Stability should be low with volatile values, but may not be extremely low
     // if the regime component is still strong. The key is detecting the volatility.
-    assert!(stability.score >= 0.0 && stability.score <= 1.0, "Stability must be in valid range");
-    assert!(stability.components.temporal < 0.6 || stability.components.sensitivity < 0.6, 
-        "Either temporal or sensitivity component should detect volatility");
+    assert!(
+        stability.score >= 0.0 && stability.score <= 1.0,
+        "Stability must be in valid range"
+    );
+    assert!(
+        stability.components.temporal < 0.6 || stability.components.sensitivity < 0.6,
+        "Either temporal or sensitivity component should detect volatility"
+    );
 }
 
 #[test]
 fn test_stress_scenario_market_crash() {
     // Test system behavior during market crash scenario
     use galactus_core::stress_scenarios::{StressScenarioCategory, StressSeverity};
-    
+
     let scenario = StressScenario::new(
         StressScenarioCategory::VolatilityShock,
         StressSeverity::Extreme,
@@ -310,7 +324,7 @@ fn test_stress_scenario_market_crash() {
 fn test_stress_scenario_expiry_day() {
     // Test system behavior during expiry day chaos
     use galactus_core::stress_scenarios::{StressScenarioCategory, StressSeverity};
-    
+
     let scenario = StressScenario::new(
         StressScenarioCategory::ExpiryCompression,
         StressSeverity::Severe,
@@ -356,15 +370,17 @@ fn test_cascading_failures() {
 
     // Should flag data_source as problematic component
     let report = analyzer.generate_learning_report();
-    assert!(report.components_needing_attention.contains(&"data_source".to_string()));
+    assert!(report
+        .components_needing_attention
+        .contains(&"data_source".to_string()));
 }
 
 #[test]
 fn test_regime_uncertainty_chaos() {
     // Test with highly uncertain regime state
     let regime_input = RegimeConsistencyInput {
-        regime_probabilities: vec![0.26, 0.25, 0.24, 0.25],  // Nearly uniform
-        regime_transitions: 10,  // Frequent transitions
+        regime_probabilities: vec![0.26, 0.25, 0.24, 0.25], // Nearly uniform
+        regime_transitions: 10,                             // Frequent transitions
         lookback_window: 10,
         consistent_signals: 3,
         total_signals_in_regime: 10,
@@ -373,7 +389,10 @@ fn test_regime_uncertainty_chaos() {
     let confidence = compute_regime_confidence(&regime_input);
 
     // Should have low confidence in uncertain regime
-    assert!(confidence < 0.4, "Confidence should be low with regime uncertainty");
+    assert!(
+        confidence < 0.4,
+        "Confidence should be low with regime uncertainty"
+    );
 }
 
 #[test]
@@ -398,7 +417,7 @@ fn test_extreme_perturbation_sensitivity() {
     // Test with extreme sensitivity to input perturbations
     let sensitivity_input = SensitivityStabilityInput {
         inference_baseline: 100.0,
-        inference_perturbed: vec![500.0, 1.0, 800.0],  // Extreme variations
+        inference_perturbed: vec![500.0, 1.0, 800.0], // Extreme variations
     };
 
     let stability = compute_sensitivity_stability(&sensitivity_input);

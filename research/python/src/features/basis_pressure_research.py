@@ -3,7 +3,8 @@ Basis Pressure Signal Research Implementation
 
 This module implements the basis pressure signal for research and validation.
 
-Hypothesis: Futures-spot basis divergence indicates forced arbitrage activity due to capital constraints.
+Hypothesis: Futures-spot basis divergence indicates forced arbitrage activity
+    due to capital constraints.
 
 Signal Logic:
 - Measures divergence between futures price and fair value (cost of carry)
@@ -18,11 +19,12 @@ Validation Requirements:
 - Cross-validation with known market events
 """
 
-from typing import Dict, List, Optional, Tuple, Any
 import warnings
-import numpy as np
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 from .isolation import mark_experimental
 
@@ -52,7 +54,10 @@ class BasisPressureConfig:
 
 
 @mark_experimental(
-    hypothesis="Futures-spot basis divergence indicates forced arbitrage activity due to capital constraints",
+    hypothesis=(
+        "Futures-spot basis divergence indicates forced arbitrage activity "
+        "due to capital constraints"
+    ),
     assumptions=[
         "Futures and spot prices are available and synchronized",
         "Markets are liquid with active arbitrage",
@@ -118,7 +123,10 @@ def compute_basis_pressure(
 
     if time_to_expiry_days < config.min_time_to_expiry_days:
         warnings.warn(
-            f"Very short time to expiry: {time_to_expiry_days} days, min={config.min_time_to_expiry_days}"
+            (
+                f"Very short time to expiry: {time_to_expiry_days} days, "
+                f"min={config.min_time_to_expiry_days}"
+            )
         )
         return BasisPressureResult(
             pressure=0.0,
@@ -132,7 +140,10 @@ def compute_basis_pressure(
 
     if time_to_expiry_days > config.max_time_to_expiry_days:
         warnings.warn(
-            f"Very long time to expiry: {time_to_expiry_days} days, max={config.max_time_to_expiry_days}"
+            (
+                f"Very long time to expiry: {time_to_expiry_days} days, "
+                f"max={config.max_time_to_expiry_days}"
+            )
         )
         return BasisPressureResult(
             pressure=0.0,
