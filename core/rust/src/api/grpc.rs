@@ -37,17 +37,17 @@
 //! - **Authorization**: Granular permission control
 //! - **Rate Limiting**: Configurable request throttling
 
+use crate::api::types::*;
+use crate::api::{
+    ApiConfig, ApiError, BatchIntentRequest, BatchIntentResponse, HealthCheck, HealthStatus,
+    IntentRequest, IntentResponse,
+};
+use crate::features::FeatureRegistry;
+use crate::intent::{IntentEngine, SignalInput};
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tonic::{Request, Response, Status};
-use crate::intent::{IntentEngine, SignalInput};
-use crate::features::FeatureRegistry;
-use crate::api::{
-    ApiConfig, ApiError, IntentRequest, IntentResponse,
-    BatchIntentRequest, BatchIntentResponse, HealthCheck, HealthStatus
-};
-use crate::api::types::*;
 
 /// gRPC Intent Service implementation
 #[derive(Clone)]
@@ -70,7 +70,11 @@ pub struct IntentService {
 
 impl IntentService {
     /// Create a new gRPC intent service
-    pub fn new(registry: Arc<FeatureRegistry>, engine: Arc<IntentEngine>, config: ApiConfig) -> Self {
+    pub fn new(
+        registry: Arc<FeatureRegistry>,
+        engine: Arc<IntentEngine>,
+        config: ApiConfig,
+    ) -> Self {
         Self {
             registry,
             engine,
@@ -82,7 +86,8 @@ impl IntentService {
 
     /// Get current request count
     pub fn request_count(&self) -> u64 {
-        self.request_count.load(std::sync::atomic::Ordering::Relaxed)
+        self.request_count
+            .load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// Process intent request
@@ -131,10 +136,19 @@ impl IntentService {
             .as_secs() as i64;
 
         let mut metadata = HashMap::new();
-        metadata.insert("server_version".to_string(), env!("CARGO_PKG_VERSION").to_string());
+        metadata.insert(
+            "server_version".to_string(),
+            env!("CARGO_PKG_VERSION").to_string(),
+        );
         metadata.insert("request_id".to_string(), generate_request_id());
-        metadata.insert("features_computed".to_string(), batch_result.results.len().to_string());
-        metadata.insert("feature_errors".to_string(), batch_result.errors.len().to_string());
+        metadata.insert(
+            "features_computed".to_string(),
+            batch_result.results.len().to_string(),
+        );
+        metadata.insert(
+            "feature_errors".to_string(),
+            batch_result.errors.len().to_string(),
+        );
 
         Ok(IntentResponse {
             result,
@@ -144,7 +158,11 @@ impl IntentService {
     }
 
     /// Convert feature result to signal input
-    fn feature_result_to_signal_input(&self, name: String, result: crate::features::FeatureResult) -> SignalInput {
+    fn feature_result_to_signal_input(
+        &self,
+        name: String,
+        result: crate::features::FeatureResult,
+    ) -> SignalInput {
         SignalInput {
             name,
             value: result.value,
@@ -227,16 +245,24 @@ impl IntentService {
     /// Validate intent request
     fn validate_intent_request(&self, request: &IntentRequest) -> Result<(), ApiError> {
         // Validate that we have some market data to work with
-        if request.market_data.is_empty() && request.options_data.is_empty() && request.futures_data.is_empty() {
-            return Err(ApiError::InvalidRequest("No market data provided".to_string()));
+        if request.market_data.is_empty()
+            && request.options_data.is_empty()
+            && request.futures_data.is_empty()
+        {
+            return Err(ApiError::InvalidRequest(
+                "No market data provided".to_string(),
+            ));
         }
 
         // Check size limits (simplified - in production would check total data size)
-        let total_data_points = request.market_data.len() + request.options_data.len() + request.futures_data.len();
-        if total_data_points > 1000 {  // Arbitrary limit
-            return Err(ApiError::InvalidRequest(
-                format!("Too much data: {} data points (max: 1000)", total_data_points)
-            ));
+        let total_data_points =
+            request.market_data.len() + request.options_data.len() + request.futures_data.len();
+        if total_data_points > 1000 {
+            // Arbitrary limit
+            return Err(ApiError::InvalidRequest(format!(
+                "Too much data: {} data points (max: 1000)",
+                total_data_points
+            )));
         }
 
         if request.client_id.trim().is_empty() {
@@ -246,36 +272,45 @@ impl IntentService {
         // Basic validation of market data
         for (symbol, data) in &request.market_data {
             if symbol.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty symbol in market data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty symbol in market data".to_string(),
+                ));
             }
             if data.price <= 0.0 {
-                return Err(ApiError::InvalidRequest(
-                    format!("Invalid price {} for symbol {}", data.price, symbol)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "Invalid price {} for symbol {}",
+                    data.price, symbol
+                )));
             }
         }
 
         // Basic validation of options data
         for (underlying, chain) in &request.options_data {
             if underlying.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty underlying in options data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty underlying in options data".to_string(),
+                ));
             }
             if chain.strikes.is_empty() {
-                return Err(ApiError::InvalidRequest(
-                    format!("No strikes provided for options chain {}", underlying)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "No strikes provided for options chain {}",
+                    underlying
+                )));
             }
         }
 
         // Basic validation of futures data
         for (symbol, data) in &request.futures_data {
             if symbol.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty symbol in futures data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty symbol in futures data".to_string(),
+                ));
             }
             if data.price <= 0.0 {
-                return Err(ApiError::InvalidRequest(
-                    format!("Invalid price {} for futures symbol {}", data.price, symbol)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "Invalid price {} for futures symbol {}",
+                    data.price, symbol
+                )));
             }
         }
 
@@ -289,15 +324,17 @@ impl IntentService {
         }
 
         if request.requests.len() > self.config.max_batch_size {
-            return Err(ApiError::InvalidRequest(
-                format!("Batch too large: {} requests (max: {})",
-                       request.requests.len(),
-                       self.config.max_batch_size)
-            ));
+            return Err(ApiError::InvalidRequest(format!(
+                "Batch too large: {} requests (max: {})",
+                request.requests.len(),
+                self.config.max_batch_size
+            )));
         }
 
         if request.client_id.trim().is_empty() {
-            return Err(ApiError::InvalidRequest("Client ID cannot be empty".to_string()));
+            return Err(ApiError::InvalidRequest(
+                "Client ID cannot be empty".to_string(),
+            ));
         }
 
         // Validate each individual request
@@ -312,7 +349,8 @@ impl IntentService {
     fn check_rate_limit(&self, _client_id: &str) -> Result<(), ApiError> {
         // In production, implement proper rate limiting with Redis/external store
         // For now, just increment counter
-        self.request_count.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        self.request_count
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         Ok(())
     }
 
@@ -324,7 +362,10 @@ impl IntentService {
             .as_secs();
 
         let mut metrics = HashMap::new();
-        metrics.insert("total_requests".to_string(), self.request_count().to_string());
+        metrics.insert(
+            "total_requests".to_string(),
+            self.request_count().to_string(),
+        );
         metrics.insert("uptime_seconds".to_string(), uptime.to_string());
 
         HealthCheck {
@@ -367,10 +408,7 @@ pub trait IntentServiceGrpc {
         request: Request<tonic::Streaming<IntentRequestProto>>,
     ) -> Result<Response<tonic::Streaming<IntentResponseProto>>, Status>;
 
-    async fn health_check(
-        &self,
-        request: Request<()>,
-    ) -> Result<Response<HealthCheck>, Status>;
+    async fn health_check(&self, request: Request<()>) -> Result<Response<HealthCheck>, Status>;
 }
 
 /// Implementation of gRPC service trait
@@ -387,11 +425,14 @@ impl IntentServiceGrpc for IntentService {
             .map_err(|e: crate::api::ApiError| Status::invalid_argument(e.to_string()))?;
 
         // Process request
-        let intent_response = self.process_intent_request(intent_request).await
+        let intent_response = self
+            .process_intent_request(intent_request)
+            .await
             .map_err(|e: crate::api::ApiError| Status::internal(e.to_string()))?;
 
         // Convert to proto
-        let proto_response = intent_response.to_proto()
+        let proto_response = intent_response
+            .to_proto()
             .map_err(|e: crate::api::ApiError| Status::internal(e.to_string()))?;
 
         Ok(Response::new(proto_response))
@@ -408,7 +449,9 @@ impl IntentServiceGrpc for IntentService {
             .map_err(|e| Status::invalid_argument(e.to_string()))?;
 
         // Process batch
-        let _batch_response = self.process_batch_request(batch_request).await
+        let _batch_response = self
+            .process_batch_request(batch_request)
+            .await
             .map_err(|e| Status::internal(e.to_string()))?;
 
         // Convert to proto (would need implementation)
@@ -424,10 +467,7 @@ impl IntentServiceGrpc for IntentService {
         Err(Status::unimplemented("Streaming not implemented"))
     }
 
-    async fn health_check(
-        &self,
-        _request: Request<()>,
-    ) -> Result<Response<HealthCheck>, Status> {
+    async fn health_check(&self, _request: Request<()>) -> Result<Response<HealthCheck>, Status> {
         let health = self.get_health();
         Ok(Response::new(health))
     }
@@ -436,8 +476,8 @@ impl IntentServiceGrpc for IntentService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::intent::IntentEngine;
     use crate::features::create_promoted_feature_registry;
+    use crate::intent::IntentEngine;
 
     #[tokio::test]
     async fn test_intent_service_creation() {
@@ -458,13 +498,16 @@ mod tests {
 
         // Valid request with market data
         let mut market_data = HashMap::new();
-        market_data.insert("NIFTY".to_string(), crate::features::MarketDataPoint {
-            symbol: "NIFTY".to_string(),
-            price: 18000.0,
-            volume: 1000000,
-            timestamp: 1234567890,
-            metadata: HashMap::new(),
-        });
+        market_data.insert(
+            "NIFTY".to_string(),
+            crate::features::MarketDataPoint {
+                symbol: "NIFTY".to_string(),
+                price: 18000.0,
+                volume: 1000000,
+                timestamp: 1234567890,
+                metadata: HashMap::new(),
+            },
+        );
         let valid_request = IntentRequest {
             market_data,
             options_data: HashMap::new(),

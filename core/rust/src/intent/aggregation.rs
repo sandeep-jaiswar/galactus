@@ -19,8 +19,8 @@
 //! - Consistent ordering through sorted signal names
 //! - No external dependencies or random number generation
 
+use super::{IntentConfig, IntentError, SignalContribution, SignalInput};
 use std::collections::HashMap;
-use super::{SignalInput, SignalContribution, IntentError, IntentConfig};
 
 /// Result of signal aggregation
 #[derive(Debug, Clone, PartialEq)]
@@ -49,13 +49,15 @@ impl SignalAggregator {
     pub fn new(config: IntentConfig) -> Self {
         Self { config }
     }
+}
 
-    /// Create a new aggregator with default configuration
-    pub fn default() -> Self {
+impl Default for SignalAggregator {
+    fn default() -> Self {
         Self::new(IntentConfig::default())
     }
+}
 
-    /// Aggregate multiple signals into a unified pressure reading
+impl SignalAggregator {
     ///
     /// # Arguments
     /// * `signals` - Vector of signal inputs to aggregate
@@ -80,12 +82,16 @@ impl SignalAggregator {
         sorted_signals.sort_by(|a, b| a.name.cmp(&b.name));
 
         // Compute weighted aggregation
-        let (pressure, confidence, contributions) = self.compute_weighted_aggregation(&sorted_signals);
+        let (pressure, confidence, contributions) =
+            self.compute_weighted_aggregation(&sorted_signals);
 
         // Create metadata
         let mut metadata = HashMap::new();
         metadata.insert("signal_count".to_string(), sorted_signals.len().to_string());
-        metadata.insert("aggregation_method".to_string(), "weighted_average".to_string());
+        metadata.insert(
+            "aggregation_method".to_string(),
+            "weighted_average".to_string(),
+        );
         metadata.insert("deterministic".to_string(), "true".to_string());
 
         Ok(AggregationResult {
@@ -100,22 +106,24 @@ impl SignalAggregator {
     fn validate_signal(&self, signal: &SignalInput) -> Result<(), IntentError> {
         // Check signal value range
         if !(-1.0..=1.0).contains(&signal.value) {
-            return Err(IntentError::InvalidSignalData(
-                format!("Signal '{}' value {} is outside valid range [-1.0, 1.0]", signal.name, signal.value)
-            ));
+            return Err(IntentError::InvalidSignalData(format!(
+                "Signal '{}' value {} is outside valid range [-1.0, 1.0]",
+                signal.name, signal.value
+            )));
         }
 
         // Check confidence range
         if !(0.0..=1.0).contains(&signal.confidence) {
-            return Err(IntentError::InvalidSignalData(
-                format!("Signal '{}' confidence {} is outside valid range [0.0, 1.0]", signal.name, signal.confidence)
-            ));
+            return Err(IntentError::InvalidSignalData(format!(
+                "Signal '{}' confidence {} is outside valid range [0.0, 1.0]",
+                signal.name, signal.confidence
+            )));
         }
 
         // Check signal name is not empty
         if signal.name.trim().is_empty() {
             return Err(IntentError::InvalidSignalData(
-                "Signal name cannot be empty".to_string()
+                "Signal name cannot be empty".to_string(),
             ));
         }
 
@@ -125,7 +133,10 @@ impl SignalAggregator {
     /// Compute weighted aggregation of signals
     ///
     /// Returns (pressure, confidence, contributions)
-    fn compute_weighted_aggregation(&self, signals: &[SignalInput]) -> (f64, f64, HashMap<String, SignalContribution>) {
+    fn compute_weighted_aggregation(
+        &self,
+        signals: &[SignalInput],
+    ) -> (f64, f64, HashMap<String, SignalContribution>) {
         let mut total_weighted_pressure = 0.0;
         let mut total_weight = 0.0;
         let mut total_confidence_weight = 0.0;
@@ -133,7 +144,9 @@ impl SignalAggregator {
 
         for signal in signals {
             // Get signal weight (use configured weight or default)
-            let base_weight = self.config.signal_weights
+            let base_weight = self
+                .config
+                .signal_weights
                 .get(&signal.name)
                 .copied()
                 .unwrap_or(self.config.default_signal_weight);
@@ -149,12 +162,15 @@ impl SignalAggregator {
             total_confidence_weight += signal.confidence * base_weight;
 
             // Record contribution
-            contributions.insert(signal.name.clone(), SignalContribution {
-                value: signal.value,
-                weight: effective_weight,
-                confidence: signal.confidence,
-                metadata: signal.metadata.clone(),
-            });
+            contributions.insert(
+                signal.name.clone(),
+                SignalContribution {
+                    value: signal.value,
+                    weight: effective_weight,
+                    confidence: signal.confidence,
+                    metadata: signal.metadata.clone(),
+                },
+            );
         }
 
         // Compute final pressure (avoid division by zero)
@@ -165,11 +181,15 @@ impl SignalAggregator {
         };
 
         // Compute final confidence
-        let total_base_weight: f64 = signals.iter()
-            .map(|s| self.config.signal_weights
-                 .get(&s.name)
-                 .copied()
-                 .unwrap_or(self.config.default_signal_weight))
+        let total_base_weight: f64 = signals
+            .iter()
+            .map(|s| {
+                self.config
+                    .signal_weights
+                    .get(&s.name)
+                    .copied()
+                    .unwrap_or(self.config.default_signal_weight)
+            })
             .sum();
 
         let confidence = if total_base_weight > 0.0 {

@@ -3,10 +3,13 @@
 //! Tests that verify promoted signals work correctly.
 //! These tests ensure the complete pipeline from feature computation to registry integration.
 
+use crate::features::registry::Feature;
+use crate::features::{
+    BasisPressureFeature, FeatureInputs, FeatureRegistry, FuturesData, HedgePressureFeature,
+    MarketDataPoint, OIDecayFeature, OptionChain, StrikeData,
+};
 use std::collections::HashMap;
 use std::sync::Arc;
-use crate::features::{FeatureRegistry, OIDecayFeature, HedgePressureFeature, BasisPressureFeature, FeatureInputs, MarketDataPoint, OptionChain, StrikeData, FuturesData};
-use crate::features::registry::Feature;
 
 #[cfg(test)]
 mod integration_tests {
@@ -22,7 +25,9 @@ mod integration_tests {
 
         // Verify it's registered
         assert!(registry.is_registered("hedge_pressure"));
-        assert!(registry.list_features().contains(&"hedge_pressure".to_string()));
+        assert!(registry
+            .list_features()
+            .contains(&"hedge_pressure".to_string()));
     }
 
     #[test]
@@ -35,7 +40,9 @@ mod integration_tests {
 
         // Verify it's registered
         assert!(registry.is_registered("basis_pressure"));
-        assert!(registry.list_features().contains(&"basis_pressure".to_string()));
+        assert!(registry
+            .list_features()
+            .contains(&"basis_pressure".to_string()));
     }
 
     #[test]
@@ -70,7 +77,9 @@ mod integration_tests {
 
         let spot_price = 100.0;
 
-        let result = hedge_pressure.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = hedge_pressure
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         // Should show positive pressure (call-heavy)
         assert!(result.pressure > 0.0);
@@ -91,7 +100,14 @@ mod integration_tests {
         let time_to_expiry = 30.0 / 365.0; // 30 days
         let risk_free_rate = 0.05; // 5%
 
-        let result = basis_pressure.compute_pressure(futures_price, spot_price, time_to_expiry * 365.0, Some(risk_free_rate)).unwrap();
+        let result = basis_pressure
+            .compute_pressure(
+                futures_price,
+                spot_price,
+                time_to_expiry * 365.0,
+                Some(risk_free_rate),
+            )
+            .unwrap();
 
         // Should show positive pressure (futures overpriced relative to fair value)
         assert!(result.pressure > 0.0);
@@ -143,26 +159,32 @@ mod integration_tests {
         let mut market_data = HashMap::new();
 
         // Add futures data
-        futures_data.insert("default".to_string(), FuturesData {
-            symbol: "TEST".to_string(),
-            price: 102.0,
-            open_interest: 50000,
-            timestamp: 1703123456,
-            metadata: {
-                let mut meta = HashMap::new();
-                meta.insert("time_to_expiry_days".to_string(), "30".to_string());
-                meta
+        futures_data.insert(
+            "default".to_string(),
+            FuturesData {
+                symbol: "TEST".to_string(),
+                price: 102.0,
+                open_interest: 50000,
+                timestamp: 1703123456,
+                metadata: {
+                    let mut meta = HashMap::new();
+                    meta.insert("time_to_expiry_days".to_string(), "30".to_string());
+                    meta
+                },
             },
-        });
+        );
 
         // Add spot market data with correct symbol
-        market_data.insert("SPOT".to_string(), MarketDataPoint {
-            symbol: "SPOT".to_string(),
-            price: 100.0,
-            volume: 50000,
-            timestamp: 1703123456,
-            metadata: HashMap::new(),
-        });
+        market_data.insert(
+            "SPOT".to_string(),
+            MarketDataPoint {
+                symbol: "SPOT".to_string(),
+                price: 100.0,
+                volume: 50000,
+                timestamp: 1703123456,
+                metadata: HashMap::new(),
+            },
+        );
 
         let inputs = FeatureInputs {
             market_data,

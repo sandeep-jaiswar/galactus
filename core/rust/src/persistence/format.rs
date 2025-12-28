@@ -5,20 +5,15 @@
 use serde::{Deserialize, Serialize};
 
 /// Storage format type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum StorageFormat {
     /// JSON Lines format (one JSON object per line)
+    #[default]
     JsonLines,
     /// Binary format (more compact)
     Binary,
     /// MessagePack format
     MessagePack,
-}
-
-impl Default for StorageFormat {
-    fn default() -> Self {
-        StorageFormat::JsonLines
-    }
 }
 
 impl std::fmt::Display for StorageFormat {
@@ -32,20 +27,15 @@ impl std::fmt::Display for StorageFormat {
 }
 
 /// Compression type
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum CompressionType {
     /// No compression
+    #[default]
     None,
     /// Gzip compression
     Gzip,
     /// Zstd compression (better compression ratio)
     Zstd,
-}
-
-impl Default for CompressionType {
-    fn default() -> Self {
-        CompressionType::None
-    }
 }
 
 impl std::fmt::Display for CompressionType {

@@ -65,7 +65,8 @@ fn test_confidence_computation_performance() {
     // Run 1000 iterations and measure time
     let start = Instant::now();
     for _ in 0..1000 {
-        let stability = assess_stability(&temporal_input, &sensitivity_input, &regime_stability_input);
+        let stability =
+            assess_stability(&temporal_input, &sensitivity_input, &regime_stability_input);
         let _confidence = assess_confidence(
             &data_input,
             &structural_input,
@@ -86,7 +87,11 @@ fn test_confidence_computation_performance() {
     // Average time per computation should be < 0.1ms
     let avg_micros = duration.as_micros() / 1000;
     println!("Average confidence computation time: {}µs", avg_micros);
-    assert!(avg_micros < 100, "Average computation time too high: {}µs", avg_micros);
+    assert!(
+        avg_micros < 100,
+        "Average computation time too high: {}µs",
+        avg_micros
+    );
 }
 
 #[test]
@@ -116,7 +121,10 @@ fn test_failure_analysis_scalability() {
     }
 
     let record_duration = start.elapsed();
-    println!("Time to record 1000 failures: {}ms", record_duration.as_millis());
+    println!(
+        "Time to record 1000 failures: {}ms",
+        record_duration.as_millis()
+    );
 
     // Pattern detection should be fast even with many failures
     let detect_start = Instant::now();
@@ -127,8 +135,14 @@ fn test_failure_analysis_scalability() {
     println!("Patterns detected: {}", patterns.len());
 
     // Should handle 1000 failures efficiently
-    assert!(record_duration.as_millis() < 100, "Recording failures too slow");
-    assert!(detect_duration.as_millis() < 50, "Pattern detection too slow");
+    assert!(
+        record_duration.as_millis() < 100,
+        "Recording failures too slow"
+    );
+    assert!(
+        detect_duration.as_millis() < 50,
+        "Pattern detection too slow"
+    );
     assert_eq!(patterns.len(), 5); // One pattern per category
 }
 
@@ -136,7 +150,7 @@ fn test_failure_analysis_scalability() {
 fn test_stress_scenario_evaluation_performance() {
     // Test stress scenario evaluation performance
     use galactus_core::stress_scenarios::{StressScenarioCategory, StressSeverity};
-    
+
     let scenario = StressScenario::new(
         StressScenarioCategory::VolatilityShock,
         StressSeverity::Severe,
@@ -155,7 +169,10 @@ fn test_stress_scenario_evaluation_performance() {
     }
 
     let duration = start.elapsed();
-    println!("Time to evaluate scenario 100 times: {}ms", duration.as_millis());
+    println!(
+        "Time to evaluate scenario 100 times: {}ms",
+        duration.as_millis()
+    );
 
     // Should be fast
     assert!(duration.as_millis() < 50, "Scenario evaluation too slow");
@@ -235,13 +252,8 @@ fn test_concurrent_confidence_assessment() {
         let handle = thread::spawn(move || {
             for _ in 0..100 {
                 let stability = assess_stability(&temporal, &sensitivity, &regime_stability);
-                let confidence = assess_confidence(
-                    &data,
-                    &structural,
-                    &regime,
-                    &signal,
-                    stability.score,
-                );
+                let confidence =
+                    assess_confidence(&data, &structural, &regime, &signal, stability.score);
                 // All threads should get the same result (determinism)
                 assert!(confidence.score > 0.0);
             }
@@ -293,8 +305,11 @@ fn test_memory_efficiency_with_large_inputs() {
     let duration = start.elapsed();
 
     println!("Large input processing time: {}ms", duration.as_millis());
-    
+
     // Should still be reasonably fast
-    assert!(duration.as_millis() < 100, "Large input processing too slow");
+    assert!(
+        duration.as_millis() < 100,
+        "Large input processing too slow"
+    );
     assert!(stability.score >= 0.0 && stability.score <= 1.0);
 }

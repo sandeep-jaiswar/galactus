@@ -18,8 +18,8 @@ pub mod streaming;
 // Re-export the original ingestion types
 mod validation;
 
-use std::collections::HashMap;
 use crate::data::*;
+use std::collections::HashMap;
 
 /// Data ingestion result
 #[derive(Debug, Clone, PartialEq)]
@@ -107,7 +107,10 @@ impl DataValidator {
 
         // Check if source is approved
         if !self.approved_sources.contains_key(&event.source.0) {
-            return IngestionResult::Rejected(format!("Unapproved data source: {}", event.source.0));
+            return IngestionResult::Rejected(format!(
+                "Unapproved data source: {}",
+                event.source.0
+            ));
         }
 
         let source_meta = &self.approved_sources[&event.source.0];
@@ -142,14 +145,21 @@ impl DataValidator {
         IngestionResult::Success(event.clone())
     }
 
-    fn validate_payload(&self, event_type: &EventType, payload: &EventPayload) -> Result<(), String> {
+    fn validate_payload(
+        &self,
+        event_type: &EventType,
+        payload: &EventPayload,
+    ) -> Result<(), String> {
         match (event_type, payload) {
             (EventType::MarketStructure, EventPayload::MarketStructure(_)) => Ok(()),
             (EventType::Positioning, EventPayload::Positioning(_)) => Ok(()),
             (EventType::Liquidity, EventPayload::Liquidity(_)) => Ok(()),
             (EventType::Information, EventPayload::Information(_)) => Ok(()),
             (EventType::System, EventPayload::System(_)) => Ok(()),
-            _ => Err(format!("Payload type does not match event type {:?}", event_type)),
+            _ => Err(format!(
+                "Payload type does not match event type {:?}",
+                event_type
+            )),
         }
     }
 }
@@ -165,7 +175,7 @@ impl Default for DataNormalizer {
 
 impl DataNormalizer {
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 
     /// Normalize volume values to standard units
@@ -186,7 +196,7 @@ impl DataNormalizer {
 
     /// Normalize ratio values to [0, 1] range
     pub fn normalize_ratio(&self, ratio: f64) -> f64 {
-        ratio.max(0.0).min(1.0)
+        ratio.clamp(0.0, 1.0)
     }
 }
 
@@ -201,7 +211,7 @@ impl Default for QualityAssessor {
 
 impl QualityAssessor {
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 
     /// Assess overall data quality
@@ -215,18 +225,22 @@ impl QualityAssessor {
         match &event.payload {
             EventPayload::Positioning(payload) => {
                 fields_required = 3;
-                if !payload.instrument.0.is_empty() { fields_present += 1; }
+                if !payload.instrument.0.is_empty() {
+                    fields_present += 1;
+                }
                 fields_present += 1;
                 fields_present += 1;
-            },
+            }
             EventPayload::Liquidity(payload) => {
                 fields_required = 5;
-                if !payload.instrument.0.is_empty() { fields_present += 1; }
+                if !payload.instrument.0.is_empty() {
+                    fields_present += 1;
+                }
                 fields_present += 1;
                 fields_present += 1;
                 fields_present += 1;
                 fields_present += 1;
-            },
+            }
             _ => {
                 fields_required = 3;
                 fields_present = 3;
@@ -254,20 +268,11 @@ impl QualityAssessor {
 }
 
 /// Main ingestion processor
+#[derive(Default)]
 pub struct DataIngestion {
     validator: DataValidator,
     normalizer: DataNormalizer,
     quality_assessor: QualityAssessor,
-}
-
-impl Default for DataIngestion {
-    fn default() -> Self {
-        Self {
-            validator: DataValidator::default(),
-            normalizer: DataNormalizer::default(),
-            quality_assessor: QualityAssessor::default(),
-        }
-    }
 }
 
 impl DataIngestion {
@@ -295,7 +300,10 @@ impl DataIngestion {
         let quality = self.quality_assessor.assess_quality(&raw_event);
         let thresholds = QualityThresholds::default();
 
-        if !self.quality_assessor.meets_thresholds(&quality, &thresholds) {
+        if !self
+            .quality_assessor
+            .meets_thresholds(&quality, &thresholds)
+        {
             return IngestionResult::Rejected(format!(
                 "Data quality below threshold: completeness={:.2}, delayed={}, contradictions={}",
                 quality.completeness_ratio(),
@@ -314,18 +322,26 @@ impl DataIngestion {
         // Apply normalization based on payload type
         match &mut event.payload {
             EventPayload::Positioning(payload) => {
-                payload.open_interest = self.normalizer.normalize_volume(payload.open_interest, &event.source);
-                payload.volume = self.normalizer.normalize_volume(payload.volume, &event.source);
+                payload.open_interest = self
+                    .normalizer
+                    .normalize_volume(payload.open_interest, &event.source);
+                payload.volume = self
+                    .normalizer
+                    .normalize_volume(payload.volume, &event.source);
                 if let Some(strike) = payload.strike {
                     payload.strike = Some(self.normalizer.normalize_price(strike));
                 }
-            },
+            }
             EventPayload::Liquidity(payload) => {
-                payload.traded_volume = self.normalizer.normalize_volume(payload.traded_volume, &event.source);
-                payload.delivery_volume = self.normalizer.normalize_volume(payload.delivery_volume, &event.source);
+                payload.traded_volume = self
+                    .normalizer
+                    .normalize_volume(payload.traded_volume, &event.source);
+                payload.delivery_volume = self
+                    .normalizer
+                    .normalize_volume(payload.delivery_volume, &event.source);
                 payload.delivery_ratio = self.normalizer.normalize_ratio(payload.delivery_ratio);
                 payload.avg_daily_value = self.normalizer.normalize_price(payload.avg_daily_value);
-            },
+            }
             _ => {}
         }
 

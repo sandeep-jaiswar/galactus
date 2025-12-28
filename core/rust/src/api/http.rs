@@ -45,17 +45,17 @@
 //! - **Rate Limiting**: Request throttling
 //! - **Input Validation**: Comprehensive validation
 
-use std::collections::HashMap;
-use std::sync::Arc;
-use std::convert::Infallible;
-use warp::Filter;
-use serde::{Deserialize, Serialize};
-use crate::intent::{IntentEngine, SignalInput};
-use crate::features::FeatureRegistry;
 use crate::api::{
-    ApiConfig, ApiError, IntentRequest, IntentResponse,
-    BatchIntentRequest, BatchIntentResponse, HealthCheck
+    ApiConfig, ApiError, BatchIntentRequest, BatchIntentResponse, HealthCheck, IntentRequest,
+    IntentResponse,
 };
+use crate::features::FeatureRegistry;
+use crate::intent::{IntentEngine, SignalInput};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::convert::Infallible;
+use std::sync::Arc;
+use warp::Filter;
 
 /// HTTP Intent API implementation
 #[derive(Clone)]
@@ -72,12 +72,22 @@ pub struct IntentApi {
 
 impl IntentApi {
     /// Create a new HTTP intent API
-    pub fn new(registry: Arc<FeatureRegistry>, engine: Arc<IntentEngine>, config: ApiConfig) -> Self {
-        Self { registry, engine, config }
+    pub fn new(
+        registry: Arc<FeatureRegistry>,
+        engine: Arc<IntentEngine>,
+        config: ApiConfig,
+    ) -> Self {
+        Self {
+            registry,
+            engine,
+            config,
+        }
     }
 
     /// Create warp filters for the API
-    pub fn routes(&self) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+    pub fn routes(
+        &self,
+    ) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
         let api_v1 = warp::path("api").and(warp::path("v1"));
 
         // Health check endpoint
@@ -132,7 +142,8 @@ impl IntentApi {
         service: Self,
     ) -> Result<impl warp::Reply, warp::Rejection> {
         // Convert JSON to internal types
-        let intent_request = request.to_internal()
+        let intent_request = request
+            .to_internal()
             .map_err(|e| warp::reject::custom(ApiErrorRejection(e)))?;
 
         // Process request
@@ -151,7 +162,8 @@ impl IntentApi {
         service: Self,
     ) -> Result<impl warp::Reply, warp::Rejection> {
         // Convert JSON to internal types
-        let batch_request = request.to_internal()
+        let batch_request = request
+            .to_internal()
             .map_err(|e| warp::reject::custom(ApiErrorRejection(e)))?;
 
         // Process batch
@@ -219,9 +231,18 @@ impl IntentApi {
             .as_secs() as i64;
 
         let mut metadata = HashMap::new();
-        metadata.insert("server_version".to_string(), env!("CARGO_PKG_VERSION").to_string());
-        metadata.insert("features_computed".to_string(), batch_result.results.len().to_string());
-        metadata.insert("feature_errors".to_string(), batch_result.errors.len().to_string());
+        metadata.insert(
+            "server_version".to_string(),
+            env!("CARGO_PKG_VERSION").to_string(),
+        );
+        metadata.insert(
+            "features_computed".to_string(),
+            batch_result.results.len().to_string(),
+        );
+        metadata.insert(
+            "feature_errors".to_string(),
+            batch_result.errors.len().to_string(),
+        );
 
         Ok(IntentResponse {
             result,
@@ -231,7 +252,11 @@ impl IntentApi {
     }
 
     /// Convert feature result to signal input
-    fn feature_result_to_signal_input(&self, name: String, result: crate::features::FeatureResult) -> SignalInput {
+    fn feature_result_to_signal_input(
+        &self,
+        name: String,
+        result: crate::features::FeatureResult,
+    ) -> SignalInput {
         SignalInput {
             name,
             value: result.value,
@@ -311,16 +336,24 @@ impl IntentApi {
     /// Validate intent request
     fn validate_intent_request(&self, request: &IntentRequest) -> Result<(), ApiError> {
         // Validate that we have some market data to work with
-        if request.market_data.is_empty() && request.options_data.is_empty() && request.futures_data.is_empty() {
-            return Err(ApiError::InvalidRequest("No market data provided".to_string()));
+        if request.market_data.is_empty()
+            && request.options_data.is_empty()
+            && request.futures_data.is_empty()
+        {
+            return Err(ApiError::InvalidRequest(
+                "No market data provided".to_string(),
+            ));
         }
 
         // Check size limits (simplified - in production would check total data size)
-        let total_data_points = request.market_data.len() + request.options_data.len() + request.futures_data.len();
-        if total_data_points > 1000 {  // Arbitrary limit
-            return Err(ApiError::InvalidRequest(
-                format!("Too much data: {} data points (max: 1000)", total_data_points)
-            ));
+        let total_data_points =
+            request.market_data.len() + request.options_data.len() + request.futures_data.len();
+        if total_data_points > 1000 {
+            // Arbitrary limit
+            return Err(ApiError::InvalidRequest(format!(
+                "Too much data: {} data points (max: 1000)",
+                total_data_points
+            )));
         }
 
         if request.client_id.trim().is_empty() {
@@ -330,36 +363,45 @@ impl IntentApi {
         // Basic validation of market data
         for (symbol, data) in &request.market_data {
             if symbol.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty symbol in market data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty symbol in market data".to_string(),
+                ));
             }
             if data.price <= 0.0 {
-                return Err(ApiError::InvalidRequest(
-                    format!("Invalid price {} for symbol {}", data.price, symbol)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "Invalid price {} for symbol {}",
+                    data.price, symbol
+                )));
             }
         }
 
         // Basic validation of options data
         for (underlying, chain) in &request.options_data {
             if underlying.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty underlying in options data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty underlying in options data".to_string(),
+                ));
             }
             if chain.strikes.is_empty() {
-                return Err(ApiError::InvalidRequest(
-                    format!("No strikes provided for options chain {}", underlying)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "No strikes provided for options chain {}",
+                    underlying
+                )));
             }
         }
 
         // Basic validation of futures data
         for (symbol, data) in &request.futures_data {
             if symbol.trim().is_empty() {
-                return Err(ApiError::InvalidRequest("Empty symbol in futures data".to_string()));
+                return Err(ApiError::InvalidRequest(
+                    "Empty symbol in futures data".to_string(),
+                ));
             }
             if data.price <= 0.0 {
-                return Err(ApiError::InvalidRequest(
-                    format!("Invalid price {} for futures symbol {}", data.price, symbol)
-                ));
+                return Err(ApiError::InvalidRequest(format!(
+                    "Invalid price {} for futures symbol {}",
+                    data.price, symbol
+                )));
             }
         }
 
@@ -373,11 +415,11 @@ impl IntentApi {
         }
 
         if request.requests.len() > self.config.max_batch_size {
-            return Err(ApiError::InvalidRequest(
-                format!("Batch too large: {} requests (max: {})",
-                       request.requests.len(),
-                       self.config.max_batch_size)
-            ));
+            return Err(ApiError::InvalidRequest(format!(
+                "Batch too large: {} requests (max: {})",
+                request.requests.len(),
+                self.config.max_batch_size
+            )));
         }
 
         if request.client_id.trim().is_empty() {
@@ -401,7 +443,9 @@ impl IntentApi {
         // In production, validate API key from headers
         // For now, just check client_id is not empty
         if request.client_id.trim().is_empty() {
-            return Err(ApiError::AuthenticationFailed("Invalid client ID".to_string()));
+            return Err(ApiError::AuthenticationFailed(
+                "Invalid client ID".to_string(),
+            ));
         }
 
         Ok(())
@@ -414,7 +458,9 @@ impl IntentApi {
         }
 
         if request.client_id.trim().is_empty() {
-            return Err(ApiError::AuthenticationFailed("Invalid client ID".to_string()));
+            return Err(ApiError::AuthenticationFailed(
+                "Invalid client ID".to_string(),
+            ));
         }
 
         Ok(())
@@ -580,16 +626,23 @@ pub struct BatchSummaryJson {
 
 // Conversion implementations
 impl IntentRequestJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> Result<IntentRequest, ApiError> {
-        let market_data = self.market_data.into_iter()
+        let market_data = self
+            .market_data
+            .into_iter()
             .map(|(k, v)| (k, v.to_internal()))
             .collect();
 
-        let options_data = self.options_data.into_iter()
+        let options_data = self
+            .options_data
+            .into_iter()
             .map(|(k, v)| (k, v.to_internal()))
             .collect();
 
-        let futures_data = self.futures_data.into_iter()
+        let futures_data = self
+            .futures_data
+            .into_iter()
             .map(|(k, v)| (k, v.to_internal()))
             .collect();
 
@@ -610,6 +663,7 @@ impl IntentRequestJson {
 
 impl SignalInputJson {
     #[allow(dead_code)]
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> Result<SignalInput, ApiError> {
         Ok(SignalInput {
             name: self.name,
@@ -622,6 +676,7 @@ impl SignalInputJson {
 }
 
 impl MarketDataPointJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> crate::features::MarketDataPoint {
         crate::features::MarketDataPoint {
             symbol: self.symbol,
@@ -634,6 +689,7 @@ impl MarketDataPointJson {
 }
 
 impl OptionChainJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> crate::features::OptionChain {
         crate::features::OptionChain {
             underlying: self.underlying,
@@ -645,6 +701,7 @@ impl OptionChainJson {
 }
 
 impl StrikeDataJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> crate::features::StrikeData {
         crate::features::StrikeData {
             strike: self.strike,
@@ -659,6 +716,7 @@ impl StrikeDataJson {
 }
 
 impl FuturesDataJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> crate::features::FuturesData {
         crate::features::FuturesData {
             symbol: self.symbol,
@@ -684,7 +742,9 @@ impl IntentResultJson {
     fn from_internal(result: crate::intent::IntentResult) -> Self {
         Self {
             intent: IntentVectorJson::from_internal(result.intent),
-            alternatives: result.alternatives.into_iter()
+            alternatives: result
+                .alternatives
+                .into_iter()
                 .map(IntentVectorJson::from_internal)
                 .collect(),
             metadata: result.metadata,
@@ -695,7 +755,9 @@ impl IntentResultJson {
 
 impl IntentVectorJson {
     fn from_internal(vector: crate::intent::IntentVector) -> Self {
-        let signals = vector.signals.into_iter()
+        let signals = vector
+            .signals
+            .into_iter()
             .map(|(k, v)| (k, SignalContributionJson::from_internal(v)))
             .collect();
 
@@ -721,8 +783,11 @@ impl SignalContributionJson {
 }
 
 impl BatchIntentRequestJson {
+    #[allow(clippy::wrong_self_convention)]
     fn to_internal(self) -> Result<BatchIntentRequest, ApiError> {
-        let requests = self.requests.into_iter()
+        let requests = self
+            .requests
+            .into_iter()
             .map(|r| r.to_internal())
             .collect::<Result<Vec<_>, _>>()?;
 
@@ -741,7 +806,9 @@ impl BatchIntentRequestJson {
 impl BatchIntentResponseJson {
     fn from_internal(response: BatchIntentResponse) -> Self {
         Self {
-            responses: response.responses.into_iter()
+            responses: response
+                .responses
+                .into_iter()
                 .map(IntentResponseJson::from_internal)
                 .collect(),
             summary: BatchSummaryJson::from_internal(response.summary),
@@ -771,15 +838,17 @@ pub struct ApiErrorRejection(ApiError);
 impl warp::reject::Reject for ApiErrorRejection {}
 
 /// Helper function to pass service through warp filters
-fn with_service(service: IntentApi) -> impl Filter<Extract = (IntentApi,), Error = Infallible> + Clone {
+fn with_service(
+    service: IntentApi,
+) -> impl Filter<Extract = (IntentApi,), Error = Infallible> + Clone {
     warp::any().map(move || service.clone())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use warp::test::request;
     use crate::features::create_promoted_feature_registry;
+    use warp::test::request;
 
     #[tokio::test]
     async fn test_health_endpoint() {
@@ -789,7 +858,11 @@ mod tests {
         let api = IntentApi::new(registry, engine, config);
 
         let filter = api.routes();
-        let response = request().method("GET").path("/api/v1/health").reply(&filter).await;
+        let response = request()
+            .method("GET")
+            .path("/api/v1/health")
+            .reply(&filter)
+            .await;
 
         assert_eq!(response.status(), 200);
     }

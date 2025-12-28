@@ -1,5 +1,5 @@
 //! Galactus Failure Analysis Module
-//! 
+//!
 //! This module implements the failure analysis framework as defined in:
 //! `docs/07-backtesting-and-validation/failure-analysis.md`
 //!
@@ -21,7 +21,7 @@
 //! ## Philosophy
 //!
 //! > "Every incorrect inference contains more information than a correct one."
-//! 
+//!
 //! Galactus treats failure as a signal, not an exception. Ignoring failure leads
 //! to loss of structural understanding. This module ensures that every failure
 //! is captured, categorized, and converted into learning.
@@ -45,10 +45,10 @@
 //! let patterns = analyzer.detect_patterns();
 //! ```
 
-pub mod types;
-pub mod recorder;
 pub mod analyzer;
+pub mod recorder;
+pub mod types;
 
-pub use types::*;
-pub use recorder::*;
 pub use analyzer::*;
+pub use recorder::*;
+pub use types::*;

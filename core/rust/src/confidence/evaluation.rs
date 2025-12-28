@@ -33,9 +33,7 @@ pub fn evaluate_silence(
     if confidence.components.structural_alignment < 0.40
         && confidence.components.signal_agreement < 0.40
     {
-        return SilenceDecision::Suppress(
-            SuppressionReason::StructuralFoundationInsufficient,
-        );
+        return SilenceDecision::Suppress(SuppressionReason::StructuralFoundationInsufficient);
     }
 
     // 5. overall_stability < 0.20
@@ -75,7 +73,9 @@ pub fn evaluate_silence(
         && confidence.components.regime_consistency >= 0.30
         && confidence.components.structural_alignment >= 0.40
     {
-        warnings.push("LIMITED SIGNAL AGREEMENT: Few independent signals support this inference".to_string());
+        warnings.push(
+            "LIMITED SIGNAL AGREEMENT: Few independent signals support this inference".to_string(),
+        );
     }
 
     if !warnings.is_empty() {
@@ -107,7 +107,10 @@ pub fn has_critical_degradation(
 /// Determine if multiple components are below threshold
 ///
 /// Used for additional degradation rules
-pub fn count_components_below_threshold(components: &ConfidenceComponents, threshold: f64) -> usize {
+pub fn count_components_below_threshold(
+    components: &ConfidenceComponents,
+    threshold: f64,
+) -> usize {
     let mut count = 0;
     if components.data_quality < threshold {
         count += 1;
@@ -127,10 +130,7 @@ pub fn count_components_below_threshold(components: &ConfidenceComponents, thres
 /// Apply additional degradation when multiple components are weak
 ///
 /// If two or more components are below 0.5, reduce overall confidence by 20%
-pub fn apply_degradation_penalty(
-    base_confidence: f64,
-    components: &ConfidenceComponents,
-) -> f64 {
+pub fn apply_degradation_penalty(base_confidence: f64, components: &ConfidenceComponents) -> f64 {
     let weak_components = count_components_below_threshold(components, 0.5);
     if weak_components >= 2 {
         base_confidence * 0.8 // 20% penalty
@@ -156,10 +156,10 @@ mod tests {
             regime_consistency: regime,
             signal_agreement: signal,
         };
-        
+
         let score = (data_quality * structural * regime * signal).powf(0.25);
         let level = ConfidenceLevel::from_scores(score, stability_score);
-        
+
         OverallConfidence {
             score,
             components,
@@ -173,10 +173,10 @@ mod tests {
             sensitivity,
             regime,
         };
-        
+
         let score = (temporal * sensitivity * regime).powf(1.0 / 3.0);
         let level = StabilityLevel::from_score(score);
-        
+
         StabilityIndicator {
             score,
             components,
@@ -189,12 +189,12 @@ mod tests {
         // Create confidence where overall is low but data quality is acceptable
         let confidence = create_test_confidence(0.55, 0.5, 0.4, 0.4, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         // Overall confidence should be (0.55 * 0.5 * 0.4 * 0.4)^0.25 = 0.047^0.25 ≈ 0.466
         // But we need it below 0.30, so let's adjust
         let mut confidence = confidence;
         confidence.score = 0.25; // Manually set for test
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(
             decision,
@@ -206,7 +206,7 @@ mod tests {
     fn test_silence_data_quality_below_threshold() {
         let confidence = create_test_confidence(0.45, 0.8, 0.7, 0.6, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(
             decision,
@@ -218,7 +218,7 @@ mod tests {
     fn test_silence_regime_indeterminate() {
         let confidence = create_test_confidence(0.9, 0.8, 0.25, 0.6, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(
             decision,
@@ -230,7 +230,7 @@ mod tests {
     fn test_silence_structural_foundation_insufficient() {
         let confidence = create_test_confidence(0.9, 0.35, 0.7, 0.35, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(
             decision,
@@ -242,10 +242,10 @@ mod tests {
     fn test_silence_inference_too_unstable() {
         let confidence = create_test_confidence(0.9, 0.8, 0.7, 0.6, 0.15);
         let mut stability = create_test_stability(0.15, 0.8, 0.8);
-        
+
         // Manually set stability score below 0.20 for test
         stability.score = 0.15;
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(
             decision,
@@ -257,11 +257,11 @@ mod tests {
     fn test_proceed_with_warning_low_confidence() {
         let confidence = create_test_confidence(0.6, 0.6, 0.5, 0.5, 0.5);
         let stability = create_test_stability(0.5, 0.5, 0.5);
-        
+
         // Manually set confidence to be in warning range
         let mut confidence = confidence;
         confidence.score = 0.35; // In range [0.30, 0.40)
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         match decision {
             SilenceDecision::ProceedWithWarning(warnings) => {
@@ -276,10 +276,10 @@ mod tests {
     fn test_proceed_with_warning_fragile_inference() {
         let confidence = create_test_confidence(0.7, 0.7, 0.6, 0.6, 0.35);
         let mut stability = create_test_stability(0.35, 0.5, 0.5);
-        
+
         // Manually set stability to be in warning range
         stability.score = 0.35; // In range [0.30, 0.40)
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         match decision {
             SilenceDecision::ProceedWithWarning(warnings) => {
@@ -294,12 +294,14 @@ mod tests {
     fn test_proceed_with_warning_limited_signal_agreement() {
         let confidence = create_test_confidence(0.9, 0.7, 0.6, 0.35, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         match decision {
             SilenceDecision::ProceedWithWarning(warnings) => {
                 assert!(!warnings.is_empty());
-                assert!(warnings.iter().any(|w| w.contains("LIMITED SIGNAL AGREEMENT")));
+                assert!(warnings
+                    .iter()
+                    .any(|w| w.contains("LIMITED SIGNAL AGREEMENT")));
             }
             _ => panic!("Expected ProceedWithWarning"),
         }
@@ -309,7 +311,7 @@ mod tests {
     fn test_proceed_high_confidence() {
         let confidence = create_test_confidence(0.9, 0.85, 0.8, 0.75, 0.8);
         let stability = create_test_stability(0.85, 0.8, 0.9);
-        
+
         let decision = evaluate_silence(&confidence, &stability);
         assert!(matches!(decision, SilenceDecision::Proceed));
     }
@@ -318,7 +320,7 @@ mod tests {
     fn test_has_critical_degradation() {
         let confidence = create_test_confidence(0.25, 0.8, 0.7, 0.6, 0.8);
         let stability = create_test_stability(0.8, 0.8, 0.8);
-        
+
         assert!(has_critical_degradation(&confidence, &stability));
     }
 
@@ -326,7 +328,7 @@ mod tests {
     fn test_no_critical_degradation() {
         let confidence = create_test_confidence(0.7, 0.7, 0.6, 0.6, 0.8);
         let stability = create_test_stability(0.8, 0.7, 0.8);
-        
+
         assert!(!has_critical_degradation(&confidence, &stability));
     }
 
@@ -338,7 +340,7 @@ mod tests {
             regime_consistency: 0.45,
             signal_agreement: 0.3,
         };
-        
+
         let count = count_components_below_threshold(&components, 0.5);
         assert_eq!(count, 3); // data_quality, regime_consistency, signal_agreement
     }
@@ -351,10 +353,10 @@ mod tests {
             regime_consistency: 0.45,
             signal_agreement: 0.3,
         };
-        
+
         let base_confidence = 0.5;
         let penalized = apply_degradation_penalty(base_confidence, &components);
-        
+
         assert!((penalized - 0.4).abs() < 0.001); // 0.5 * 0.8 = 0.4
     }
 
@@ -366,10 +368,10 @@ mod tests {
             regime_consistency: 0.6,
             signal_agreement: 0.55,
         };
-        
+
         let base_confidence = 0.5;
         let penalized = apply_degradation_penalty(base_confidence, &components);
-        
+
         assert!((penalized - 0.5).abs() < 0.001); // No penalty
     }
 }

@@ -26,12 +26,12 @@
 //! - Unacceptable outcomes: maintaining high confidence, producing confident directional inference
 //! - **Silence, humility, and graceful degradation validate the system**
 
-pub mod types;
-pub mod scenarios;
 pub mod detection;
 pub mod evaluation;
+pub mod scenarios;
+pub mod types;
 
-pub use types::*;
-pub use scenarios::*;
 pub use detection::*;
 pub use evaluation::*;
+pub use scenarios::*;
+pub use types::*;

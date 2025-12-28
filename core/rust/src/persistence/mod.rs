@@ -10,13 +10,13 @@
 //! - Automatic data compression
 //! - Configurable retention policies
 
-pub mod storage;
-pub mod query;
 pub mod format;
+pub mod query;
+pub mod storage;
 
+pub use format::{CompressionType, StorageFormat};
+pub use query::{IntentQuery, QueryBuilder, TimeRange};
 pub use storage::{IntentStore, StorageBackend};
-pub use query::{QueryBuilder, TimeRange, IntentQuery};
-pub use format::{StorageFormat, CompressionType};
 
 use crate::intent::IntentVector;
 use chrono::{DateTime, Utc};

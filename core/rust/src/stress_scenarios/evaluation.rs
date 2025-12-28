@@ -255,18 +255,21 @@ impl StressTestSuite {
             self.results.len() - self.failure_count()
         ));
         report.push_str(&format!("Tests Failed: {}\n", self.failure_count()));
-        report.push_str(&format!("Overall: {}\n\n", if self.all_passed() {
-            "PASSED"
-        } else {
-            "FAILED"
-        }));
+        report.push_str(&format!(
+            "Overall: {}\n\n",
+            if self.all_passed() {
+                "PASSED"
+            } else {
+                "FAILED"
+            }
+        ));
 
         // Category coverage
         report.push_str("Category Coverage:\n");
         for (category, count) in self.scenarios_by_category() {
             report.push_str(&format!("  {}: {} scenarios\n", category, count));
         }
-        report.push_str("\n");
+        report.push('\n');
 
         // Coverage validation
         match self.validate_coverage() {
@@ -405,23 +408,11 @@ mod tests {
         suite.add_scenario(scenario2.clone());
 
         // Add passing result
-        let result1 = StressTestResult::new(
-            scenario1,
-            0.3,
-            true,
-            false,
-            "Passed".to_string(),
-        );
+        let result1 = StressTestResult::new(scenario1, 0.3, true, false, "Passed".to_string());
         suite.add_result(result1);
 
         // Add failing result
-        let result2 = StressTestResult::new(
-            scenario2,
-            0.95,
-            false,
-            false,
-            "Failed".to_string(),
-        );
+        let result2 = StressTestResult::new(scenario2, 0.95, false, false, "Failed".to_string());
         suite.add_result(result2);
 
         assert!(!suite.all_passed());
@@ -482,13 +473,7 @@ mod tests {
             false,
         );
 
-        let mut result = StressTestResult::new(
-            scenario,
-            0.5,
-            true,
-            false,
-            "Tested".to_string(),
-        );
+        let mut result = StressTestResult::new(scenario, 0.5, true, false, "Tested".to_string());
 
         result.add_lesson("Confidence degraded appropriately".to_string());
         result.add_lesson("Signal suppression worked as expected".to_string());

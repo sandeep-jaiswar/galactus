@@ -85,7 +85,7 @@ class TestHedgePressureComputation:
 
     def test_invalid_inputs(self):
         """Test error handling for invalid inputs."""
-        with pytest.raises(ValueError, match="OI data must be dictionaries"):
+        with pytest.raises(TypeError, match="OI data must be dictionaries"):
             compute_hedge_pressure("invalid", {}, 18500)
 
         with pytest.raises(ValueError, match="Spot price must be a positive number"):

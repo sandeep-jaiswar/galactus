@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Main Galactus configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct GalactusConfig {
     /// Data ingestion configuration
     pub data_ingestion: DataIngestionConfig,
@@ -17,18 +17,6 @@ pub struct GalactusConfig {
     pub streaming: StreamingConfig,
     /// API configuration
     pub api: ApiConfig,
-}
-
-impl Default for GalactusConfig {
-    fn default() -> Self {
-        Self {
-            data_ingestion: DataIngestionConfig::default(),
-            intent_engine: IntentEngineConfig::default(),
-            persistence: PersistenceConfig::default(),
-            streaming: StreamingConfig::default(),
-            api: ApiConfig::default(),
-        }
-    }
 }
 
 /// Data ingestion configuration
@@ -53,11 +41,7 @@ impl Default for DataIngestionConfig {
             max_delay_seconds: 300, // 5 minutes
             min_completeness: 0.8,
             max_contradictions: 0,
-            approved_sources: vec![
-                "NSE".to_string(),
-                "BSE".to_string(),
-                "NSE_FO".to_string(),
-            ],
+            approved_sources: vec!["NSE".to_string(), "BSE".to_string(), "NSE_FO".to_string()],
         }
     }
 }

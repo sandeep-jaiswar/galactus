@@ -1,5 +1,5 @@
 //! Galactus Confidence and Stability Module
-//! 
+//!
 //! This module implements the confidence and stability model as defined in:
 //! `docs/05-intent-engine/confidence-and-stability.md`
 //!
@@ -46,12 +46,12 @@
 //! }
 //! ```
 
-pub mod types;
-pub mod confidence;
-pub mod stability;
+pub mod compute;
 pub mod evaluation;
+pub mod stability;
+pub mod types;
 
-pub use types::*;
-pub use confidence::*;
-pub use stability::*;
+pub use compute::*;
 pub use evaluation::*;
+pub use stability::*;
+pub use types::*;

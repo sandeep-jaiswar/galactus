@@ -9,7 +9,7 @@
 use std::fmt;
 
 /// Represents the liquidity state of the market
-/// 
+///
 /// Liquidity regimes determine impact sensitivity - how much a given flow
 /// will move the market based on available depth and absorption capacity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -36,7 +36,7 @@ impl fmt::Display for LiquidityRegime {
 }
 
 /// Represents the volatility state of the market
-/// 
+///
 /// Volatility regimes condition pressure amplification - how much a given
 /// pressure will be amplified or dampened by current volatility conditions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -63,7 +63,7 @@ impl fmt::Display for VolatilityRegime {
 }
 
 /// Represents the relative dominance of derivatives vs cash markets
-/// 
+///
 /// This regime determines where constraints originate - whether market
 /// behavior is driven by derivatives positioning or cash flows.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -87,7 +87,7 @@ impl fmt::Display for DerivativesDominance {
 }
 
 /// Represents proximity to time-sensitive events
-/// 
+///
 /// Time constraint regimes control urgency - how much pressure exists
 /// to act before optionality expires or deadlines are reached.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -111,7 +111,7 @@ impl fmt::Display for TimeConstraint {
 }
 
 /// Represents the composition of market participants
-/// 
+///
 /// Participation regimes influence feedback loops - whether flows are
 /// likely to be amplified (retail-heavy) or absorbed (institutional-heavy).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -135,7 +135,7 @@ impl fmt::Display for ParticipationRegime {
 }
 
 /// Confidence score for regime classification
-/// 
+///
 /// Represents how certain we are about the current regime classification.
 /// Uncertainty degrades downstream inference confidence.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
@@ -146,7 +146,7 @@ pub struct RegimeConfidence {
 
 impl RegimeConfidence {
     /// Creates a new confidence score
-    /// 
+    ///
     /// # Panics
     /// Panics if score is not in [0.0, 1.0]
     pub fn new(score: f64) -> Self {
@@ -186,7 +186,7 @@ impl fmt::Display for RegimeConfidence {
 }
 
 /// Complete regime state at a point in time
-/// 
+///
 /// Represents the full market regime configuration across all dimensions.
 /// All signals are interpreted conditional on this state.
 #[derive(Debug, Clone, PartialEq)]
@@ -231,12 +231,13 @@ impl RegimeState {
 
     /// Returns true if any regime dimension indicates stress conditions
     pub fn is_stressed(&self) -> bool {
-        matches!(self.liquidity, LiquidityRegime::Fragile | LiquidityRegime::Illiquid)
-            || matches!(
-                self.volatility,
-                VolatilityRegime::Elevated | VolatilityRegime::Dislocated
-            )
-            || matches!(self.time_constraint, TimeConstraint::ImmediateDeadlines)
+        matches!(
+            self.liquidity,
+            LiquidityRegime::Fragile | LiquidityRegime::Illiquid
+        ) || matches!(
+            self.volatility,
+            VolatilityRegime::Elevated | VolatilityRegime::Dislocated
+        ) || matches!(self.time_constraint, TimeConstraint::ImmediateDeadlines)
     }
 
     /// Returns true if confidence is insufficient for reliable inference
@@ -259,12 +260,12 @@ impl fmt::Display for RegimeState {
 }
 
 /// Represents a transition from one regime to another
-/// 
+///
 /// Regime transitions are critical events that must be:
 /// - Explicitly detected
 /// - Logged
 /// - Reflected in confidence
-/// 
+///
 /// Silent regime shifts are a critical failure mode.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RegimeTransition {
@@ -322,8 +323,18 @@ impl fmt::Display for RegimeTransition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "Regime Transition ({:?}):", self.transition_type)?;
         writeln!(f, "  Trigger: {}", self.trigger)?;
-        writeln!(f, "  From: {} @ {}", self.format_regime_summary(&self.from), self.from.timestamp)?;
-        write!(f, "  To:   {} @ {}", self.format_regime_summary(&self.to), self.to.timestamp)
+        writeln!(
+            f,
+            "  From: {} @ {}",
+            self.format_regime_summary(&self.from),
+            self.from.timestamp
+        )?;
+        write!(
+            f,
+            "  To:   {} @ {}",
+            self.format_regime_summary(&self.to),
+            self.to.timestamp
+        )
     }
 }
 
@@ -331,8 +342,11 @@ impl RegimeTransition {
     fn format_regime_summary(&self, state: &RegimeState) -> String {
         format!(
             "L:{:?} V:{:?} D:{:?} T:{:?} P:{:?}",
-            state.liquidity, state.volatility, state.derivatives, 
-            state.time_constraint, state.participation
+            state.liquidity,
+            state.volatility,
+            state.derivatives,
+            state.time_constraint,
+            state.participation
         )
     }
 }
@@ -360,10 +374,19 @@ mod tests {
 
     #[test]
     fn test_volatility_regime_display() {
-        assert_eq!(VolatilityRegime::Compressed.to_string(), "Compressed Volatility");
+        assert_eq!(
+            VolatilityRegime::Compressed.to_string(),
+            "Compressed Volatility"
+        );
         assert_eq!(VolatilityRegime::Normal.to_string(), "Normal Volatility");
-        assert_eq!(VolatilityRegime::Elevated.to_string(), "Elevated Volatility");
-        assert_eq!(VolatilityRegime::Dislocated.to_string(), "Dislocated Volatility");
+        assert_eq!(
+            VolatilityRegime::Elevated.to_string(),
+            "Elevated Volatility"
+        );
+        assert_eq!(
+            VolatilityRegime::Dislocated.to_string(),
+            "Dislocated Volatility"
+        );
     }
 
     #[test]

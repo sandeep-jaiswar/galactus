@@ -25,18 +25,21 @@
 //! 3. **Implementation**: Rust implementation added to this module
 //! 4. **Integration**: Feature registered and available to intent engine
 
-pub mod registry;
-pub mod oi_decay;
-pub mod hedge_pressure;
 pub mod basis_pressure;
+pub mod hedge_pressure;
 #[cfg(test)]
 pub mod integration_tests;
+pub mod oi_decay;
+pub mod registry;
 
 // Re-export main types for convenience
-pub use registry::{FeatureRegistry, FeatureResult, FeatureError, Feature, FeatureInputs, FeatureConfig, MarketDataPoint, OptionChain, StrikeData, FuturesData};
-pub use oi_decay::{OIDecayFeature, OIDecayConfig, OIDecayResult};
-pub use hedge_pressure::{HedgePressureFeature, HedgePressureConfig, HedgePressureResult};
-pub use basis_pressure::{BasisPressureFeature, BasisPressureConfig, BasisPressureResult};
+pub use basis_pressure::{BasisPressureConfig, BasisPressureFeature, BasisPressureResult};
+pub use hedge_pressure::{HedgePressureConfig, HedgePressureFeature, HedgePressureResult};
+pub use oi_decay::{OIDecayConfig, OIDecayFeature, OIDecayResult};
+pub use registry::{
+    Feature, FeatureConfig, FeatureError, FeatureInputs, FeatureRegistry, FeatureResult,
+    FuturesData, MarketDataPoint, OptionChain, StrikeData,
+};
 
 /// Create a feature registry with all promoted signals registered
 ///

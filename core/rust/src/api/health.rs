@@ -48,9 +48,15 @@ impl HealthCheckResponse {
     /// Create a new health check response
     pub fn new(uptime_seconds: u64, components: Vec<ComponentHealth>) -> Self {
         // Determine overall status from components
-        let status = if components.iter().any(|c| c.status == HealthStatus::Unhealthy) {
+        let status = if components
+            .iter()
+            .any(|c| c.status == HealthStatus::Unhealthy)
+        {
             HealthStatus::Unhealthy
-        } else if components.iter().any(|c| c.status == HealthStatus::Degraded) {
+        } else if components
+            .iter()
+            .any(|c| c.status == HealthStatus::Degraded)
+        {
             HealthStatus::Degraded
         } else {
             HealthStatus::Healthy
@@ -81,17 +87,12 @@ impl HealthChecker {
     /// Perform complete health check
     pub fn check(&self) -> HealthCheckResponse {
         let uptime = self.start_time.elapsed().as_secs();
-        
-        let mut components = Vec::new();
 
-        // Check core system
-        components.push(self.check_core_system());
-
-        // Check data ingestion (basic check)
-        components.push(self.check_data_ingestion());
-
-        // Check inference engine
-        components.push(self.check_inference_engine());
+        let components = vec![
+            self.check_core_system(),
+            self.check_data_ingestion(),
+            self.check_inference_engine(),
+        ];
 
         HealthCheckResponse::new(uptime, components)
     }
@@ -143,7 +144,7 @@ mod tests {
     fn test_health_checker_basic() {
         let checker = HealthChecker::new();
         let response = checker.check();
-        
+
         assert_eq!(response.status, HealthStatus::Healthy);
         assert!(response.uptime_seconds >= 0);
         assert!(!response.components.is_empty());
@@ -157,7 +158,7 @@ mod tests {
             message: Some("OK".to_string()),
             response_time_ms: Some(10),
         };
-        
+
         assert_eq!(component.name, "test");
         assert_eq!(component.status, HealthStatus::Healthy);
     }

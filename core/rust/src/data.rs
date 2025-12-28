@@ -8,8 +8,8 @@
 // - Schema versioning
 // - Auditability and replayability
 
-use std::fmt;
 use chrono::{DateTime, Utc};
+use std::fmt;
 
 /// Globally unique identifier for events
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -105,6 +105,7 @@ pub struct CanonicalEvent {
 }
 
 impl CanonicalEvent {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         event_id: EventId,
         event_type: EventType,

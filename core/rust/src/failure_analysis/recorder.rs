@@ -2,11 +2,11 @@
 //!
 //! Records and persists failure information for later analysis.
 
-use super::types::{FailureRecord, DetectionMechanism};
+use super::types::{DetectionMechanism, FailureRecord};
 use std::collections::HashMap;
 
 /// Failure recorder that maintains a log of all failures
-/// 
+///
 /// This component is responsible for capturing and storing failure records.
 /// In a production system, this would persist to a database or structured log system.
 pub struct FailureRecorder {
@@ -23,7 +23,7 @@ impl FailureRecorder {
     }
 
     /// Record a failure
-    /// 
+    ///
     /// This is the primary entry point for documenting failures.
     /// Each failure is assigned a unique ID and stored for analysis.
     pub fn record(&mut self, failure: FailureRecord) -> String {
@@ -106,7 +106,7 @@ impl FailureRecorder {
     }
 
     /// Clear all recorded failures
-    /// 
+    ///
     /// This should only be used in testing or when archiving to long-term storage
     pub fn clear(&mut self) {
         self.failures.clear();
@@ -127,16 +127,16 @@ mod tests {
     #[test]
     fn test_record_and_retrieve() {
         let mut recorder = FailureRecorder::new();
-        
+
         let failure = FailureRecord::new(
             FailureCategory::DataFailure,
             "Test failure".to_string(),
             "Test cause".to_string(),
             vec!["component1".to_string()],
         );
-        
+
         let id = recorder.record(failure.clone());
-        
+
         let retrieved = recorder.get(&id);
         assert!(retrieved.is_some());
         assert_eq!(retrieved.unwrap().description, "Test failure");
@@ -145,35 +145,35 @@ mod tests {
     #[test]
     fn test_get_by_category() {
         let mut recorder = FailureRecorder::new();
-        
+
         let failure1 = FailureRecord::new(
             FailureCategory::DataFailure,
             "Data failure 1".to_string(),
             "Cause 1".to_string(),
             vec![],
         );
-        
+
         let failure2 = FailureRecord::new(
             FailureCategory::ModelAssumptionFailure,
             "Model failure 1".to_string(),
             "Cause 2".to_string(),
             vec![],
         );
-        
+
         let failure3 = FailureRecord::new(
             FailureCategory::DataFailure,
             "Data failure 2".to_string(),
             "Cause 3".to_string(),
             vec![],
         );
-        
+
         recorder.record(failure1);
         recorder.record(failure2);
         recorder.record(failure3);
-        
+
         let data_failures = recorder.get_by_category(&FailureCategory::DataFailure);
         assert_eq!(data_failures.len(), 2);
-        
+
         let model_failures = recorder.get_by_category(&FailureCategory::ModelAssumptionFailure);
         assert_eq!(model_failures.len(), 1);
     }
@@ -181,22 +181,22 @@ mod tests {
     #[test]
     fn test_get_by_component() {
         let mut recorder = FailureRecorder::new();
-        
+
         let failure = FailureRecord::new(
             FailureCategory::SignalMisapplication,
             "Signal issue".to_string(),
             "Wrong context".to_string(),
             vec!["signal_a".to_string(), "signal_b".to_string()],
         );
-        
+
         recorder.record(failure);
-        
+
         let failures_a = recorder.get_by_component("signal_a");
         assert_eq!(failures_a.len(), 1);
-        
+
         let failures_b = recorder.get_by_component("signal_b");
         assert_eq!(failures_b.len(), 1);
-        
+
         let failures_c = recorder.get_by_component("signal_c");
         assert_eq!(failures_c.len(), 0);
     }
@@ -204,29 +204,30 @@ mod tests {
     #[test]
     fn test_unaddressed_failures() {
         let mut recorder = FailureRecorder::new();
-        
+
         let failure1 = FailureRecord::new(
             FailureCategory::DataFailure,
             "Failure 1".to_string(),
             "Cause 1".to_string(),
             vec![],
         );
-        
+
         let failure2 = FailureRecord::new(
             FailureCategory::DataFailure,
             "Failure 2".to_string(),
             "Cause 2".to_string(),
             vec![],
-        ).with_corrective_action("Fixed".to_string());
-        
+        )
+        .with_corrective_action("Fixed".to_string());
+
         let id1 = recorder.record(failure1);
         recorder.record(failure2);
-        
+
         let unaddressed = recorder.get_unaddressed();
         assert_eq!(unaddressed.len(), 1);
-        
+
         recorder.mark_addressed(&id1, "Now fixed".to_string());
-        
+
         let unaddressed = recorder.get_unaddressed();
         assert_eq!(unaddressed.len(), 0);
     }

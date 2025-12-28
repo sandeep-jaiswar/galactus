@@ -288,9 +288,10 @@ impl FeatureRegistry {
 
         let mut features = self.features.write().unwrap();
         if features.contains_key(&name) {
-            return Err(FeatureError::ConfigurationError(
-                format!("Feature '{}' already registered", name)
-            ));
+            return Err(FeatureError::ConfigurationError(format!(
+                "Feature '{}' already registered",
+                name
+            )));
         }
 
         features.insert(name, feature);
@@ -334,9 +335,14 @@ impl FeatureRegistry {
     ///
     /// # Returns
     /// Feature result or error
-    pub fn compute_feature(&self, name: &str, inputs: &FeatureInputs) -> Result<FeatureResult, FeatureError> {
+    pub fn compute_feature(
+        &self,
+        name: &str,
+        inputs: &FeatureInputs,
+    ) -> Result<FeatureResult, FeatureError> {
         let features = self.features.read().unwrap();
-        let feature = features.get(name)
+        let feature = features
+            .get(name)
             .ok_or_else(|| FeatureError::FeatureNotFound(name.to_string()))?;
 
         let start_time = SystemTime::now();
@@ -354,10 +360,10 @@ impl FeatureRegistry {
 
         // Check processing time limit
         if processing_time > self.config.max_processing_time_ns as u128 {
-            return Err(FeatureError::ComputationFailure(
-                format!("Feature '{}' exceeded processing time limit: {} ns",
-                       name, processing_time)
-            ));
+            return Err(FeatureError::ComputationFailure(format!(
+                "Feature '{}' exceeded processing time limit: {} ns",
+                name, processing_time
+            )));
         }
 
         result
@@ -407,7 +413,10 @@ impl FeatureRegistry {
             .as_nanos();
 
         let mut metadata = HashMap::new();
-        metadata.insert("total_features".to_string(), feature_names.len().to_string());
+        metadata.insert(
+            "total_features".to_string(),
+            feature_names.len().to_string(),
+        );
         metadata.insert("successful".to_string(), results.len().to_string());
         metadata.insert("failed".to_string(), errors.len().to_string());
         metadata.insert("deterministic".to_string(), "true".to_string());
@@ -432,7 +441,12 @@ impl FeatureRegistry {
     }
 
     /// Update statistics after feature computation
-    fn update_stats(&self, name: &str, result: &Result<FeatureResult, FeatureError>, processing_time: u128) {
+    fn update_stats(
+        &self,
+        name: &str,
+        result: &Result<FeatureResult, FeatureError>,
+        processing_time: u128,
+    ) {
         let mut stats = self.stats.write().unwrap();
 
         stats.total_computations += 1;
@@ -441,28 +455,34 @@ impl FeatureRegistry {
         match result {
             Ok(result) => {
                 stats.successful_computations += 1;
-                let feature_stats = stats.feature_stats
+                let feature_stats = stats
+                    .feature_stats
                     .entry(name.to_string())
-                    .or_insert_with(FeatureStats::default);
+                    .or_default();
                 feature_stats.success_count += 1;
                 feature_stats.last_computation = result.timestamp;
                 // Update rolling average
-                let total_time = feature_stats.avg_processing_time_ns as u128 * (feature_stats.computation_count) as u128;
-                feature_stats.avg_processing_time_ns = ((total_time + processing_time) / (feature_stats.computation_count + 1) as u128) as u64;
+                let total_time = feature_stats.avg_processing_time_ns as u128
+                    * (feature_stats.computation_count) as u128;
+                feature_stats.avg_processing_time_ns = ((total_time + processing_time)
+                    / (feature_stats.computation_count + 1) as u128)
+                    as u64;
             }
             Err(_) => {
                 stats.failed_computations += 1;
-                let feature_stats = stats.feature_stats
+                let feature_stats = stats
+                    .feature_stats
                     .entry(name.to_string())
-                    .or_insert_with(FeatureStats::default);
+                    .or_default();
                 feature_stats.failure_count += 1;
             }
         }
 
         // Update feature stats count
-        let feature_stats = stats.feature_stats
+        let feature_stats = stats
+            .feature_stats
             .entry(name.to_string())
-            .or_insert_with(FeatureStats::default);
+            .or_default();
         feature_stats.computation_count += 1;
     }
 
@@ -612,10 +632,8 @@ mod tests {
         registry.register(feature2).unwrap();
 
         let inputs = create_test_inputs();
-        let batch_result = registry.compute_batch(
-            &["feature1".to_string(), "feature2".to_string()],
-            &inputs
-        );
+        let batch_result =
+            registry.compute_batch(&["feature1".to_string(), "feature2".to_string()], &inputs);
 
         assert_eq!(batch_result.results.len(), 2);
         assert!(batch_result.errors.is_empty());
@@ -634,20 +652,22 @@ mod tests {
         let inputs = create_test_inputs();
 
         // Test different input orderings produce same results
-        let batch1 = registry.compute_batch(
-            &["z_feature".to_string(), "a_feature".to_string()],
-            &inputs
-        );
-        let batch2 = registry.compute_batch(
-            &["a_feature".to_string(), "z_feature".to_string()],
-            &inputs
-        );
+        let batch1 =
+            registry.compute_batch(&["z_feature".to_string(), "a_feature".to_string()], &inputs);
+        let batch2 =
+            registry.compute_batch(&["a_feature".to_string(), "z_feature".to_string()], &inputs);
 
         assert_eq!(batch1.results.len(), batch2.results.len());
         assert_eq!(batch1.errors.len(), batch2.errors.len());
         // Results should be identical (same keys, same values)
-        assert_eq!(batch1.results["a_feature"].value, batch2.results["a_feature"].value);
-        assert_eq!(batch1.results["z_feature"].value, batch2.results["z_feature"].value);
+        assert_eq!(
+            batch1.results["a_feature"].value,
+            batch2.results["a_feature"].value
+        );
+        assert_eq!(
+            batch1.results["z_feature"].value,
+            batch2.results["z_feature"].value
+        );
     }
 
     #[test]

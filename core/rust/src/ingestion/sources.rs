@@ -3,8 +3,8 @@
 //! Provides WebSocket connections to various data sources (exchanges)
 //! with automatic reconnection and error handling.
 
-use crate::data::CanonicalEvent;
 use crate::config::StreamingConfig;
+use crate::data::CanonicalEvent;
 use tokio::sync::mpsc;
 
 /// Data source connection errors
@@ -56,19 +56,19 @@ pub enum ConnectionState {
 pub trait DataSource: Send + Sync {
     /// Connect to the data source
     async fn connect(&mut self) -> Result<(), SourceError>;
-    
+
     /// Disconnect from the data source
     async fn disconnect(&mut self) -> Result<(), SourceError>;
-    
+
     /// Get current connection state
     fn state(&self) -> ConnectionState;
-    
+
     /// Subscribe to specific instruments
     async fn subscribe(&mut self, instruments: Vec<String>) -> Result<(), SourceError>;
-    
+
     /// Unsubscribe from instruments
     async fn unsubscribe(&mut self, instruments: Vec<String>) -> Result<(), SourceError>;
-    
+
     /// Get the event receiver channel
     fn event_receiver(&self) -> mpsc::Receiver<CanonicalEvent>;
 }
@@ -89,7 +89,7 @@ impl WebSocketSource {
     /// Create a new WebSocket data source
     pub fn new(endpoint: String, config: StreamingConfig) -> Self {
         let (event_tx, event_rx) = mpsc::channel(1000);
-        
+
         Self {
             config,
             endpoint,
@@ -124,14 +124,14 @@ impl WebSocketSource {
 impl DataSource for WebSocketSource {
     async fn connect(&mut self) -> Result<(), SourceError> {
         self.state = ConnectionState::Connecting;
-        
+
         // TODO: Implement actual WebSocket connection
         // For now, simulate connection
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
-        
+
         self.state = ConnectionState::Connected;
         self.reset_reconnect_counter();
-        
+
         Ok(())
     }
 
@@ -158,7 +158,7 @@ impl DataSource for WebSocketSource {
         }
 
         // TODO: Send subscription message over WebSocket
-        
+
         Ok(())
     }
 
@@ -171,7 +171,7 @@ impl DataSource for WebSocketSource {
         self.subscriptions.retain(|s| !instruments.contains(s));
 
         // TODO: Send unsubscription message over WebSocket
-        
+
         Ok(())
     }
 
@@ -252,7 +252,7 @@ mod tests {
     async fn test_websocket_connect() {
         let config = create_test_config();
         let mut source = WebSocketSource::new("wss://test.com".to_string(), config);
-        
+
         let result = source.connect().await;
         assert!(result.is_ok());
         assert_eq!(source.state(), ConnectionState::Connected);
@@ -262,7 +262,7 @@ mod tests {
     async fn test_subscribe_before_connect() {
         let config = create_test_config();
         let mut source = WebSocketSource::new("wss://test.com".to_string(), config);
-        
+
         let result = source.subscribe(vec!["NIFTY".to_string()]).await;
         assert!(result.is_err());
     }
@@ -271,10 +271,10 @@ mod tests {
     async fn test_source_manager() {
         let config = create_test_config();
         let mut manager = SourceManager::new(config.clone());
-        
+
         let source = Box::new(WebSocketSource::new("wss://test.com".to_string(), config));
         manager.add_source(source);
-        
+
         assert_eq!(manager.sources.len(), 1);
     }
 }

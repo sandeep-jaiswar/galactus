@@ -24,13 +24,10 @@
 //!
 //! All computations are deterministic and reproducible across environments.
 
+use super::aggregation::{AggregationResult, SignalAggregator};
+use super::{IntentConfig, IntentError, IntentResult, IntentVector, SignalInput};
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
-use super::{
-    IntentVector, IntentResult, IntentError, IntentConfig,
-    SignalInput
-};
-use super::aggregation::{SignalAggregator, AggregationResult};
 
 /// Market regime classification
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -74,13 +71,15 @@ impl IntentEngine {
             config,
         }
     }
+}
 
-    /// Create a new engine with default configuration
-    pub fn default() -> Self {
+impl Default for IntentEngine {
+    fn default() -> Self {
         Self::new(IntentConfig::default())
     }
+}
 
-    /// Process signals to generate intent vector
+impl IntentEngine {
     ///
     /// # Arguments
     /// * `signals` - Vector of signal inputs
@@ -123,8 +122,14 @@ impl IntentEngine {
         // Create metadata
         let mut metadata = HashMap::new();
         metadata.insert("regime".to_string(), regime.to_string());
-        metadata.insert("signal_count".to_string(), aggregation_result.contributions.len().to_string());
-        metadata.insert("alternatives_generated".to_string(), alternatives.len().to_string());
+        metadata.insert(
+            "signal_count".to_string(),
+            aggregation_result.contributions.len().to_string(),
+        );
+        metadata.insert(
+            "alternatives_generated".to_string(),
+            alternatives.len().to_string(),
+        );
 
         // Calculate processing time
         let processing_time_ns = SystemTime::now()
@@ -150,21 +155,20 @@ impl IntentEngine {
         // In production, this would use more sophisticated analysis
         let avg_pressure: f64 = signals.iter().map(|s| s.value).sum::<f64>() / signals.len() as f64;
         let pressure_std: f64 = {
-            let variance = signals.iter()
+            let variance = signals
+                .iter()
                 .map(|s| (s.value - avg_pressure).powi(2))
-                .sum::<f64>() / signals.len() as f64;
+                .sum::<f64>()
+                / signals.len() as f64;
             variance.sqrt()
         };
 
         // High consensus signals
-        let consensus_signals: Vec<_> = signals.iter()
-            .filter(|s| s.confidence > 0.8)
-            .collect();
+        let consensus_signals: Vec<_> = signals.iter().filter(|s| s.confidence > 0.8).collect();
 
         if consensus_signals.len() >= 2 {
-            let consensus_avg = consensus_signals.iter()
-                .map(|s| s.value)
-                .sum::<f64>() / consensus_signals.len() as f64;
+            let consensus_avg = consensus_signals.iter().map(|s| s.value).sum::<f64>()
+                / consensus_signals.len() as f64;
 
             if consensus_avg > 0.3 {
                 return Ok(MarketRegime::Bull);
@@ -187,7 +191,11 @@ impl IntentEngine {
     }
 
     /// Adjust configuration based on detected market regime
-    fn adjust_config_for_regime(&self, base_config: &IntentConfig, regime: &MarketRegime) -> IntentConfig {
+    fn adjust_config_for_regime(
+        &self,
+        base_config: &IntentConfig,
+        regime: &MarketRegime,
+    ) -> IntentConfig {
         let mut config = base_config.clone();
 
         match regime {
@@ -220,14 +228,18 @@ impl IntentEngine {
     }
 
     /// Create intent vector from aggregation result
-    fn create_intent_vector(&self, aggregation: &AggregationResult, regime: &MarketRegime) -> IntentVector {
+    fn create_intent_vector(
+        &self,
+        aggregation: &AggregationResult,
+        regime: &MarketRegime,
+    ) -> IntentVector {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs() as i64;
 
         // Apply final confidence adjustments based on regime
-        let final_confidence = self.adjust_confidence_for_regime(aggregation.confidence, &regime);
+        let final_confidence = self.adjust_confidence_for_regime(aggregation.confidence, regime);
 
         IntentVector {
             pressure: aggregation.pressure,
@@ -254,7 +266,11 @@ impl IntentEngine {
     }
 
     /// Generate alternative intent interpretations
-    fn generate_alternatives(&self, primary: &IntentVector, aggregation: &AggregationResult) -> Result<Vec<IntentVector>, IntentError> {
+    fn generate_alternatives(
+        &self,
+        primary: &IntentVector,
+        aggregation: &AggregationResult,
+    ) -> Result<Vec<IntentVector>, IntentError> {
         let mut alternatives = Vec::new();
 
         // Alternative 1: Conservative interpretation (reduce pressure magnitude)
@@ -283,7 +299,9 @@ impl IntentEngine {
             };
 
             let equal_aggregator = SignalAggregator::new(equal_weight_config);
-            let signals: Vec<SignalInput> = aggregation.contributions.iter()
+            let signals: Vec<SignalInput> = aggregation
+                .contributions
+                .iter()
                 .map(|(name, contrib)| SignalInput {
                     name: name.clone(),
                     value: contrib.value,

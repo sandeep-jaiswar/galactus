@@ -2,8 +2,8 @@
 //!
 //! Analyzes failure patterns and triggers learning loops.
 
-use super::types::{FailureRecord, FailureCategory, FailurePattern, FailureTrigger};
 use super::recorder::FailureRecorder;
+use super::types::{FailureCategory, FailurePattern, FailureRecord, FailureTrigger};
 use std::collections::{HashMap, HashSet};
 
 /// Threshold for repeated failures before triggering action
@@ -14,7 +14,7 @@ const REPEATED_FAILURE_THRESHOLD: usize = 3;
 const PATTERN_TIME_WINDOW: u64 = 30 * 24 * 60 * 60;
 
 /// Failure analyzer that detects patterns and triggers learning loops
-/// 
+///
 /// This component analyzes recorded failures to identify patterns,
 /// repeated issues, and structural problems that require intervention.
 pub struct FailureAnalyzer {
@@ -50,17 +50,17 @@ impl FailureAnalyzer {
     }
 
     /// Detect patterns in recorded failures
-    /// 
+    ///
     /// Analyzes all failures to identify:
     /// - Repeated failures of the same category
     /// - Common affected components
     /// - Patterns that require intervention
     pub fn detect_patterns(&self) -> Vec<FailurePattern> {
         let mut patterns = Vec::new();
-        
+
         // Group failures by category
         let mut by_category: HashMap<String, Vec<&FailureRecord>> = HashMap::new();
-        
+
         for failure in self.recorder.get_all() {
             let key = failure.category.as_str().to_string();
             by_category.entry(key).or_default().push(failure);
@@ -73,10 +73,10 @@ impl FailureAnalyzer {
             }
 
             let category = failures[0].category.clone();
-            
+
             // Find common components
             let common_components = self.find_common_components(failures);
-            
+
             // Calculate time window
             let time_window = if failures.len() > 1 {
                 let timestamps: Vec<u64> = failures.iter().map(|f| f.timestamp).collect();
@@ -87,7 +87,7 @@ impl FailureAnalyzer {
 
             // Determine if action is required
             let requires_action = failures.len() >= REPEATED_FAILURE_THRESHOLD;
-            
+
             // Recommend trigger action
             let recommended_trigger = if requires_action {
                 Some(self.recommend_trigger(&category, failures.len()))
@@ -109,11 +109,11 @@ impl FailureAnalyzer {
     }
 
     /// Detect repeated failures for a specific component
-    /// 
+    ///
     /// Returns true if the component has failed repeatedly within the time window
     pub fn has_repeated_failures(&self, component: &str) -> bool {
         let failures = self.recorder.get_by_component(component);
-        
+
         if failures.len() < REPEATED_FAILURE_THRESHOLD {
             return false;
         }
@@ -123,7 +123,7 @@ impl FailureAnalyzer {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
-        
+
         let recent_failures: Vec<_> = failures
             .iter()
             .filter(|f| now - f.timestamp <= PATTERN_TIME_WINDOW)
@@ -135,24 +135,24 @@ impl FailureAnalyzer {
     /// Check if a component should be deprecated due to repeated failures
     pub fn should_deprecate_component(&self, component: &str) -> bool {
         let failures = self.recorder.get_by_component(component);
-        
+
         // Deprecate if there are many unaddressed failures
         let unaddressed = failures.iter().filter(|f| !f.is_addressed()).count();
-        
+
         unaddressed >= REPEATED_FAILURE_THRESHOLD * 2
     }
 
     /// Analyze failures for a specific time period
     pub fn analyze_period(&self, start: u64, end: u64) -> PeriodAnalysis {
         let failures = self.recorder.get_by_time_range(start, end);
-        
+
         let mut category_counts: HashMap<String, usize> = HashMap::new();
         let mut affected_components: HashSet<String> = HashSet::new();
-        
+
         for failure in failures.iter() {
             let key = failure.category.as_str().to_string();
             *category_counts.entry(key).or_insert(0) += 1;
-            
+
             for component in &failure.affected_components {
                 affected_components.insert(component.clone());
             }
@@ -171,16 +171,16 @@ impl FailureAnalyzer {
     }
 
     /// Generate a learning report from failures
-    /// 
+    ///
     /// This creates structured output that can feed into research hypotheses,
     /// signal refinement, and documentation updates.
     pub fn generate_learning_report(&self) -> LearningReport {
         let patterns = self.detect_patterns();
         let all_failures = self.recorder.get_all();
-        
+
         let mut components_needing_attention = Vec::new();
         let mut deprecation_candidates = Vec::new();
-        
+
         // Collect unique components
         let mut all_components = HashSet::new();
         for failure in all_failures.iter() {
@@ -215,7 +215,7 @@ impl FailureAnalyzer {
 
         // Count component occurrences
         let mut component_counts: HashMap<String, usize> = HashMap::new();
-        
+
         for failure in failures {
             for component in &failure.affected_components {
                 *component_counts.entry(component.clone()).or_insert(0) += 1;
@@ -223,8 +223,8 @@ impl FailureAnalyzer {
         }
 
         // Return components that appear in more than half of failures
-        let threshold = (failures.len() + 1) / 2;
-        
+        let threshold = failures.len().div_ceil(2);
+
         component_counts
             .into_iter()
             .filter(|(_, count)| *count >= threshold)
@@ -242,9 +242,7 @@ impl FailureAnalyzer {
                     FailureTrigger::ModelRevision
                 }
             }
-            FailureCategory::ModelAssumptionFailure => {
-                FailureTrigger::ModelRevision
-            }
+            FailureCategory::ModelAssumptionFailure => FailureTrigger::ModelRevision,
             FailureCategory::RegimeMisclassification => {
                 if count >= REPEATED_FAILURE_THRESHOLD * 3 {
                     FailureTrigger::ArchitecturalReview
@@ -256,9 +254,7 @@ impl FailureAnalyzer {
                 // Data failures shouldn't trigger model changes
                 FailureTrigger::ArchitecturalReview
             }
-            FailureCategory::OverconfidenceFailure => {
-                FailureTrigger::ModelRevision
-            }
+            FailureCategory::OverconfidenceFailure => FailureTrigger::ModelRevision,
         }
     }
 }
@@ -280,7 +276,7 @@ pub struct PeriodAnalysis {
 }
 
 /// Learning report generated from failure analysis
-/// 
+///
 /// This report feeds into the learning loop, informing:
 /// - Research hypotheses
 /// - Signal refinement
@@ -290,16 +286,16 @@ pub struct PeriodAnalysis {
 pub struct LearningReport {
     /// Detected failure patterns
     pub patterns: Vec<FailurePattern>,
-    
+
     /// Components that have repeated failures but not enough to deprecate
     pub components_needing_attention: Vec<String>,
-    
+
     /// Components that should be deprecated due to persistent failures
     pub deprecation_candidates: Vec<String>,
-    
+
     /// Total number of failures recorded
     pub total_failures: usize,
-    
+
     /// Number of failures without corrective actions
     pub unaddressed_failures: usize,
 }
@@ -311,7 +307,7 @@ mod tests {
     #[test]
     fn test_pattern_detection() {
         let mut analyzer = FailureAnalyzer::new();
-        
+
         // Record multiple failures of the same category
         for i in 0..5 {
             let failure = FailureRecord::new(
@@ -322,9 +318,9 @@ mod tests {
             );
             analyzer.record_failure(failure);
         }
-        
+
         let patterns = analyzer.detect_patterns();
-        
+
         assert_eq!(patterns.len(), 1);
         assert_eq!(patterns[0].count, 5);
         assert_eq!(patterns[0].category, FailureCategory::DataFailure);
@@ -334,7 +330,7 @@ mod tests {
     #[test]
     fn test_repeated_failures_detection() {
         let mut analyzer = FailureAnalyzer::new();
-        
+
         // Record failures for a specific component
         for i in 0..4 {
             let failure = FailureRecord::new(
@@ -345,7 +341,7 @@ mod tests {
             );
             analyzer.record_failure(failure);
         }
-        
+
         assert!(analyzer.has_repeated_failures("signal_x"));
         assert!(!analyzer.has_repeated_failures("signal_y"));
     }
@@ -353,7 +349,7 @@ mod tests {
     #[test]
     fn test_deprecation_recommendation() {
         let mut analyzer = FailureAnalyzer::new();
-        
+
         // Record many unaddressed failures
         for i in 0..10 {
             let failure = FailureRecord::new(
@@ -364,14 +360,14 @@ mod tests {
             );
             analyzer.record_failure(failure);
         }
-        
+
         assert!(analyzer.should_deprecate_component("bad_signal"));
     }
 
     #[test]
     fn test_learning_report_generation() {
         let mut analyzer = FailureAnalyzer::new();
-        
+
         // Record various failures
         for i in 0..4 {
             let failure = FailureRecord::new(
@@ -382,9 +378,9 @@ mod tests {
             );
             analyzer.record_failure(failure);
         }
-        
+
         let report = analyzer.generate_learning_report();
-        
+
         assert_eq!(report.total_failures, 4);
         assert_eq!(report.unaddressed_failures, 4);
         assert!(!report.patterns.is_empty());
@@ -393,7 +389,7 @@ mod tests {
     #[test]
     fn test_common_components_detection() {
         let mut analyzer = FailureAnalyzer::new();
-        
+
         // Record failures with common components
         for i in 0..3 {
             let failure = FailureRecord::new(
@@ -404,11 +400,13 @@ mod tests {
             );
             analyzer.record_failure(failure);
         }
-        
+
         let patterns = analyzer.detect_patterns();
         assert!(!patterns.is_empty());
-        
+
         let pattern = &patterns[0];
-        assert!(pattern.common_components.contains(&"regime_detector".to_string()));
+        assert!(pattern
+            .common_components
+            .contains(&"regime_detector".to_string()));
     }
 }

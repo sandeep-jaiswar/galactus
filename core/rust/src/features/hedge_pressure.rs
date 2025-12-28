@@ -25,8 +25,8 @@
 //! - ✅ Walk-forward validation passing
 //! - ✅ Cross-regime robustness verified
 
+use crate::features::registry::{Feature, FeatureError, FeatureInputs, FeatureResult};
 use std::collections::HashMap;
-use crate::features::registry::{Feature, FeatureResult, FeatureError, FeatureInputs};
 
 /// Configuration for hedge pressure computation
 #[derive(Debug, Clone)]
@@ -106,8 +106,15 @@ impl HedgePressureFeature {
     pub fn with_config(config: HedgePressureConfig) -> Self {
         Self { config }
     }
+}
 
-    /// Compute hedge pressure from option chain data
+impl Default for HedgePressureFeature {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl HedgePressureFeature {
     ///
     /// # Arguments
     /// * `calls_oi` - Call open interest by strike price
@@ -155,7 +162,10 @@ impl HedgePressureFeature {
                 metadata: {
                     let mut meta = HashMap::new();
                     meta.insert("error".to_string(), "insufficient_strikes".to_string());
-                    meta.insert("min_required".to_string(), self.config.min_strikes.to_string());
+                    meta.insert(
+                        "min_required".to_string(),
+                        self.config.min_strikes.to_string(),
+                    );
                     meta.insert("actual".to_string(), all_strikes.len().to_string());
                     meta
                 },
@@ -174,7 +184,10 @@ impl HedgePressureFeature {
                 metadata: {
                     let mut meta = HashMap::new();
                     meta.insert("error".to_string(), "insufficient_liquidity".to_string());
-                    meta.insert("min_required".to_string(), self.config.min_total_oi.to_string());
+                    meta.insert(
+                        "min_required".to_string(),
+                        self.config.min_total_oi.to_string(),
+                    );
                     meta.insert("actual".to_string(), total_oi.to_string());
                     meta
                 },
@@ -194,8 +207,16 @@ impl HedgePressureFeature {
         let mut weighted_put_oi = 0.0;
 
         for &strike in &all_strikes {
-            let call_qty = calls_oi.iter().find(|(s, _)| *s == strike).map(|(_, oi)| *oi).unwrap_or(0) as f64;
-            let put_qty = puts_oi.iter().find(|(s, _)| *s == strike).map(|(_, oi)| *oi).unwrap_or(0) as f64;
+            let call_qty = calls_oi
+                .iter()
+                .find(|(s, _)| *s == strike)
+                .map(|(_, oi)| *oi)
+                .unwrap_or(0) as f64;
+            let put_qty = puts_oi
+                .iter()
+                .find(|(s, _)| *s == strike)
+                .map(|(_, oi)| *oi)
+                .unwrap_or(0) as f64;
 
             // Compute normalized distance from spot
             let distance = (strike - spot_price).abs() / spot_price;
@@ -237,7 +258,7 @@ impl HedgePressureFeature {
         }
 
         // Clamp to [-1, 1] range
-        pressure = pressure.max(-1.0).min(1.0);
+        pressure = pressure.clamp(-1.0, 1.0);
 
         // Compute confidence based on data quality and signal strength
         let mut confidence = 1.0;
@@ -262,10 +283,16 @@ impl HedgePressureFeature {
             confidence,
             metadata: {
                 let mut meta = HashMap::new();
-                meta.insert("weighted_imbalance".to_string(), format!("{:.6}", weighted_imbalance));
+                meta.insert(
+                    "weighted_imbalance".to_string(),
+                    format!("{:.6}", weighted_imbalance),
+                );
                 meta.insert("spot_price".to_string(), format!("{:.2}", spot_price));
                 meta.insert("total_oi".to_string(), total_oi.to_string());
-                meta.insert("computation_method".to_string(), "hedge_pressure_v1".to_string());
+                meta.insert(
+                    "computation_method".to_string(),
+                    "hedge_pressure_v1".to_string(),
+                );
                 meta
             },
         })
@@ -287,23 +314,28 @@ impl Feature for HedgePressureFeature {
 
     fn compute(&self, inputs: &FeatureInputs) -> Result<FeatureResult, FeatureError> {
         // Extract option chain data
-        let option_data = inputs.options_data.get("default")
-            .ok_or_else(|| FeatureError::InvalidInput(
-                "No option chain data available".to_string(),
-            ))?;
+        let option_data = inputs.options_data.get("default").ok_or_else(|| {
+            FeatureError::InvalidInput("No option chain data available".to_string())
+        })?;
 
         // Extract spot price from market data or context
-        let _spot_price = inputs.context.get("spot_price")
+        let _spot_price = inputs
+            .context
+            .get("spot_price")
             .and_then(|s| s.parse::<f64>().ok())
             .or_else(|| {
                 // Try to get from market data
-                inputs.market_data.values()
+                inputs
+                    .market_data
+                    .values()
                     .find(|d| d.symbol == "SPOT")
                     .map(|d| d.price)
             })
-            .ok_or_else(|| FeatureError::InvalidInput(
-                "No spot price available in context or market data".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                FeatureError::InvalidInput(
+                    "No spot price available in context or market data".to_string(),
+                )
+            })?;
 
         // Convert option chain data to the format expected by compute_pressure
         let mut calls_oi = Vec::new();
@@ -316,9 +348,9 @@ impl Feature for HedgePressureFeature {
 
         // For now, return an error indicating we need proper call/put separation
         // This will be fixed when the data structures are updated
-        return Err(FeatureError::InvalidInput(
+        Err(FeatureError::InvalidInput(
             "Option chain data structure needs call/put OI separation".to_string(),
-        ));
+        ))
 
         // TODO: Uncomment when data structure is updated
         /*
@@ -350,7 +382,9 @@ mod tests {
 
         let spot_price = 100.0;
 
-        let result = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         // Should show positive pressure (call-heavy)
         assert!(result.pressure > 0.0);
@@ -369,12 +403,17 @@ mod tests {
         let puts_oi = [(100.0, 100)];
         let spot_price = 100.0;
 
-        let result = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);
         assert_eq!(result.strike_count, 1);
-        assert_eq!(result.metadata.get("error").unwrap(), "insufficient_strikes");
+        assert_eq!(
+            result.metadata.get("error").unwrap(),
+            "insufficient_strikes"
+        );
     }
 
     #[test]
@@ -385,11 +424,16 @@ mod tests {
         let puts_oi = [(95.0, 10), (100.0, 10), (105.0, 10)];
         let spot_price = 100.0;
 
-        let result = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         assert_eq!(result.pressure, 0.0);
         assert_eq!(result.confidence, 0.0);
-        assert_eq!(result.metadata.get("error").unwrap(), "insufficient_liquidity");
+        assert_eq!(
+            result.metadata.get("error").unwrap(),
+            "insufficient_liquidity"
+        );
     }
 
     #[test]
@@ -400,7 +444,9 @@ mod tests {
         let puts_oi = [(95.0, 500), (100.0, 500)];
         let spot_price = 100.0;
 
-        let result = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         // Should be close to zero (balanced)
         assert!(result.pressure.abs() < 0.1);
@@ -417,7 +463,9 @@ mod tests {
         let puts_oi = [(95.0, 100), (100.0, 100)];
         let spot_price = 100.0;
 
-        let result = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         // Should show strong positive pressure
         assert!(result.pressure > 0.5);
@@ -445,8 +493,12 @@ mod tests {
         let puts_oi = [(95.0, 500), (100.0, 300)];
         let spot_price = 100.0;
 
-        let result1 = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
-        let result2 = feature.compute_pressure(&calls_oi, &puts_oi, spot_price).unwrap();
+        let result1 = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
+        let result2 = feature
+            .compute_pressure(&calls_oi, &puts_oi, spot_price)
+            .unwrap();
 
         assert_eq!(result1.pressure, result2.pressure);
         assert_eq!(result1.confidence, result2.confidence);

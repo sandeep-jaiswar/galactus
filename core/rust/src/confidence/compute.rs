@@ -45,7 +45,9 @@ pub fn compute_data_quality_confidence(input: &DataQualityInput) -> f64 {
     };
 
     // Return minimum to ensure all dimensions are acceptable
-    completeness_score.min(timeliness_score).min(consistency_score)
+    completeness_score
+        .min(timeliness_score)
+        .min(consistency_score)
 }
 
 /// Input data for computing structural alignment confidence
@@ -112,10 +114,7 @@ pub fn compute_regime_confidence(input: &RegimeConsistencyInput) -> f64 {
     let regime_clarity = if input.regime_probabilities.len() >= 2 {
         let mut sorted = input.regime_probabilities.clone();
         // Sort in descending order, handling NaN by treating as 0.0
-        sorted.sort_by(|a, b| {
-            b.partial_cmp(a)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        sorted.sort_by(|a, b| b.partial_cmp(a).unwrap_or(std::cmp::Ordering::Equal));
         sorted[0] - sorted[1]
     } else if input.regime_probabilities.len() == 1 {
         input.regime_probabilities[0]
@@ -194,7 +193,7 @@ pub fn compute_overall_confidence(components: &ConfidenceComponents) -> f64 {
         * components.structural_alignment
         * components.regime_consistency
         * components.signal_agreement;
-    
+
     product.powf(1.0 / CONFIDENCE_COMPONENTS as f64)
 }
 
@@ -237,7 +236,7 @@ mod tests {
             contradictions_detected: 0,
             total_cross_checks: 5,
         };
-        
+
         let confidence = compute_data_quality_confidence(&input);
         assert!((confidence - 1.0).abs() < 0.001);
     }
@@ -252,7 +251,7 @@ mod tests {
             contradictions_detected: 0,
             total_cross_checks: 5,
         };
-        
+
         let confidence = compute_data_quality_confidence(&input);
         assert!(confidence < 0.01); // exp(-300/60) ≈ 0.0067
     }
@@ -266,7 +265,7 @@ mod tests {
             total_signals: 5,
             contradictory_signals: 0,
         };
-        
+
         let confidence = compute_structural_confidence(&input);
         assert!((confidence - 1.0).abs() < 0.001);
     }
@@ -280,7 +279,7 @@ mod tests {
             total_signals: 5,
             contradictory_signals: 1,
         };
-        
+
         let confidence = compute_structural_confidence(&input);
         // (2/3) * (4/5) * (1 - 1/5) = 0.667 * 0.8 * 0.8 = 0.427
         assert!((confidence - 0.427).abs() < 0.01);
@@ -295,7 +294,7 @@ mod tests {
             consistent_signals: 9,
             total_signals_in_regime: 10,
         };
-        
+
         let confidence = compute_regime_confidence(&input);
         // (0.8 - 0.1) * (1 - 1/10) * (9/10) = 0.7 * 0.9 * 0.9 = 0.567
         assert!((confidence - 0.567).abs() < 0.01);
@@ -310,7 +309,7 @@ mod tests {
             total_pressure: 100.0,
             aggregation_method_documented: true,
         };
-        
+
         let confidence = compute_signal_confidence(&input);
         assert!((confidence - 1.0).abs() < 0.001);
     }
@@ -324,7 +323,7 @@ mod tests {
             total_pressure: 100.0,
             aggregation_method_documented: true,
         };
-        
+
         let confidence = compute_signal_confidence(&input);
         // sqrt(2/3) * (1 - 0.25) * 1.0 = 0.816 * 0.75 = 0.612
         assert!((confidence - 0.612).abs() < 0.01);
@@ -338,7 +337,7 @@ mod tests {
             regime_consistency: 0.7,
             signal_agreement: 0.6,
         };
-        
+
         let confidence = compute_overall_confidence(&components);
         // (0.9 * 0.8 * 0.7 * 0.6)^0.25 = 0.3024^0.25 = 0.742
         assert!((confidence - 0.742).abs() < 0.01);
@@ -352,7 +351,7 @@ mod tests {
             regime_consistency: 0.9,
             signal_agreement: 0.9,
         };
-        
+
         let confidence = compute_overall_confidence(&components);
         // (0.1 * 0.9 * 0.9 * 0.9)^0.25 = 0.0729^0.25 = 0.513
         assert!(confidence < 0.6); // Significantly degraded

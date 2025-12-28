@@ -24,16 +24,16 @@
 //! - Type safety (compile-time verification)
 //! - Business logic correctness (comprehensive testing)
 
-pub mod engine;
 pub mod aggregation;
+pub mod engine;
 pub mod safe_engine;
 
 #[cfg(feature = "examples")]
 pub mod examples;
 
 // Re-export main types for convenience
+pub use aggregation::{AggregationResult, SignalAggregator};
 pub use engine::IntentEngine;
-pub use aggregation::{SignalAggregator, AggregationResult};
 pub use safe_engine::SafeIntentEngine;
 
 // Core types for intent representation
@@ -116,10 +116,14 @@ pub enum IntentError {
 impl std::fmt::Display for IntentError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            IntentError::NoSignalsAvailable => write!(f, "No signals available for intent computation"),
+            IntentError::NoSignalsAvailable => {
+                write!(f, "No signals available for intent computation")
+            }
             IntentError::InvalidSignalData(msg) => write!(f, "Invalid signal data: {}", msg),
             IntentError::AggregationFailure(msg) => write!(f, "Aggregation failure: {}", msg),
-            IntentError::ConfidenceFailure(msg) => write!(f, "Confidence calculation failure: {}", msg),
+            IntentError::ConfidenceFailure(msg) => {
+                write!(f, "Confidence calculation failure: {}", msg)
+            }
             IntentError::RegimeFailure(msg) => write!(f, "Regime detection failure: {}", msg),
             IntentError::KillSwitchTriggered(msg) => write!(f, "Kill switch triggered: {}", msg),
         }

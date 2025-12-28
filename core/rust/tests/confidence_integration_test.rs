@@ -154,32 +154,48 @@ fn test_geometric_mean_prevents_false_confidence() {
     );
 
     // Verify that despite having 3 high components, the low structural confidence degrades overall
-    assert!(confidence.components.data_quality > 0.9, 
-        "Data quality should be high: {}", confidence.components.data_quality);
-    assert!(confidence.components.signal_agreement > 0.9,
-        "Signal agreement should be high: {}", confidence.components.signal_agreement);
-    assert!(confidence.components.structural_alignment < 0.2,
-        "Structural alignment should be low: {}", confidence.components.structural_alignment);
-    
+    assert!(
+        confidence.components.data_quality > 0.9,
+        "Data quality should be high: {}",
+        confidence.components.data_quality
+    );
+    assert!(
+        confidence.components.signal_agreement > 0.9,
+        "Signal agreement should be high: {}",
+        confidence.components.signal_agreement
+    );
+    assert!(
+        confidence.components.structural_alignment < 0.2,
+        "Structural alignment should be low: {}",
+        confidence.components.structural_alignment
+    );
+
     // The geometric mean should prevent averaging from hiding the weak component
     // With one component < 0.2 and others > 0.9, geometric mean should be < 0.6
-    assert!(confidence.score < 0.6,
-        "Overall confidence should be significantly degraded by weak structural component: {}", confidence.score);
-    
+    assert!(
+        confidence.score < 0.6,
+        "Overall confidence should be significantly degraded by weak structural component: {}",
+        confidence.score
+    );
+
     // Verify geometric mean is working (if we used arithmetic mean, we'd get ~0.625)
-    let arithmetic_mean = (confidence.components.data_quality 
-        + confidence.components.structural_alignment 
-        + confidence.components.regime_consistency 
-        + confidence.components.signal_agreement) / 4.0;
-    assert!(confidence.score < arithmetic_mean,
-        "Geometric mean ({}) should be lower than arithmetic mean ({})", 
-        confidence.score, arithmetic_mean);
+    let arithmetic_mean = (confidence.components.data_quality
+        + confidence.components.structural_alignment
+        + confidence.components.regime_consistency
+        + confidence.components.signal_agreement)
+        / 4.0;
+    assert!(
+        confidence.score < arithmetic_mean,
+        "Geometric mean ({}) should be lower than arithmetic mean ({})",
+        confidence.score,
+        arithmetic_mean
+    );
 }
 
 #[test]
 fn test_silence_decision_consistency() {
     // Test that silence decisions are consistent and correct
-    
+
     // Scenario 1: Good confidence and stability -> Proceed
     let data_input1 = DataQualityInput {
         fields_present: 10,
@@ -234,7 +250,11 @@ fn test_silence_decision_consistency() {
         total_transitions: 2,
     };
 
-    let stability1 = assess_stability(&temporal_input1, &sensitivity_input1, &regime_stability_input1);
+    let stability1 = assess_stability(
+        &temporal_input1,
+        &sensitivity_input1,
+        &regime_stability_input1,
+    );
     let confidence1 = assess_confidence(
         &data_input1,
         &structural_input1,
@@ -252,11 +272,15 @@ fn test_silence_decision_consistency() {
         fields_required: 10,
         delay_seconds: 0.0,
         acceptable_delay_threshold: 60.0,
-        contradictions_detected: 4,  // High contradictions
+        contradictions_detected: 4, // High contradictions
         total_cross_checks: 5,
     };
 
-    let stability2 = assess_stability(&temporal_input1, &sensitivity_input1, &regime_stability_input1);
+    let stability2 = assess_stability(
+        &temporal_input1,
+        &sensitivity_input1,
+        &regime_stability_input1,
+    );
     let confidence2 = assess_confidence(
         &data_input2,
         &structural_input1,
@@ -298,7 +322,7 @@ fn test_example_scenarios_from_documentation() {
     let data_quality3 = compute_data_quality_confidence(&DataQualityInput {
         fields_present: 10,
         fields_required: 10,
-        delay_seconds: 300.0,  // 5 minutes delay
+        delay_seconds: 300.0, // 5 minutes delay
         acceptable_delay_threshold: 60.0,
         contradictions_detected: 0,
         total_cross_checks: 5,
