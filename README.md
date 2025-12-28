@@ -48,6 +48,41 @@ See the complete list in **[`docs/00-vision-and-non-goals/explicit-non-goals.md`
 
 ---
 
+## Quick Start (Docker)
+
+```bash
+# Clone and start production environment
+git clone <repository-url>
+cd galactus
+./start_production.sh
+```
+
+This will:
+- Build all Docker containers
+- Start the complete Galactus stack
+- Set up monitoring and dashboards
+- Make APIs available for inference
+
+**Service URLs:**
+- **API**: http://localhost:8080
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: http://localhost:9090
+
+---
+
+## Architecture Overview
+
+Galactus runs as a containerized microservices architecture:
+
+- **galactus-core**: Rust inference engine with HTTP/gRPC APIs
+- **prometheus**: Metrics collection and alerting
+- **grafana**: Monitoring dashboards and visualization
+- **galactus-research**: Python research environment (optional)
+
+All services are orchestrated with Docker Compose and include health checks, logging, and monitoring.
+
+---
+
 ## Intended Users
 
 Galactus is designed for:

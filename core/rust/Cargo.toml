@@ -37,12 +37,14 @@ tempfile = "3.8"  # Temporary files for testing persistence
 name = "galactus_core"
 path = "src/lib.rs"
 
+[[bin]]
+name = "galactus-http-server"
+path = "src/bin/galactus-http-server.rs"
+
 # Production build profile - optimize for correctness, then speed
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = 'abort'
+[features]
+default = []
+examples = []
 
 # Note: All dependencies require justification in comments
 # See: docs/02-system-architecture/rust-python-boundary-enforcement.md

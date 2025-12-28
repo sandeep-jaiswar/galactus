@@ -8,7 +8,7 @@ use chrono::{DateTime, Utc};
 use std::collections::VecDeque;
 use std::fs::{self, File, OpenOptions};
 use std::io::{BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 /// Storage backend trait
@@ -137,7 +137,7 @@ impl StorageBackend for FileStorageBackend {
         Ok(())
     }
 
-    fn cleanup(&mut self, before: DateTime<Utc>) -> Result<usize, PersistenceError> {
+    fn cleanup(&mut self, _before: DateTime<Utc>) -> Result<usize, PersistenceError> {
         let mut deleted = 0;
 
         // Read directory and delete old files

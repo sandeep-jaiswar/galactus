@@ -241,8 +241,8 @@ reviews:
 # =============================================================================
 promotion_status:
   overall_status: "approved"
-  rust_implementation_started: false
-  rust_implementation_completed: false
+  rust_implementation_started: true
+  rust_implementation_completed: true
   tests_passing: true
   documentation_complete: true
   deployment_ready: false

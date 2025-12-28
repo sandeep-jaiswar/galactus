@@ -17,10 +17,8 @@ pub mod streaming;
 
 // Re-export the original ingestion types
 mod validation;
-pub use validation::*;
 
 use std::collections::HashMap;
-use chrono::{DateTime, Utc};
 use crate::data::*;
 
 /// Data ingestion result
@@ -37,6 +35,7 @@ pub struct DataValidator {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct SourceMetadata {
     name: String,
     data_types: Vec<EventType>,
@@ -44,10 +43,11 @@ struct SourceMetadata {
 }
 
 #[derive(Debug, Clone)]
-struct QualityThresholds {
-    min_completeness: f64,
-    max_delay_seconds: f64,
-    max_contradictions: usize,
+pub struct QualityThresholds {
+    pub min_completeness: f64,
+    #[allow(dead_code)]
+    pub max_delay_seconds: f64,
+    pub max_contradictions: usize,
 }
 
 impl Default for QualityThresholds {
@@ -207,8 +207,9 @@ impl QualityAssessor {
     /// Assess overall data quality
     pub fn assess_quality(&self, event: &CanonicalEvent) -> DataQuality {
         let mut fields_present = 0;
+        #[allow(unused_assignments)]
         let mut fields_required = 0;
-        let mut contradictions = 0;
+        let contradictions = 0;
 
         // Count required vs present fields based on payload type
         match &event.payload {

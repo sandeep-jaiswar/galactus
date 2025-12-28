@@ -160,7 +160,7 @@ impl Default for IntentConfig {
 }
 
 /// Signal input for intent processing
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SignalInput {
     /// Signal name (must match promoted signal names)
     pub name: String,

@@ -40,7 +40,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::sync::mpsc;
 use tonic::{Request, Response, Status};
 use crate::intent::{IntentEngine, SignalInput};
 use crate::features::FeatureRegistry;
@@ -385,15 +384,15 @@ impl IntentServiceGrpc for IntentService {
 
         // Convert from proto
         let intent_request = IntentRequest::from_proto(proto_request)
-            .map_err(|e| Status::invalid_argument(e.to_string()))?;
+            .map_err(|e: crate::api::ApiError| Status::invalid_argument(e.to_string()))?;
 
         // Process request
         let intent_response = self.process_intent_request(intent_request).await
-            .map_err(|e| Status::internal(e.to_string()))?;
+            .map_err(|e: crate::api::ApiError| Status::internal(e.to_string()))?;
 
         // Convert to proto
         let proto_response = intent_response.to_proto()
-            .map_err(|e| Status::internal(e.to_string()))?;
+            .map_err(|e: crate::api::ApiError| Status::internal(e.to_string()))?;
 
         Ok(Response::new(proto_response))
     }
@@ -409,7 +408,7 @@ impl IntentServiceGrpc for IntentService {
             .map_err(|e| Status::invalid_argument(e.to_string()))?;
 
         // Process batch
-        let batch_response = self.process_batch_request(batch_request).await
+        let _batch_response = self.process_batch_request(batch_request).await
             .map_err(|e| Status::internal(e.to_string()))?;
 
         // Convert to proto (would need implementation)
@@ -438,31 +437,39 @@ impl IntentServiceGrpc for IntentService {
 mod tests {
     use super::*;
     use crate::intent::IntentEngine;
+    use crate::features::create_promoted_feature_registry;
 
     #[tokio::test]
     async fn test_intent_service_creation() {
+        let registry = Arc::new(create_promoted_feature_registry().unwrap());
         let engine = Arc::new(IntentEngine::default());
         let config = ApiConfig::default();
-        let service = IntentService::new(engine, config);
+        let service = IntentService::new(registry, engine, config);
 
         assert_eq!(service.request_count(), 0);
     }
 
     #[test]
     fn test_request_validation() {
+        let registry = Arc::new(create_promoted_feature_registry().unwrap());
         let engine = Arc::new(IntentEngine::default());
         let config = ApiConfig::default();
-        let service = IntentService::new(engine, config);
+        let service = IntentService::new(registry, engine, config);
 
-        // Valid request
+        // Valid request with market data
+        let mut market_data = HashMap::new();
+        market_data.insert("NIFTY".to_string(), crate::features::MarketDataPoint {
+            symbol: "NIFTY".to_string(),
+            price: 18000.0,
+            volume: 1000000,
+            timestamp: 1234567890,
+            metadata: HashMap::new(),
+        });
         let valid_request = IntentRequest {
-            signals: vec![SignalInput {
-                name: "test".to_string(),
-                value: 0.5,
-                confidence: 0.8,
-                timestamp: 1234567890,
-                metadata: HashMap::new(),
-            }],
+            market_data,
+            options_data: HashMap::new(),
+            futures_data: HashMap::new(),
+            context: HashMap::new(),
             metadata: HashMap::new(),
             client_id: "test_client".to_string(),
             timestamp: 1234567890,
@@ -470,9 +477,12 @@ mod tests {
 
         assert!(service.validate_intent_request(&valid_request).is_ok());
 
-        // Invalid request - empty signals
+        // Invalid request - empty data
         let invalid_request = IntentRequest {
-            signals: vec![],
+            market_data: HashMap::new(),
+            options_data: HashMap::new(),
+            futures_data: HashMap::new(),
+            context: HashMap::new(),
             metadata: HashMap::new(),
             client_id: "test_client".to_string(),
             timestamp: 1234567890,

@@ -48,9 +48,9 @@ pub use metrics::MetricsCollector;
 
 // Core types for API communication
 use std::collections::HashMap;
-use serde::{Deserialize, Serialize};
-use crate::intent::{IntentResult, SignalInput};
-use crate::features::{FeatureInputs, MarketDataPoint, OptionChain, FuturesData};
+use serde::Serialize;
+use crate::intent::IntentResult;
+use crate::features::{MarketDataPoint, OptionChain, FuturesData};
 
 /// Request for intent computation
 #[derive(Debug, Clone)]
@@ -290,7 +290,10 @@ mod tests {
     #[test]
     fn test_intent_request_creation() {
         let request = IntentRequest {
-            signals: vec![],
+            market_data: HashMap::new(),
+            options_data: HashMap::new(),
+            futures_data: HashMap::new(),
+            context: HashMap::new(),
             metadata: HashMap::new(),
             client_id: "test_client".to_string(),
             timestamp: 1234567890,

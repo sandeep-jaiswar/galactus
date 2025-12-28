@@ -609,6 +609,7 @@ impl IntentRequestJson {
 }
 
 impl SignalInputJson {
+    #[allow(dead_code)]
     fn to_internal(self) -> Result<SignalInput, ApiError> {
         Ok(SignalInput {
             name: self.name,
@@ -764,6 +765,7 @@ impl BatchSummaryJson {
 
 /// Warp rejection for API errors
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ApiErrorRejection(ApiError);
 
 impl warp::reject::Reject for ApiErrorRejection {}
@@ -777,12 +779,14 @@ fn with_service(service: IntentApi) -> impl Filter<Extract = (IntentApi,), Error
 mod tests {
     use super::*;
     use warp::test::request;
+    use crate::features::create_promoted_feature_registry;
 
     #[tokio::test]
     async fn test_health_endpoint() {
+        let registry = Arc::new(create_promoted_feature_registry().unwrap());
         let engine = Arc::new(IntentEngine::default());
         let config = ApiConfig::default();
-        let api = IntentApi::new(engine, config);
+        let api = IntentApi::new(registry, engine, config);
 
         let filter = api.routes();
         let response = request().method("GET").path("/api/v1/health").reply(&filter).await;
@@ -793,19 +797,16 @@ mod tests {
     #[test]
     fn test_json_conversion() {
         let json_request = IntentRequestJson {
-            signals: vec![SignalInputJson {
-                name: "test".to_string(),
-                value: 0.5,
-                confidence: 0.8,
-                timestamp: 1234567890,
-                metadata: HashMap::new(),
-            }],
+            market_data: HashMap::new(),
+            options_data: HashMap::new(),
+            futures_data: HashMap::new(),
+            context: HashMap::new(),
             client_id: "test_client".to_string(),
             metadata: HashMap::new(),
         };
 
         let internal = json_request.to_internal().unwrap();
-        assert_eq!(internal.signals.len(), 1);
+        assert_eq!(internal.market_data.len(), 0);
         assert_eq!(internal.client_id, "test_client");
     }
 }

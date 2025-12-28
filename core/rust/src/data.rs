@@ -8,7 +8,6 @@
 // - Schema versioning
 // - Auditability and replayability
 
-use std::collections::HashMap;
 use std::fmt;
 use chrono::{DateTime, Utc};
 
