@@ -58,7 +58,7 @@ impl Default for SignalAggregator {
 }
 
 impl SignalAggregator {
-    ///
+    /// Aggregate multiple signals into a unified pressure reading
     /// # Arguments
     /// * `signals` - Vector of signal inputs to aggregate
     ///

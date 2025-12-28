@@ -223,7 +223,7 @@ impl FailureAnalyzer {
         }
 
         // Return components that appear in more than half of failures
-        let threshold = failures.len().div_ceil(2);
+        let threshold = (failures.len() + 1) / 2;
 
         component_counts
             .into_iter()
