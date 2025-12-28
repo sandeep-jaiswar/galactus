@@ -190,21 +190,12 @@ mod tests {
     #[test]
     fn test_env_override() {
         clear_env_vars();
-        // Use a unique env var name to avoid conflicts with parallel tests
-        env::set_var("GALACTUS_TEST_BATCH_SIZE", "200");
-        // Verify the env var is set
-        assert_eq!(env::var("GALACTUS_TEST_BATCH_SIZE").unwrap(), "200");
-
-        // Create a config with default values
-        let mut config = crate::config::types::GalactusConfig::default();
-
-        // Manually apply the override (simulating what load() does)
-        if let Ok(val) = env::var("GALACTUS_TEST_BATCH_SIZE") {
-            if let Ok(batch_size) = val.parse::<usize>() {
-                config.data_ingestion.batch_size = batch_size;
-            }
-        }
-
+        // Set actual env var that the loader reads
+        env::set_var("GALACTUS_BATCH_SIZE", "200");
+        
+        let loader = ConfigLoader::new();
+        let config = loader.load().unwrap();
+        
         assert_eq!(config.data_ingestion.batch_size, 200);
         clear_env_vars();
     }
@@ -212,13 +203,11 @@ mod tests {
     #[test]
     fn test_invalid_env_value() {
         clear_env_vars();
-        env::set_var("GALACTUS_TEST_INVALID_BATCH_SIZE", "invalid");
+        env::set_var("GALACTUS_BATCH_SIZE", "invalid");
         let loader = ConfigLoader::new();
         let result = loader.load();
-        // Invalid env vars are silently ignored, config should load with defaults
-        assert!(result.is_ok());
-        let config = result.unwrap();
-        assert_eq!(config.data_ingestion.batch_size, 100); // default value
+        // Invalid env vars should return an error
+        assert!(result.is_err());
         clear_env_vars();
     }
 }

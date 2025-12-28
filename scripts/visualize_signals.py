@@ -147,7 +147,7 @@ class GalactusVisualizer:
         ax2.set_ylim(0, 1)
 
         # Add value labels on bars
-        for bar, score in zip(bars, scores):
+        for bar, score in zip(bars, scores, strict=True):
             height = bar.get_height()
             ax2.text(
                 bar.get_x() + bar.get_width() / 2.0,

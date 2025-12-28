@@ -15,8 +15,11 @@ matplotlib>=3.7.0
 seaborn>=0.12.0
 
 # Jupyter for research (optional)
-jupyter>=1.0.0
-ipykernel>=6.0.0
+# NOTE: Pinning nbconvert due to CVE-2025-53000 (GHSA-xm59-rqc7-hhvf)
+# Avoid converting SVG-to-PDF on Windows until patched version is available
+jupyter~=1.0.0
+ipykernel~=6.0.0
+nbconvert<7.16.6  # Pin to avoid vulnerable version
 
 # Testing
 pytest>=7.3.0
