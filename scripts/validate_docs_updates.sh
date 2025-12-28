@@ -54,21 +54,21 @@ echo "$CHANGED_FILES" | sed 's/^/  /'
 echo ""
 
 # Categorize changes
-# Exclude workflow files, docs, README, md files, and validate scripts from code changes
+# CODE_CHANGES: Production code files (Rust, Python, config) but excluding:
+#   - Documentation files (docs/, README, .md)
+#   - CI validation scripts (scripts/validate_*)
+#   - Workflow files (handled separately as configuration below)
 CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(rs|py|toml|yaml|yml|json)$' | grep -v -E '^(docs/|README|\.md$|scripts/validate_|\.github/workflows/)' || true)
 DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst|txt)$|^docs/' || true)
 RUST_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.rs$|core/rust/' || true)
 PYTHON_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.py$|research/python/' || true)
-# Handle workflow files separately as they're important configuration
-WORKFLOW_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.github/workflows/.*\.(yml|yaml)$' || true)
+# CONFIG_CHANGES: Configuration files including workflow files
+# Workflow files are treated as significant configuration and handled separately
+# to ensure they're always included in configuration checks
 CONFIG_CHANGES=$(echo "$CODE_CHANGES" | grep -E '\.(toml|yaml|yml|json)$' || true)
-# Combine workflow changes with other config changes
+WORKFLOW_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.github/workflows/.*\.(yml|yaml)$' || true)
 if [ -n "$WORKFLOW_CHANGES" ]; then
-    if [ -n "$CONFIG_CHANGES" ]; then
-        CONFIG_CHANGES=$(printf "%s\n%s" "$CONFIG_CHANGES" "$WORKFLOW_CHANGES")
-    else
-        CONFIG_CHANGES="$WORKFLOW_CHANGES"
-    fi
+    CONFIG_CHANGES="${CONFIG_CHANGES:+$CONFIG_CHANGES$'\n'}$WORKFLOW_CHANGES"
 fi
 
 # Check 1: Core Rust changes should have documentation updates
