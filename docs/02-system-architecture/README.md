@@ -69,6 +69,13 @@ Complete implementation overview:
 - Success metrics
 - Benefits achieved
 
+### [Documentation Enforcement](documentation-enforcement.md)
+Documentation requirements and CI enforcement:
+- Automated documentation validation
+- Enforcement policies for code changes
+- Best practices for technical documentation
+- CI integration and validation rules
+
 ---
 
 ## Document Relationships
@@ -94,6 +101,7 @@ system-boundaries.md          ← START HERE (defines WHAT the boundaries are)
 3. **Building a component?** Check [`component-boundaries.md`](component-boundaries.md)
 4. **Working with data flow?** Review [`event-driven-architecture.md`](event-driven-architecture.md)
 5. **Choosing tech stack?** See [`rust-vs-python-contract.md`](rust-vs-python-contract.md)
+6. **Contributing code?** Read [`documentation-enforcement.md`](documentation-enforcement.md)
 
 ---
 
