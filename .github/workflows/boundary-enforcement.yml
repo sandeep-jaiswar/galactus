@@ -97,3 +97,27 @@ jobs:
           fi
           
           echo "✅ No forbidden patterns found"
+
+  enforce-documentation:
+    name: Enforce Documentation Updates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Validate documentation updates
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "📚 Checking documentation requirements..."
+          ./scripts/validate_docs_updates.sh
+      
+      - name: Report documentation status
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          echo "Documentation enforcement checks completed"
+          echo "See job logs for details"
