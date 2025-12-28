@@ -15,11 +15,15 @@ import warnings  # noqa: E402
 
 import pytest  # noqa: E402
 
-from features.isolation import (FeatureIsolationContext,  # noqa: E402
-                                FeatureIsolationError, get_feature_metadata,
-                                list_experimental_features, mark_experimental,
-                                prevent_production_use,
-                                validate_feature_isolation)
+from features.isolation import FeatureIsolationContext  # noqa: E402
+from features.isolation import (
+    FeatureIsolationError,
+    get_feature_metadata,
+    list_experimental_features,
+    mark_experimental,
+    prevent_production_use,
+    validate_feature_isolation,
+)
 
 
 class TestFeatureIsolation:

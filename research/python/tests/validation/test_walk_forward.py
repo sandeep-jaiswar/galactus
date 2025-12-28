@@ -14,8 +14,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 import unittest  # noqa: E402
 from datetime import datetime  # noqa: E402
 
-from validation import (ValidationConfig, ValidationError,  # noqa: E402
-                        ValidationWindow, WalkForwardValidator, WindowType)
+from validation import ValidationError  # noqa: E402
+from validation import (
+    ValidationConfig,
+    ValidationWindow,
+    WalkForwardValidator,
+    WindowType,
+)
 from validation.walk_forward import FrozenLogic  # noqa: E402
 
 

@@ -10,9 +10,13 @@ import numpy as np
 import pytest
 
 from features.basis_pressure_research import (
-    BasisPressureConfig, BasisPressureResult, analyze_basis_pressure_patterns,
-    compute_basis_pressure, generate_synthetic_basis_data,
-    validate_basis_pressure_signal)
+    BasisPressureConfig,
+    BasisPressureResult,
+    analyze_basis_pressure_patterns,
+    compute_basis_pressure,
+    generate_synthetic_basis_data,
+    validate_basis_pressure_signal,
+)
 
 
 class TestBasisPressureComputation:

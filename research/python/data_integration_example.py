@@ -7,22 +7,16 @@ to fetch real market data and feed it into signal computation modules.
 
 import sys
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
+from datetime import datetime
+from typing import Dict, Any
 
 # Add the research path to import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data import GalactusDataProvider, get_futures_for_signal
+from data import GalactusDataProvider
 from features.oi_decay_research import compute_oi_decay_pressure, OIDecayConfig
-from features.hedge_pressure_research import (
-    compute_hedge_pressure,
-    HedgePressureConfig,
-)
-from features.basis_pressure_research import (
-    compute_basis_pressure,
-    BasisPressureConfig,
-)
+from features.hedge_pressure_research import compute_hedge_pressure
+from features.basis_pressure_research import compute_basis_pressure
 
 
 def demonstrate_data_integration():

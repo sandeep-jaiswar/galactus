@@ -4,10 +4,18 @@ Galactus Data Module
 Provides unified data access for all Galactus components.
 """
 
-from .provider import (DataQualityMetrics, DataQualityValidator, FuturesData,
-                       GalactusDataProvider, IndexData, MarketData, OptionData,
-                       get_current_market_data, get_data_provider,
-                       get_futures_for_signal)
+from .provider import (
+    DataQualityMetrics,
+    DataQualityValidator,
+    FuturesData,
+    GalactusDataProvider,
+    IndexData,
+    MarketData,
+    OptionData,
+    get_current_market_data,
+    get_data_provider,
+    get_futures_for_signal,
+)
 
 __all__ = [
     "GalactusDataProvider",

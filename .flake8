@@ -1,0 +1,38 @@
+[flake8]
+# Flake8 configuration for Galactus Python code
+# See: https://flake8.pycqa.org/en/latest/user/configuration.html
+
+# Maximum line length (Black default is 88, but allow 100 for flexibility)
+max-line-length = 100
+
+# Extend ignore list
+# E203: whitespace before ':' (conflicts with Black)
+# W503: line break before binary operator (conflicts with Black)
+# E402: module level import not at top of file (needed for sys.path manipulation in examples/tests)
+extend-ignore = E203, W503, E402
+
+# Exclude directories and files
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    env,
+    .eggs,
+    *.egg,
+    dist,
+    build,
+    .ipynb_checkpoints,
+    .pytest_cache,
+    .mypy_cache,
+    .tox
+
+# Maximum complexity (McCabe)
+# Set to 16 for research code which often has complex analysis functions
+max-complexity = 16
+
+# Show source code for each error
+show-source = True
+
+# Show statistics
+statistics = True
