@@ -12,6 +12,7 @@ __author__ = "Galactus Research Team"
 
 # Research modules
 from . import data, features, validation  # noqa: F401
+
 # Re-export commonly used data components for convenience
 from .data import GalactusDataProvider  # noqa: F401
 from .data import get_current_market_data  # noqa: F401

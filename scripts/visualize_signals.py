@@ -14,22 +14,16 @@ Usage:
 """
 
 import argparse
-import json
-import time
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional
 import sys
-import os
+from typing import Dict
 
 try:
     import requests
     import matplotlib.pyplot as plt
     import seaborn as sns
-    import numpy as np
 except ImportError as e:
     print(f"Missing dependencies: {e}")
-    print("Install with: pip install requests matplotlib seaborn numpy")
+    print("Install with: pip install requests matplotlib seaborn")
     sys.exit(1)
 
 # Set plotting style
