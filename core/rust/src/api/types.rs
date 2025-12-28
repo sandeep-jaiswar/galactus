@@ -28,9 +28,9 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use crate::intent::{IntentVector, IntentResult, SignalInput, SignalContribution};
-use crate::ApiError;
-use super::{IntentRequest, IntentResponse, BatchIntentRequest, BatchIntentResponse};
-use crate::features::{MarketDataPoint, OptionChain, FuturesData, StrikeData};
+use crate::api::ApiError;
+use super::{IntentRequest, IntentResponse};
+use crate::features::{MarketDataPoint, OptionChain, FuturesData};
 
 /// Protocol buffer representation of intent vector
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

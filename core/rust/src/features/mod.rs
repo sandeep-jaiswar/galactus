@@ -46,7 +46,7 @@ pub use basis_pressure::{BasisPressureFeature, BasisPressureConfig, BasisPressur
 /// # Returns
 /// A FeatureRegistry with all features registered and ready for use
 pub fn create_promoted_feature_registry() -> Result<FeatureRegistry, FeatureError> {
-    let mut registry = FeatureRegistry::new();
+    let registry = FeatureRegistry::new();
 
     // Register OI decay feature
     let oi_decay = Arc::new(OIDecayFeature::new());
@@ -69,6 +69,7 @@ use std::sync::Arc;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_feature_result_creation() {

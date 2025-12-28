@@ -20,7 +20,6 @@ pub use format::{StorageFormat, CompressionType};
 
 use crate::intent::IntentVector;
 use chrono::{DateTime, Utc};
-use std::path::PathBuf;
 
 /// Persistence errors
 #[derive(Debug, Clone, PartialEq)]

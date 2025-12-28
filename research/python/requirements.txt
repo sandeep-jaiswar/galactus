@@ -1,0 +1,22 @@
+# Galactus Research Environment - Production Dependencies
+# Keep minimal for container efficiency
+
+# Core data processing
+pandas>=2.0.0
+numpy>=1.24.0
+polars>=0.20.0
+
+# Data integration
+jugaad-data>=0.29.0
+requests>=2.31.0
+
+# Visualization (production monitoring only)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Jupyter for research (optional)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Testing
+pytest>=7.3.0

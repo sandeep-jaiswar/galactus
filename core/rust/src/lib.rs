@@ -14,10 +14,10 @@ pub mod api;
 pub mod config;
 pub mod persistence;
 
-// Re-export main types for convenience
-pub use data::*;
-pub use features::*;
-pub use intent::*;
-pub use api::*;
-pub use config::*;
-pub use persistence::*;
+// Re-export main types for convenience - avoid ambiguous exports
+pub use intent::{IntentEngine, IntentVector, SignalInput, IntentResult};
+pub use features::registry::{FeatureResult, FeatureConfig};
+pub use data::{CanonicalEvent, EventType, DataQuality};
+pub use api::types;
+pub use config::{GalactusConfig, ConfigManager, PersistenceConfig};
+pub use persistence::PersistenceError;

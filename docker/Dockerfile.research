@@ -1,0 +1,43 @@
+# Python research environment for Galactus
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash galactus
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python requirements
+COPY research/python/requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy research code
+COPY research/python/src ./src
+COPY research/python/notebooks ./notebooks
+COPY research/python/tests ./tests
+
+# Copy scripts
+COPY scripts ./scripts
+
+# Change ownership
+RUN chown -R galactus:galactus /app
+
+# Switch to non-root user
+USER galactus
+
+# Set Python path
+ENV PYTHONPATH=/app/src
+
+# Expose port for Jupyter (optional)
+EXPOSE 8888
+
+# Default command
+CMD ["python", "-c", "print('Galactus Research Environment Ready')"]

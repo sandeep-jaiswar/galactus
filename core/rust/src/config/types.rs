@@ -3,7 +3,6 @@
 //! Defines all configuration structures used throughout the system.
 
 use serde::{Deserialize, Serialize};
-use std::time::Duration;
 
 /// Main Galactus configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]

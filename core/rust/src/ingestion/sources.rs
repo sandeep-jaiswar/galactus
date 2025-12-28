@@ -5,7 +5,6 @@
 
 use crate::data::CanonicalEvent;
 use crate::config::StreamingConfig;
-use std::sync::Arc;
 use tokio::sync::mpsc;
 
 /// Data source connection errors
@@ -75,6 +74,7 @@ pub trait DataSource: Send + Sync {
 }
 
 /// WebSocket data source implementation
+#[allow(dead_code)]
 pub struct WebSocketSource {
     config: StreamingConfig,
     endpoint: String,
@@ -102,16 +102,19 @@ impl WebSocketSource {
     }
 
     /// Check if reconnection should be attempted
+    #[allow(dead_code)]
     fn should_reconnect(&self) -> bool {
         self.config.auto_reconnect && self.reconnect_attempts < self.config.max_reconnect_attempts
     }
 
     /// Reset reconnection counter
+    #[allow(dead_code)]
     fn reset_reconnect_counter(&mut self) {
         self.reconnect_attempts = 0;
     }
 
     /// Increment reconnection counter
+    #[allow(dead_code)]
     fn increment_reconnect_counter(&mut self) {
         self.reconnect_attempts += 1;
     }
@@ -175,12 +178,13 @@ impl DataSource for WebSocketSource {
     fn event_receiver(&self) -> mpsc::Receiver<CanonicalEvent> {
         // This is a simplified implementation
         // In production, we would properly handle the receiver
-        let (tx, rx) = mpsc::channel(1000);
+        let (_tx, rx) = mpsc::channel(1000);
         rx
     }
 }
 
 /// Data source manager for multiple connections
+#[allow(dead_code)]
 pub struct SourceManager {
     sources: Vec<Box<dyn DataSource>>,
     config: StreamingConfig,

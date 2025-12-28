@@ -258,7 +258,7 @@ impl Feature for OIDecayFeature {
 /// Extract OI data from feature inputs
 fn extract_oi_data(inputs: &FeatureInputs, key: &str) -> Result<HashMap<String, u64>, FeatureError> {
     // Try to get from context first (serialized data)
-    if let Some(data_str) = inputs.context.get(key) {
+    if let Some(_data_str) = inputs.context.get(key) {
         // In production, this would be proper deserialization
         // For now, return empty map to indicate data not available
         return Ok(HashMap::new());
@@ -351,8 +351,17 @@ mod tests {
     #[test]
     fn test_no_change() {
         let feature = OIDecayFeature::new();
-        let current_oi = [("100.0".to_string(), 1000)].into_iter().collect();
-        let previous_oi = [("100.0".to_string(), 1000)].into_iter().collect();
+        // Need at least min_strikes (3) to get past insufficient_data check
+        let current_oi = [
+            ("95.0".to_string(), 1000),
+            ("100.0".to_string(), 1000),
+            ("105.0".to_string(), 1000),
+        ].into_iter().collect();
+        let previous_oi = [
+            ("95.0".to_string(), 1000),
+            ("100.0".to_string(), 1000),
+            ("105.0".to_string(), 1000),
+        ].into_iter().collect();
 
         let result = feature.compute_pressure(&current_oi, &previous_oi, 1.0).unwrap();
 

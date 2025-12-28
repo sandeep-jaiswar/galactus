@@ -1,0 +1,95 @@
+version: "3.8"
+
+services:
+  galactus-core:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.core
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - RUST_LOG=debug
+      - GALACTUS_ENV=development
+    volumes:
+      - ../core/rust:/app
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - galactus-network
+    command: ["cargo", "run", "--release"]
+
+  galactus-research:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.research
+    ports:
+      - "8888:8888"
+    environment:
+      - PYTHONPATH=/app/src
+      - GALACTUS_ENV=development
+    volumes:
+      - ../research/python:/app
+      - ../scripts:/app/scripts
+    profiles:
+      - research
+    networks:
+      - galactus-network
+    command:
+      [
+        "jupyter",
+        "notebook",
+        "--ip=0.0.0.0",
+        "--port=8888",
+        "--no-browser",
+        "--allow-root",
+      ]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=24h"
+      - "--web.enable-lifecycle"
+    restart: unless-stopped
+    networks:
+      - galactus-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana_dashboard.json:/etc/grafana/dashboards/galactus.json
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    networks:
+      - galactus-network
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  galactus-network:
+    driver: bridge

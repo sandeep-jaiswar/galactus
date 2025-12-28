@@ -8,8 +8,6 @@
 //! The safe engine enforces the principle: "Incorrect silence is preferable to confident error"
 //! by evaluating kill switch conditions before allowing inference to proceed.
 
-use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
 use super::{IntentEngine, IntentResult, IntentError, IntentConfig, SignalInput};
 use crate::confidence::types::{OverallConfidence, StabilityIndicator, ConfidenceComponents, StabilityComponents, ConfidenceLevel, StabilityLevel};
 use crate::kill_switch::{
@@ -254,6 +252,8 @@ impl SafeIntentEngine {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+    use std::time::{SystemTime, UNIX_EPOCH};
     
     fn create_test_signal(name: &str, value: f64, confidence: f64) -> SignalInput {
         SignalInput {

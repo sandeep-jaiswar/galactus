@@ -1,0 +1,33 @@
+# Galactus Core Configuration
+# This file contains production configuration for the Galactus inference engine
+
+[data_ingestion]
+batch_size = 1000
+max_delay_seconds = 300
+min_completeness = 0.95
+max_contradictions = 5
+approved_sources = ["NSE", "BSE"]
+
+[intent_engine]
+max_signals_per_request = 10
+inference_timeout_ms = 5000
+confidence_threshold = 0.7
+enable_experimental_features = false
+
+[persistence]
+enabled = true
+database_url = "postgresql://user:pass@localhost/postgres"
+max_connections = 10
+
+[streaming]
+enabled = false
+# websocket_endpoint = "wss://data.nseindia.com"
+# reconnect_interval_seconds = 30
+
+[api]
+http_port = 8080
+grpc_port = 9090
+max_request_size_mb = 10
+rate_limit_requests_per_minute = 60
+enable_cors = true
+cors_origins = ["http://localhost:3000", "https://galactus.example.com"]

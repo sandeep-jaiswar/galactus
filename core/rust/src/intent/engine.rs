@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 use super::{
     IntentVector, IntentResult, IntentError, IntentConfig,
-    SignalInput, SignalContribution
+    SignalInput
 };
 use super::aggregation::{SignalAggregator, AggregationResult};
 
