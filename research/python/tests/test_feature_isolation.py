@@ -15,8 +15,8 @@ import warnings  # noqa: E402
 
 import pytest  # noqa: E402
 
+from features.isolation import FeatureIsolationContext  # noqa: E402
 from features.isolation import (
-    FeatureIsolationContext,  # noqa: E402
     FeatureIsolationError,
     get_feature_metadata,
     list_experimental_features,
