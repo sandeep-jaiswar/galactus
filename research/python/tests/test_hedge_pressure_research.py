@@ -8,7 +8,7 @@ from datetime import datetime
 
 import pytest
 
-from src.features.hedge_pressure_research import (
+from features.hedge_pressure_research import (
     HedgePressureConfig, HedgePressureResult, analyze_hedge_pressure_patterns,
     compute_hedge_pressure, generate_synthetic_hedge_data,
     validate_hedge_pressure_signal)
