@@ -31,18 +31,18 @@ docker-compose down
 ## Services
 
 ### galactus-core
-- **Port**: 8080 (HTTP API), 9090 (gRPC)
+- **Port**: 8080 (HTTP API), 50051 (gRPC, mapped from container port 9090)
 - **Health**: http://localhost:8080/api/v1/health
 - **Metrics**: http://localhost:8080/api/v1/metrics
 
 ### grafana
 - **Port**: 3000
 - **URL**: http://localhost:3000
-- **Credentials**: admin/admin (change on first login)
+- **Credentials**: admin/changeme (set via GRAFANA_ADMIN_PASSWORD env var)
 
 ### prometheus
-- **Port**: 9090
-- **URL**: http://localhost:9090
+- **Port**: 9091 (mapped from container port 9090)
+- **URL**: http://localhost:9091
 
 ## Development
 

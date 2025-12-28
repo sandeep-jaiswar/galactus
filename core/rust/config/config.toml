@@ -16,6 +16,7 @@ enable_experimental_features = false
 
 [persistence]
 enabled = true
+# NOTE: Override this with the DATABASE_URL environment variable before deployment
 database_url = "postgresql://user:pass@localhost/postgres"
 max_connections = 10
 

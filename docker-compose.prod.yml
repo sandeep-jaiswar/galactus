@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile.core
     ports:
       - "8080:8080"
-      - "9090:9090"
+      - "50051:9090"  # gRPC mapped to host port 50051 to avoid conflict with Prometheus
     environment:
       - RUST_LOG=warn
       - GALACTUS_ENV=production
@@ -33,7 +33,7 @@ services:
           memory: 512M
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.48.0
     ports:
       - "9090:9090"
     volumes:
@@ -56,7 +56,7 @@ services:
           memory: 512M
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.2.0
     ports:
       - "3000:3000"
     environment:

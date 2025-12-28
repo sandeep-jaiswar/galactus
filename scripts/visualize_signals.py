@@ -56,7 +56,7 @@ class GalactusVisualizer:
         try:
             response = requests.get(f"{self.api_url}/api/v1/health", timeout=5)
             return response.status_code == 200
-        except:
+        except (requests.RequestException, ConnectionError):
             return False
 
     def visualize_api_metrics(self) -> None:
@@ -71,11 +71,13 @@ class GalactusVisualizer:
 
         try:
             # Get health status
-            health_response = requests.get(f"{self.api_url}/api/v1/health")
+            health_response = requests.get(f"{self.api_url}/api/v1/health", timeout=5)
+            health_response.raise_for_status()
             health_data = health_response.json()
 
             # Get metrics
-            metrics_response = requests.get(f"{self.api_url}/api/v1/metrics")
+            metrics_response = requests.get(f"{self.api_url}/api/v1/metrics", timeout=5)
+            metrics_response.raise_for_status()
             metrics_text = metrics_response.text
 
             print("\n✅ API Status:")
@@ -89,7 +91,7 @@ class GalactusVisualizer:
             # Create metrics visualization
             self._plot_api_metrics(metrics)
 
-        except Exception as e:
+        except (requests.RequestException, ValueError, KeyError) as e:
             print(f"❌ Error fetching metrics: {e}")
 
     def _parse_prometheus_metrics(self, metrics_text: str) -> Dict[str, float]:
@@ -145,7 +147,7 @@ class GalactusVisualizer:
         ax2.set_ylim(0, 1)
 
         # Add value labels on bars
-        for bar, score in zip(bars, scores):
+        for bar, score in zip(bars, scores, strict=True):
             height = bar.get_height()
             ax2.text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -222,7 +224,7 @@ class GalactusVisualizer:
                 else:
                     print(f"   ❌ {service}: HTTP {response.status_code}")
                     all_healthy = False
-            except Exception as e:
+            except (requests.RequestException, ConnectionError, TimeoutError) as e:
                 print(f"   ❌ {service}: Unavailable ({str(e)[:50]})")
                 all_healthy = False
 
