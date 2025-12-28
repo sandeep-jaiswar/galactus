@@ -491,6 +491,172 @@ This decision should be revisited if:
 
 ---
 
+## Decision 006: CI/CD Workflows for Build and Test Automation (2025-12-28)
+
+### Date
+2025-12-28
+
+### Decision
+Implement automated CI/CD workflows for Rust core and Python research components to ensure code quality, security, and consistency across all contributions.
+
+### Context
+- Project Galactus requires high code quality standards for both deterministic Rust production code and exploratory Python research code
+- Manual code quality checks are error-prone and do not scale with team growth
+- Need automated enforcement of formatting, linting, type checking, and testing standards
+- Security audit automation needed to catch vulnerabilities early
+- Lack of automated checks leads to inconsistent code styles and potential bugs reaching production
+- GitHub Actions provides integrated CI/CD platform for automated checks
+
+### Alternatives Considered
+
+**Alternative 1: Pre-commit hooks only**
+- Rely solely on local pre-commit hooks for quality checks
+- Rejected because:
+  - Easy to bypass or disable locally
+  - No enforcement for contributors who don't set up hooks
+  - No centralized record of check results
+  - Cannot catch issues after commit but before merge
+
+**Alternative 2: Single combined workflow**
+- Create one workflow that runs all Rust and Python checks
+- Rejected because:
+  - Slower feedback (must run all checks even for single-language changes)
+  - Less clear failure attribution
+  - Harder to maintain and debug
+  - Violates separation of concerns between Rust/Python layers
+
+**Alternative 3: Manual code review only**
+- Depend entirely on human code review for quality
+- Rejected because:
+  - Scales poorly with team size
+  - Inconsistent application of standards
+  - Wastes reviewer time on mechanical checks
+  - Cannot catch all formatting and security issues
+
+### Rationale
+- **Design Principle: Determinism over cleverness** — Automated checks ensure consistent, deterministic quality enforcement
+- **Design Principle: Explicit failure over hidden failure** — CI failures surface issues immediately and visibly
+- **Design Principle: Separation of discovery and enforcement** — Separate workflows for Rust (production) and Python (research) reflect architectural boundaries
+- Automated checks prevent technical debt accumulation
+- Security auditing catches vulnerabilities before production
+- Consistent formatting reduces cognitive load and code review time
+- Early feedback loop improves developer productivity
+
+### Implementation
+
+#### Rust Core Workflow (`.github/workflows/build-core.yml`)
+Triggers on:
+- Push to `production` branch
+- Pull requests to `production` branch
+- Changes to `core/rust/**` or workflow file itself
+
+Steps:
+1. **Checkout code** — Uses `actions/checkout@v4` for repository access
+2. **Setup Rust** — Uses `dtolnay/rust-toolchain@stable` with `rustfmt` and `clippy` components
+3. **Install cargo audit** — Security vulnerability scanner for Rust dependencies
+4. **Cache Rust dependencies** — Uses `Swatinem/rust-cache@v2` for faster builds
+5. **Check formatting** — Runs `cargo fmt --check` to enforce consistent code style
+6. **Run clippy** — Static analysis with `-D warnings` to catch common mistakes
+7. **Check compilation** — Ensures code compiles with `cargo check`
+8. **Security audit** — Runs `cargo audit` for known vulnerabilities (continue-on-error for advisory only)
+9. **Build release** — Full release build with optimizations
+10. **Run tests** — Complete test suite execution
+
+#### Python Research Workflow (`.github/workflows/build-research.yml`)
+Triggers on:
+- Push to `production` branch
+- Pull requests to `production` branch  
+- Changes to `research/python/**` or workflow file itself
+
+Steps:
+1. **Checkout code** — Uses `actions/checkout@v4`
+2. **Setup Python** — Uses `actions/setup-python@v6` with Python 3.10
+3. **Cache Poetry environment** — Uses `actions/cache@v5` for dependency caching
+4. **Install Poetry** — Python dependency management tool
+5. **Configure Poetry** — Disable virtualenv creation for CI environment
+6. **Install dependencies** — Single `poetry install` for all dependencies
+7. **Run tests** — Execute pytest with verbose output
+8. **Check formatting (Black)** — Enforce consistent Python code style (line-length 88)
+9. **Check import sorting (isort)** — Validate import organization with Black profile
+10. **Lint code (flake8)** — Static analysis for Python code quality
+11. **Type check (mypy)** — Static type checking (continue-on-error for gradual adoption)
+
+#### Maintenance Requirements
+- **Toolchain updates**: Periodically update Rust stable version and Python version as needed
+- **Dependency updates**: Update GitHub Actions versions when new releases available
+- **Cache tuning**: Monitor cache hit rates and adjust cache keys if necessary
+- **Performance monitoring**: Track CI run times and optimize if builds become too slow
+
+### Trade-offs and Consequences
+
+**Accepted Costs:**
+- CI runtime overhead (2-5 minutes per workflow)
+- Maintenance burden for workflow files and tool configurations
+- Potential for CI failures blocking development (intentional friction)
+- GitHub Actions minutes usage (free tier should be sufficient)
+- Learning curve for contributors unfamiliar with CI systems
+
+**Benefits:**
+- Consistent code quality across all contributions
+- Early detection of bugs, style issues, and security vulnerabilities
+- Reduced code review burden (mechanical checks automated)
+- Documentation of quality standards through configuration
+- Clear feedback for contributors on what needs fixing
+- Protection of production code determinism guarantees
+- Scalable quality enforcement as team grows
+
+**Expected Challenges:**
+- False positives from linters (especially mypy initially)
+- Workflow failures due to transient issues (network, GH Actions)
+- Balancing strictness with developer productivity
+- Keeping CI configuration in sync with local development setup
+
+**Mitigation Strategies:**
+- Use `continue-on-error` for gradually-adopted checks (mypy, cargo audit)
+- Clear documentation on how to reproduce CI checks locally
+- Regular review and tuning of linter configurations
+- Fast feedback loops (separate Rust/Python workflows)
+
+### Success Metrics
+
+Track monthly:
+- CI pass rate (should be > 95% after initial setup)
+- Mean time to fix CI failures (should be < 1 hour)
+- Number of bugs caught by automated checks vs code review
+- CI runtime (should stay < 10 minutes per workflow)
+- Developer satisfaction with CI process
+
+Success indicators:
+- Mechanical issues caught before code review
+- Consistent code style across repository
+- No security vulnerabilities merged to production
+- Fast feedback on pull requests
+- Low false positive rate from automated checks
+
+### Revisit Conditions
+
+This decision should be revisited if:
+- CI becomes a bottleneck to development (> 15 minute runs)
+- False positive rate exceeds 10% of workflow failures
+- GitHub Actions costs become significant
+- Alternative CI platforms offer substantially better features
+- Workflow complexity becomes unmaintainable
+
+This decision should NOT be revisited due to:
+- Individual CI failures (expected and desired behavior)
+- Complaints about strictness without quality degradation evidence
+- Desire to bypass checks for "quick fixes"
+
+### References
+- `.github/workflows/build-core.yml` — Rust core CI workflow
+- `.github/workflows/build-research.yml` — Python research CI workflow
+- `core/rust/README.md` — Production layer documentation
+- `research/python/README.md` — Research layer documentation
+- [Rust vs Python Boundary Enforcement](../02-system-architecture/rust-python-boundary-enforcement.md)
+- [GitHub Actions Documentation](https://docs.github.com/en/actions)
+
+---
+
 # Decision Log Template
 
 The following sections define the template for future decision log entries.

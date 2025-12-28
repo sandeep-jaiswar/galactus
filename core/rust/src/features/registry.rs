@@ -455,10 +455,7 @@ impl FeatureRegistry {
         match result {
             Ok(result) => {
                 stats.successful_computations += 1;
-                let feature_stats = stats
-                    .feature_stats
-                    .entry(name.to_string())
-                    .or_default();
+                let feature_stats = stats.feature_stats.entry(name.to_string()).or_default();
                 feature_stats.success_count += 1;
                 feature_stats.last_computation = result.timestamp;
                 // Update rolling average
@@ -470,19 +467,13 @@ impl FeatureRegistry {
             }
             Err(_) => {
                 stats.failed_computations += 1;
-                let feature_stats = stats
-                    .feature_stats
-                    .entry(name.to_string())
-                    .or_default();
+                let feature_stats = stats.feature_stats.entry(name.to_string()).or_default();
                 feature_stats.failure_count += 1;
             }
         }
 
         // Update feature stats count
-        let feature_stats = stats
-            .feature_stats
-            .entry(name.to_string())
-            .or_default();
+        let feature_stats = stats.feature_stats.entry(name.to_string()).or_default();
         feature_stats.computation_count += 1;
     }
 

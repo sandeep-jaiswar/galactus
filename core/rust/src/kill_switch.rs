@@ -251,15 +251,6 @@ impl KillSwitchEvaluator {
         stability: &StabilityIndicator,
     ) -> KillSwitchDecision {
         let mut mandatory_conditions = Vec::new();
-        let partial_conditions = Vec::new();
-        let warning_conditions = Vec::new();
-
-        // Cache frequently accessed config values
-        let _min_data_completeness = self.config.min_data_completeness;
-        let _max_time_ambiguity = self.config.max_time_ambiguity_seconds;
-        let _min_regime_conf = self.config.min_regime_confidence;
-        let _min_overall_conf = self.config.min_overall_confidence;
-        let _min_data_quality = self.config.min_data_quality;
 
         // 1. Check data integrity
         self.check_data_integrity(data_quality, &mut mandatory_conditions);
@@ -279,10 +270,6 @@ impl KillSwitchEvaluator {
         // Determine final decision based on collected conditions
         if !mandatory_conditions.is_empty() {
             KillSwitchDecision::Halt(mandatory_conditions)
-        } else if !partial_conditions.is_empty() {
-            KillSwitchDecision::PartialSuppress(partial_conditions)
-        } else if !warning_conditions.is_empty() {
-            KillSwitchDecision::ProceedWithWarnings(warning_conditions)
         } else {
             KillSwitchDecision::Proceed
         }
