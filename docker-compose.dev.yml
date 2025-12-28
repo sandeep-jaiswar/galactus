@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile.core
     ports:
       - "8080:8080"
-      - "9090:9090"
+      - "50051:9090"  # gRPC mapped to host port 50051 to avoid conflict with Prometheus
     environment:
       - RUST_LOG=debug
       - GALACTUS_ENV=development

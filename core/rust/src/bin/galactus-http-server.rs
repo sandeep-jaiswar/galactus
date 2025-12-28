@@ -168,8 +168,24 @@ async fn main() {
             }
         });
 
+    // Configure CORS based on environment variable or default to localhost
+    let cors_allowed_origins = std::env::var("CORS_ALLOWED_ORIGINS")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string());
+    
+    let cors = if cors_allowed_origins == "*" {
+        warp::cors()
+            .allow_any_origin()
+            .allow_methods(vec!["GET", "POST"])
+            .allow_headers(vec!["content-type"])
+    } else {
+        warp::cors()
+            .allow_origin(cors_allowed_origins.as_str())
+            .allow_methods(vec!["GET", "POST"])
+            .allow_headers(vec!["content-type"])
+    };
+
     let routes = health.or(metrics).or(intent)
-        .with(warp::cors().allow_any_origin().allow_methods(vec!["GET", "POST"]).allow_headers(vec!["content-type"]))
+        .with(cors)
         .recover(handle_rejection);
 
     println!("📡 Server listening on http://0.0.0.0:8080");
