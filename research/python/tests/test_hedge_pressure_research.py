@@ -4,17 +4,14 @@ Tests for Hedge Pressure Research Module
 Tests the hedge pressure signal implementation and validation.
 """
 
-import pytest
-import numpy as np
 from datetime import datetime
+
+import pytest
+
 from src.features.hedge_pressure_research import (
-    compute_hedge_pressure,
-    validate_hedge_pressure_signal,
-    generate_synthetic_hedge_data,
-    analyze_hedge_pressure_patterns,
-    HedgePressureConfig,
-    HedgePressureResult,
-)
+    HedgePressureConfig, HedgePressureResult, analyze_hedge_pressure_patterns,
+    compute_hedge_pressure, generate_synthetic_hedge_data,
+    validate_hedge_pressure_signal)
 
 
 class TestHedgePressureComputation:

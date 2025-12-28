@@ -12,16 +12,16 @@ Features:
 - Production-ready data structures
 """
 
-import warnings
 import time
-from typing import Dict, List, Optional, Tuple, Any
-from datetime import datetime, timedelta
+import warnings
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import pandas as pd
-
-from jugaad_data.nse import NSELive
 from jugaad_data.bse import BSELive
+from jugaad_data.nse import NSELive
 
 # Suppress jugaad-data warnings
 warnings.filterwarnings("ignore", module="jugaad_data")
@@ -272,7 +272,7 @@ class GalactusDataProvider:
         for attempt in range(MAX_RETRY_ATTEMPTS):
             try:
                 return operation(*args, **kwargs)
-            except Exception as e:
+            except Exception:
                 if attempt == MAX_RETRY_ATTEMPTS - 1:
                     raise
                 time.sleep(RETRY_DELAY_SECONDS * (2**attempt))
@@ -354,9 +354,11 @@ class GalactusDataProvider:
                 if quality_score >= DATA_QUALITY_THRESHOLD:
                     return price
                 else:
-                    print(
-                        f"Low quality spot price for {symbol}: {price} (score: {quality_score})"
+                    msg = (
+                        f"Low quality spot price for {symbol}: {price} "
+                        f"(score: {quality_score})"
                     )
+                    print(msg)
                     return None
 
             return None
@@ -964,7 +966,7 @@ _data_provider_instance = None
 def get_data_provider() -> GalactusDataProvider:
     """
     Get or create the global data provider instance (lazy initialization).
-    
+
     Returns:
         GalactusDataProvider instance
     """
@@ -1059,9 +1061,11 @@ if __name__ == "__main__":
         print(f"  Date range: {historical.index.min()} to {historical.index.max()}")
         if hasattr(historical, "attrs") and "data_quality" in historical.attrs:
             quality = historical.attrs["data_quality"]
-            print(
-                f"  Data quality: {quality.overall_score:.2f} ({historical.attrs.get('data_source', 'unknown')})"
+            msg = (
+                f"  Data quality: {quality.overall_score:.2f} "
+                f"({historical.attrs.get('data_source', 'unknown')})"
             )
+            print(msg)
     else:
         print("  Historical data unavailable")
 

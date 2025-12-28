@@ -3,7 +3,8 @@ Hedge Pressure Signal Research Implementation
 
 This module implements the hedge pressure signal for research and validation.
 
-Hypothesis: Call-put OI imbalance indicates forced directional positioning due to capital constraints.
+Hypothesis: Call-put OI imbalance indicates forced directional positioning
+    due to capital constraints.
 
 Signal Logic:
 - Measures imbalance between call and put open interest
@@ -18,11 +19,12 @@ Validation Requirements:
 - Cross-validation with known market events
 """
 
-from typing import Dict, List, Optional, Tuple, Any
 import warnings
-import numpy as np
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 from .isolation import mark_experimental
 
@@ -53,7 +55,10 @@ class HedgePressureConfig:
 
 
 @mark_experimental(
-    hypothesis="Call-put OI imbalance indicates forced directional positioning due to capital constraints",
+    hypothesis=(
+        "Call-put OI imbalance indicates forced directional positioning "
+        "due to capital constraints"
+    ),
     assumptions=[
         "Clean derivatives market data available",
         "Sufficient market liquidity (>1000 contracts total OI)",
@@ -117,8 +122,11 @@ def compute_hedge_pressure(
 
     if len(all_strikes) < config.min_strikes:
         warnings.warn(
-            f"Insufficient strike data: {len(all_strikes)} strikes, min={config.min_strikes}",
-            stacklevel=2
+            (
+                f"Insufficient strike data: {len(all_strikes)} strikes, "
+                f"min={config.min_strikes}"
+            ),
+            stacklevel=2,
         )
         return HedgePressureResult(
             pressure=0.0,

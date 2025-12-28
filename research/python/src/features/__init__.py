@@ -9,11 +9,8 @@ Features must pass the promotion checklist before moving to core/rust.
 See: docs/06-research-framework/feature-discovery-rules.md
 """
 
-from .isolation import (
-    mark_experimental,
-    prevent_production_use,
-    FeatureIsolationError,
-)
+from .isolation import (FeatureIsolationError, mark_experimental,
+                        prevent_production_use)
 
 __all__ = [
     "mark_experimental",

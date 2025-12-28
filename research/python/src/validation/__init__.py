@@ -13,20 +13,11 @@ This is a research-layer tool. Production validation logic should be
 promoted to Rust core after passing promotion checklist.
 """
 
-from .walk_forward import (
-    WalkForwardValidator,
-    ValidationWindow,
-    WindowType,
-    ValidationResult,
-    ValidationError,
-)
-from .rules import (
-    EventTimeValidator,
-    LogicFreezeValidator,
-    RegimeCoverageValidator,
-    ForbiddenPracticesDetector,
-)
 from .config import ValidationConfig
+from .rules import (EventTimeValidator, ForbiddenPracticesDetector,
+                    LogicFreezeValidator, RegimeCoverageValidator)
+from .walk_forward import (ValidationError, ValidationResult, ValidationWindow,
+                           WalkForwardValidator, WindowType)
 
 __all__ = [
     "WalkForwardValidator",
