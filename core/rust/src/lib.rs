@@ -7,6 +7,7 @@ pub mod features;
 pub mod intent;
 pub mod regime;
 pub mod confidence;
+pub mod kill_switch;
 pub mod failure_analysis;
 pub mod stress_scenarios;
 pub mod api;
