@@ -20,6 +20,7 @@ Validation Requirements:
 """
 
 import warnings
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
@@ -315,6 +316,7 @@ def generate_synthetic_basis_data(
     basis_pressure: float,
     risk_free_rate: float = 0.05,
     noise_factor: float = 0.001,
+    allow_synthetic: bool = False,
 ) -> Tuple[float, float]:
     """
     Generate synthetic futures and spot prices for testing basis pressure.
@@ -329,6 +331,18 @@ def generate_synthetic_basis_data(
     Returns:
         Tuple of (futures_price, spot_price) - spot_price may be adjusted slightly
     """
+    if not allow_synthetic and os.environ.get(
+        "GALACTUS_ALLOW_SYNTHETIC", ""
+    ).lower() not in (
+        "1",
+        "true",
+        "yes",
+    ):
+        raise RuntimeError(
+            "Synthetic basis generation is disabled by default. "
+            "Enable only for tests by passing allow_synthetic=True or set the "
+            "environment variable GALACTUS_ALLOW_SYNTHETIC=true."
+        )
     # Start with fair value
     time_fraction = time_to_expiry_days / 365.0
     fair_futures = spot_price * np.exp(risk_free_rate * time_fraction)

@@ -1,0 +1,33 @@
+{
+  "run_name": "live_canary_NIFTY",
+  "galactus_version": "0.2.0",
+  "period_start": "2025-12-29T14:56:19.882584+00:00",
+  "period_end": "2025-12-29T14:56:19.882584+00:00",
+  "metrics": {
+    "total_snapshots": 1,
+    "total_failures": 0,
+    "high_confidence_failure_rate": 0.0,
+    "false_pressure_rate": 0.0,
+    "average_regime_lag_days": 0.0,
+    "silence_correctness_rate": 1.0,
+    "kill_switch_anticipation": 0.0,
+    "confidence_calibration_error": 0.050000000000000044,
+    "failures_by_category": {},
+    "regimes_observed": [
+      "Normal Derivatives Dominance"
+    ],
+    "stress_periods_detected": 0
+  },
+  "failure_summary": {
+    "total_failures": 0,
+    "high_confidence_failures": 0,
+    "failures_by_category": {}
+  },
+  "snapshot_statistics": {
+    "total_snapshots": 1,
+    "silenced_count": 0,
+    "kill_switch_triggered_count": 0,
+    "average_confidence": 0.75,
+    "high_confidence_count": 0
+  }
+}

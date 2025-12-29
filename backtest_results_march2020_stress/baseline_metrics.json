@@ -1,0 +1,35 @@
+{
+  "run_name": "march2020_stress_test",
+  "galactus_version": "0.2.0",
+  "period_start": "2020-03-02T09:15:00",
+  "period_end": "2020-03-31T15:25:00",
+  "metrics": {
+    "total_snapshots": 1650,
+    "total_failures": 0,
+    "high_confidence_failure_rate": 0.0,
+    "false_pressure_rate": 0.0,
+    "average_regime_lag_days": 0.8235294117647058,
+    "silence_correctness_rate": 1.0,
+    "kill_switch_anticipation": 0.0,
+    "confidence_calibration_error": 0.34300377071933463,
+    "failures_by_category": {},
+    "regimes_observed": [
+      "Capitulation",
+      "Panic Volatility",
+      "Normal Derivatives Dominance"
+    ],
+    "stress_periods_detected": 0
+  },
+  "failure_summary": {
+    "total_failures": 0,
+    "high_confidence_failures": 0,
+    "failures_by_category": {}
+  },
+  "snapshot_statistics": {
+    "total_snapshots": 1650,
+    "silenced_count": 0,
+    "kill_switch_triggered_count": 0,
+    "average_confidence": 0.37447043027235705,
+    "high_confidence_count": 0
+  }
+}

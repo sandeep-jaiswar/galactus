@@ -159,3 +159,24 @@ Run tests with: `cargo test --package galactus-core`
 - Automated schema migration
 - Enhanced normalization rules
 - Performance optimizations for high-throughput ingestion
+
+## Research Adapter Integration
+
+The core can optionally fetch latest historical/spot data from the research HTTP adapter. Set the research adapter URL in the environment:
+
+```bash
+# example: adapter running on the local machine
+export RESEARCH_PROVIDER_URL=http://127.0.0.1:8000
+```
+
+Behavior:
+- If an incoming intent request does not supply `market_data`, the HTTP API will attempt to backfill the latest price for symbols provided in `context["symbols"]` (comma-separated). If `context["symbols"]` is not present the core requests `NIFTY` by default.
+- The research adapter exposes `/v1/historical/{SYMBOL}` and accepts `days` and `allow_synthetic` query parameters. For development you can call it directly:
+
+```bash
+curl "${RESEARCH_PROVIDER_URL}/v1/historical/NIFTY?days=3&allow_synthetic=true" | jq .
+```
+
+Notes:
+- This integration is intended for development and testing. Production deployments should provide deterministic, audited market data sources.
+- To enable synthetic generation in research, set `GALACTUS_ALLOW_SYNTHETIC=true` in the research environment (not recommended for production).

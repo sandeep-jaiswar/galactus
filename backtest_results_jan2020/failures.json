@@ -1,0 +1,74 @@
+[
+  {
+    "timestamp": "2020-01-08T09:15:00",
+    "event_sequence": 300,
+    "instrument": "NIFTY",
+    "regime": "Elevated Volatility",
+    "confidence_at_failure": 0.8430819703427499,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Elevated Volatility regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  },
+  {
+    "timestamp": "2020-01-09T09:15:00",
+    "event_sequence": 375,
+    "instrument": "NIFTY",
+    "regime": "Normal Derivatives Dominance",
+    "confidence_at_failure": 0.8948950081461128,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Normal Derivatives Dominance regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  },
+  {
+    "timestamp": "2020-01-14T09:15:00",
+    "event_sequence": 600,
+    "instrument": "NIFTY",
+    "regime": "Expiry Compression",
+    "confidence_at_failure": 0.9134482189716632,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Expiry Compression regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  },
+  {
+    "timestamp": "2020-01-15T09:15:00",
+    "event_sequence": 675,
+    "instrument": "NIFTY",
+    "regime": "Normal Derivatives Dominance",
+    "confidence_at_failure": 0.8956698729810778,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Normal Derivatives Dominance regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  },
+  {
+    "timestamp": "2020-01-21T09:15:00",
+    "event_sequence": 975,
+    "instrument": "NIFTY",
+    "regime": "Expiry Compression",
+    "confidence_at_failure": 0.9134062617532551,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Expiry Compression regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  },
+  {
+    "timestamp": "2020-01-22T09:15:00",
+    "event_sequence": 1050,
+    "instrument": "NIFTY",
+    "regime": "Normal Derivatives Dominance",
+    "confidence_at_failure": 0.8969800139765466,
+    "was_silenced": false,
+    "category": "regime_lag",
+    "description": "regime_lag in Normal Derivatives Dominance regime",
+    "root_cause": "To be determined",
+    "corrective_action": null
+  }
+]

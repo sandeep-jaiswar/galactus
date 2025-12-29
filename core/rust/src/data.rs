@@ -11,6 +11,9 @@
 use chrono::{DateTime, Utc};
 use std::fmt;
 
+// Research HTTP client (optional runtime integration)
+pub mod research_client;
+
 /// Globally unique identifier for events
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct EventId(pub String);
@@ -137,6 +140,7 @@ pub enum EventPayload {
     Liquidity(LiquidityPayload),
     Information(InformationPayload),
     System(SystemPayload),
+    NoOp, // No-op placeholder to ensure patch format
 }
 
 /// Market structure event payload

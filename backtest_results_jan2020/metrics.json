@@ -1,0 +1,37 @@
+{
+  "run_name": "jan2020_baseline_backtest",
+  "galactus_version": "0.1.0",
+  "period_start": "2020-01-02T09:15:00",
+  "period_end": "2020-01-31T15:25:00",
+  "metrics": {
+    "total_snapshots": 1650,
+    "total_failures": 0,
+    "high_confidence_failure_rate": 0.007619047619047619,
+    "false_pressure_rate": 0.0,
+    "average_regime_lag_days": 3.3333333333333335,
+    "silence_correctness_rate": 1.0,
+    "kill_switch_anticipation": 0.0,
+    "confidence_calibration_error": 0.09836562807611467,
+    "failures_by_category": {},
+    "regimes_observed": [
+      "Elevated Volatility",
+      "Expiry Compression",
+      "Normal Derivatives Dominance"
+    ],
+    "stress_periods_detected": 0
+  },
+  "failure_summary": {
+    "total_failures": 6,
+    "high_confidence_failures": 6,
+    "failures_by_category": {
+      "regime_lag": 6
+    }
+  },
+  "snapshot_statistics": {
+    "total_snapshots": 1650,
+    "silenced_count": 0,
+    "kill_switch_triggered_count": 0,
+    "average_confidence": 0.8913094336547999,
+    "high_confidence_count": 1575
+  }
+}

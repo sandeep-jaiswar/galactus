@@ -2,6 +2,7 @@
 // Production Rust inference engine for capital pressure detection
 
 pub mod api;
+pub mod backtesting;
 pub mod confidence;
 pub mod config;
 pub mod data;

@@ -20,6 +20,7 @@ Validation Requirements:
 """
 
 import warnings
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -258,6 +259,7 @@ def generate_synthetic_oi_data(
     decay_rate: float,
     time_delta_hours: float,
     noise_factor: float = 0.05,
+    allow_synthetic: bool = False,
 ) -> Dict[float, int]:
     """
     Generate synthetic OI data for testing.
@@ -271,6 +273,18 @@ def generate_synthetic_oi_data(
     Returns:
         Synthetic OI data
     """
+    if not allow_synthetic and os.environ.get(
+        "GALACTUS_ALLOW_SYNTHETIC", ""
+    ).lower() not in (
+        "1",
+        "true",
+        "yes",
+    ):
+        raise RuntimeError(
+            "Synthetic OI generation is disabled by default. "
+            "Enable only for tests by passing allow_synthetic=True or set the "
+            "environment variable GALACTUS_ALLOW_SYNTHETIC=true."
+        )
     synthetic_oi = {}
 
     for strike, base_qty in base_oi.items():
