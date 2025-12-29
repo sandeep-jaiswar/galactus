@@ -217,7 +217,7 @@ pub struct FailurePattern {
     /// Time window of occurrences (first to last, in seconds)
     pub time_window: u64,
 
-    /// Whether this pattern requires immediate action
+    /// Whether this pattern requires immediate system response
     pub requires_action: bool,
 
     /// Recommended trigger action
