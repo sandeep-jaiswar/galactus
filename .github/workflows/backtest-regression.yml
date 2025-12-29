@@ -74,8 +74,7 @@ jobs:
 
       - name: Run backtest evaluation
         run: |
-          cd research/python
-          python -m backtesting.example
+          python research/python/scripts/run_backtest_jan2020.py
         continue-on-error: false
 
       - name: Load baseline metrics
@@ -90,7 +89,6 @@ jobs:
 
       - name: Check regression
         run: |
-          cd research/python
           python scripts/check_backtest_regression.py \
             --baseline=${{ github.workspace }}/backtest_results/baseline_metrics.json \
             --current=${{ github.workspace }}/backtest_results/metrics.json \

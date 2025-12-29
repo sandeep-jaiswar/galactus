@@ -10,7 +10,7 @@ This example demonstrates how to:
 import logging
 from datetime import datetime, timedelta, timezone
 
-from galactus.backtesting import (
+from backtesting import (
     BacktestHarness,
     DataQualitySnapshot,
     ForcedFlowSnapshot,
