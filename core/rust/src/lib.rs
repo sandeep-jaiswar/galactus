@@ -10,6 +10,7 @@ pub mod features;
 pub mod ingestion;
 pub mod intent;
 pub mod kill_switch;
+pub mod output_validation;
 pub mod persistence;
 pub mod regime;
 pub mod stress_scenarios;
