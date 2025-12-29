@@ -56,6 +56,9 @@ SIZING_TERMS=(
     "use.*leverage"
 )
 
+# Forbidden terms for timing/urgency
+# Note: "immediate action" is correctly forbidden for outputs.
+# Internal code comments should use "immediate system response" instead.
 URGENCY_TERMS=(
     "act now"
     "urgent"

@@ -20,6 +20,7 @@ jobs:
       - name: Check output restrictions in code
         run: |
           echo "🔒 Enforcing output restrictions..."
+          chmod +x ./scripts/check_output_restrictions.sh
           ./scripts/check_output_restrictions.sh
       
       - name: Verify validation module

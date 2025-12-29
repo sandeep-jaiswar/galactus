@@ -125,6 +125,10 @@ fn position_sizing_terms() -> HashSet<&'static str> {
 }
 
 /// Forbidden terms for timing/urgency
+///
+/// Note: "immediate action" is correctly in this list for user-facing outputs.
+/// Internal code should use phrases like "immediate system response" to be more precise
+/// and avoid false positives in validation.
 fn timing_urgency_terms() -> HashSet<&'static str> {
     [
         "act now", "immediate action", "urgent", "don't miss",
