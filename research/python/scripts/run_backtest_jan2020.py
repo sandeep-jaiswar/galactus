@@ -371,7 +371,7 @@ def run_jan2020_backtest():
     )
 
     logger.info("\nRunning backtest evaluation...")
-    metrics = harness.run_backtest(snapshots)
+    harness.run_backtest(snapshots)
 
     # Print results
     logger.info("\n" + "=" * 70)

@@ -165,7 +165,7 @@ def main():
     harness = BacktestHarness(
         galactus_version="0.2.0", run_name=f"live_canary_{args.symbol}"
     )
-    metrics = harness.run_backtest([snapshot])
+    harness.run_backtest([snapshot])
     summary = harness.get_summary_report()
 
     out_dir = ROOT / args.out

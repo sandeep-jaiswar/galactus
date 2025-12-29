@@ -6,7 +6,8 @@ authors = ["Galactus Research Team"]
 packages = [
     { include = "data", from = "src" },
     { include = "features", from = "src" },
-    { include = "validation", from = "src" }
+    { include = "validation", from = "src" },
+    { include = "backtesting", from = "src" }
 ]
 
 [tool.poetry.dependencies]

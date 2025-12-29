@@ -108,7 +108,7 @@ def main():
     )
 
     logger.info("Running backtest...")
-    metrics = harness.run_backtest(snapshots)
+    harness.run_backtest(snapshots)
 
     # Print summary
     logger.info("\n" + "=" * 60)

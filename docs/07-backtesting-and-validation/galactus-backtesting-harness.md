@@ -236,7 +236,7 @@ This is the **most important evaluation**.
 
 ### What We Track
 
-```
+```text
 High Confidence + Wrong = SEVERE FAILURE (red flag)
 High Confidence + Right = acceptable (not punished)
 Low Confidence + Wrong = acceptable (system worked as designed)
@@ -277,7 +277,7 @@ Silence is a **valid, correct output**.
 
 **Correct Silence Rate** — Percentage of times Galactus silenced when it should have.
 
-```
+```text
 Silence during data gap + market moved = correct behavior
 Silence during regime conflict = correct behavior
 Silence during stress = correct behavior

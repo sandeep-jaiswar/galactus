@@ -7,7 +7,7 @@ Deterministic replay and structural evaluation of inference outputs.
 ### Python Research Mode
 
 ```python
-from galactus.backtesting import BacktestHarness, InferenceSnapshot
+from backtesting import BacktestHarness, InferenceSnapshot
 
 # Create harness
 harness = BacktestHarness(
