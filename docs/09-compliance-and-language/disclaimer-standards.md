@@ -1,7 +1,7 @@
 # Galactus — Disclaimer Standards
 
 ## Purpose
-Define mandatory disclaimer language to prevent misinterpretation.
+Define mandatory disclaimer language to prevent misinterpretation and maintain SEBI regulatory safe harbor.
 
 ---
 
@@ -25,6 +25,14 @@ Galactus outputs are **informational only**.
 - Dashboards
 - Reports
 - Documentation
+
+---
+
+## Related Documents
+
+- [`sebi-regulatory-boundaries.md`](sebi-regulatory-boundaries.md) — SEBI compliance and regulatory safe harbor
+- [`output-restrictions.md`](output-restrictions.md) — Forbidden output categories
+- [`language-guidelines.md`](language-guidelines.md) — Comprehensive language rules
 
 ---
 

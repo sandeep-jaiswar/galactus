@@ -592,6 +592,7 @@ Relaxation of forbidden language requires:
 
 - [`output-restrictions.md`](output-restrictions.md) — What outputs are forbidden
 - [`disclaimer-standards.md`](disclaimer-standards.md) — Required disclaimer language
+- [`sebi-regulatory-boundaries.md`](sebi-regulatory-boundaries.md) — SEBI compliance and regulatory safe harbor
 - [`explicit-non-goals.md`](../00-vision-and-non-goals/explicit-non-goals.md) — What Galactus will never do
 - [`forbidden-metrics.md`](../04-signal-and-metrics/forbidden-metrics.md) — Forbidden measurement categories
 - [`VISION_LOCK.md`](../../VISION_LOCK.md) — Vision immutability enforcement

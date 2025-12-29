@@ -297,6 +297,7 @@ By explicitly excluding execution and strategy:
    - Galactus remains a research tool, not an advisory service
    - No SEBI registration requirements for execution
    - Clear liability boundaries
+   - See [`docs/09-compliance-and-language/sebi-regulatory-boundaries.md`](../09-compliance-and-language/sebi-regulatory-boundaries.md) for detailed compliance framework
 
 2. **Architectural Simplicity**
    - Focused scope prevents feature creep

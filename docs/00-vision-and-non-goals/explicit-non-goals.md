@@ -229,6 +229,16 @@ This document outranks:
 
 ---
 
+## Related Documents
+
+- [`vision.md`](vision.md) — Core system vision and purpose
+- [`design-principles.md`](design-principles.md) — Guiding principles for decision-making
+- [`sebi-regulatory-boundaries.md`](../09-compliance-and-language/sebi-regulatory-boundaries.md) — Regulatory compliance framework
+- [`output-restrictions.md`](../09-compliance-and-language/output-restrictions.md) — Forbidden output categories
+- [`VISION_LOCK.md`](../../VISION_LOCK.md) — Vision immutability enforcement
+
+---
+
 ## Final Statement
 
 **Galactus succeeds by being narrow, disciplined, and principled.**
