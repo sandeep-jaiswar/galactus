@@ -878,13 +878,72 @@ class GalactusDataProvider:
         # Generate synthetic OHLC data with realistic volatility
         rng = np.random.default_rng(42)  # reproducible but local RNG
 
-        # Simulate price series with random walk
-        returns = rng.normal(0.0001, 0.02, len(dates))  # Small drift, 2% daily vol
+        # Simulate price series with random walk + crisis periods
+        base_vol = 0.02  # 2% base daily volatility
+        returns = rng.normal(0.0001, base_vol, len(dates))
+
+        # Inject crisis periods with 5-10% daily volatility
+        # COVID crash (March 2020)
+        covid_start = (datetime(2020, 3, 1) - start_date).days
+        covid_end = (datetime(2020, 4, 15) - start_date).days
+        if 0 <= covid_start < len(dates):
+            crisis_len = min(covid_end - covid_start, len(dates) - covid_start)
+            returns[covid_start : covid_start + crisis_len] = rng.normal(
+                -0.02, 0.08, crisis_len
+            )
+
+        # Ukraine war volatility (Feb-Mar 2022)
+        ukraine_start = (datetime(2022, 2, 20) - start_date).days
+        ukraine_end = (datetime(2022, 3, 31) - start_date).days
+        if 0 <= ukraine_start < len(dates):
+            crisis_len = min(ukraine_end - ukraine_start, len(dates) - ukraine_start)
+            returns[ukraine_start : ukraine_start + crisis_len] = rng.normal(
+                -0.01, 0.05, crisis_len
+            )
+
+        # SVB banking crisis (March 2023)
+        svb_start = (datetime(2023, 3, 8) - start_date).days
+        svb_end = (datetime(2023, 3, 20) - start_date).days
+        if 0 <= svb_start < len(dates):
+            crisis_len = min(svb_end - svb_start, len(dates) - svb_start)
+            returns[svb_start : svb_start + crisis_len] = rng.normal(
+                -0.015, 0.06, crisis_len
+            )
+
         price_series = current_price * np.exp(np.cumsum(returns))
 
-        # Generate OHLC from price series
-        high_mult = 1 + np.abs(rng.normal(0, 0.01, len(dates)))
-        low_mult = 1 - np.abs(rng.normal(0, 0.01, len(dates)))
+        # Generate OHLC from price series with crisis-aware volatility
+        base_hl_vol = 0.01  # Base 1% high-low spread
+        hl_volatility = np.full(len(dates), base_hl_vol)
+
+        # Inject higher H-L spreads during crisis periods
+        # COVID crash (March 2020)
+        covid_start = (datetime(2020, 3, 1) - start_date).days
+        covid_end = (datetime(2020, 4, 15) - start_date).days
+        if 0 <= covid_start < len(dates):
+            crisis_len = min(covid_end - covid_start, len(dates) - covid_start)
+            hl_volatility[covid_start : covid_start + crisis_len] = (
+                0.08  # 8% H-L spread
+            )
+
+        # Ukraine war volatility (Feb-Mar 2022)
+        ukraine_start = (datetime(2022, 2, 20) - start_date).days
+        ukraine_end = (datetime(2022, 3, 31) - start_date).days
+        if 0 <= ukraine_start < len(dates):
+            crisis_len = min(ukraine_end - ukraine_start, len(dates) - ukraine_start)
+            hl_volatility[ukraine_start : ukraine_start + crisis_len] = (
+                0.05  # 5% H-L spread
+            )
+
+        # SVB banking crisis (March 2023)
+        svb_start = (datetime(2023, 3, 8) - start_date).days
+        svb_end = (datetime(2023, 3, 20) - start_date).days
+        if 0 <= svb_start < len(dates):
+            crisis_len = min(svb_end - svb_start, len(dates) - svb_start)
+            hl_volatility[svb_start : svb_start + crisis_len] = 0.06  # 6% H-L spread
+
+        high_mult = 1 + np.abs(rng.normal(0, hl_volatility, len(dates)))
+        low_mult = 1 - np.abs(rng.normal(0, hl_volatility, len(dates)))
 
         df = pd.DataFrame(
             {

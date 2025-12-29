@@ -260,8 +260,15 @@ class SnapshotRecorder:
     def export_as_jsonl(self) -> str:
         """Export as JSONL (one snapshot per line)"""
         lines = []
+
+        def _default(o):
+            try:
+                return o.item()
+            except Exception:
+                return str(o)
+
         for snapshot in self.snapshots:
-            lines.append(json.dumps(snapshot.to_dict()))
+            lines.append(json.dumps(snapshot.to_dict(), default=_default))
         return "\n".join(lines)
 
     def export_as_csv(self) -> str:
@@ -598,7 +605,18 @@ class BacktestFailureLedger:
 
     def export_as_json(self) -> str:
         """Export as JSON"""
-        return json.dumps([f.to_dict() for f in self.failures], indent=2)
+
+        # Ensure numpy types and other non-serializable objects are handled
+        def _default(o):
+            try:
+                # numpy types expose .item()
+                return o.item()
+            except Exception:
+                return str(o)
+
+        return json.dumps(
+            [f.to_dict() for f in self.failures], indent=2, default=_default
+        )
 
 
 class BacktestHarness:
