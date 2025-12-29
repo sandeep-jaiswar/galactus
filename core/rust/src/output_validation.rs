@@ -35,19 +35,19 @@ use std::collections::HashSet;
 pub enum ValidationError {
     /// Trading instruction detected
     TradingInstruction { term: String, context: String },
-    
+
     /// Price target or prediction detected
     PriceTarget { term: String, context: String },
-    
+
     /// Position sizing recommendation detected
     PositionSizing { term: String, context: String },
-    
+
     /// Timing/urgency language detected
     TimingUrgency { term: String, context: String },
-    
+
     /// Performance promise detected
     PerformancePromise { term: String, context: String },
-    
+
     /// Personalized recommendation detected
     PersonalizedAdvice { term: String, context: String },
 }
@@ -56,7 +56,11 @@ impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ValidationError::TradingInstruction { term, context } => {
-                write!(f, "Trading instruction detected: '{}' in '{}'", term, context)
+                write!(
+                    f,
+                    "Trading instruction detected: '{}' in '{}'",
+                    term, context
+                )
             }
             ValidationError::PriceTarget { term, context } => {
                 write!(f, "Price target detected: '{}' in '{}'", term, context)
@@ -68,10 +72,18 @@ impl std::fmt::Display for ValidationError {
                 write!(f, "Timing/urgency detected: '{}' in '{}'", term, context)
             }
             ValidationError::PerformancePromise { term, context } => {
-                write!(f, "Performance promise detected: '{}' in '{}'", term, context)
+                write!(
+                    f,
+                    "Performance promise detected: '{}' in '{}'",
+                    term, context
+                )
             }
             ValidationError::PersonalizedAdvice { term, context } => {
-                write!(f, "Personalized advice detected: '{}' in '{}'", term, context)
+                write!(
+                    f,
+                    "Personalized advice detected: '{}' in '{}'",
+                    term, context
+                )
             }
         }
     }
@@ -82,13 +94,30 @@ impl std::error::Error for ValidationError {}
 /// Forbidden terms for trading instructions
 fn trading_instruction_terms() -> HashSet<&'static str> {
     [
-        "buy signal", "sell signal", "strong buy", "strong sell",
-        "buy now", "sell now",
-        "enter long", "enter short", "exit position",
-        "accumulate", "distribute", "scale in", "scale out",
-        "take profit", "stop loss", "execute trade",
-        "add to position", "reduce position", "open position", "close position",
-        "buy call", "buy put", "sell call", "sell put",
+        "buy signal",
+        "sell signal",
+        "strong buy",
+        "strong sell",
+        "buy now",
+        "sell now",
+        "enter long",
+        "enter short",
+        "exit position",
+        "accumulate",
+        "distribute",
+        "scale in",
+        "scale out",
+        "take profit",
+        "stop loss",
+        "execute trade",
+        "add to position",
+        "reduce position",
+        "open position",
+        "close position",
+        "buy call",
+        "buy put",
+        "sell call",
+        "sell put",
     ]
     .iter()
     .copied()
@@ -98,12 +127,25 @@ fn trading_instruction_terms() -> HashSet<&'static str> {
 /// Forbidden terms for price targets
 fn price_target_terms() -> HashSet<&'static str> {
     [
-        "target price", "price target", "price objective",
-        "expected price", "fair value", "intrinsic value",
-        "price range", "support level", "resistance level",
-        "breakout target", "measured move", "upside target", "downside target",
-        "will rise to", "will fall to", "expected to reach",
-        "should hit", "likely to reach", "projected to move",
+        "target price",
+        "price target",
+        "price objective",
+        "expected price",
+        "fair value",
+        "intrinsic value",
+        "price range",
+        "support level",
+        "resistance level",
+        "breakout target",
+        "measured move",
+        "upside target",
+        "downside target",
+        "will rise to",
+        "will fall to",
+        "expected to reach",
+        "should hit",
+        "likely to reach",
+        "projected to move",
     ]
     .iter()
     .copied()
@@ -113,11 +155,23 @@ fn price_target_terms() -> HashSet<&'static str> {
 /// Forbidden terms for position sizing
 fn position_sizing_terms() -> HashSet<&'static str> {
     [
-        "position size", "allocate", "allocation", "capital allocation",
-        "portfolio weight", "risk per trade", "use leverage",
-        "margin", "exposure", "quantity", "lots",
-        "% of portfolio", "% of capital", "recommended size",
-        "optimal position", "maximum position", "position limit",
+        "position size",
+        "allocate",
+        "allocation",
+        "capital allocation",
+        "portfolio weight",
+        "risk per trade",
+        "use leverage",
+        "margin",
+        "exposure",
+        "quantity",
+        "lots",
+        "% of portfolio",
+        "% of capital",
+        "recommended size",
+        "optimal position",
+        "maximum position",
+        "position limit",
     ]
     .iter()
     .copied()
@@ -131,10 +185,20 @@ fn position_sizing_terms() -> HashSet<&'static str> {
 /// and avoid false positives in validation.
 fn timing_urgency_terms() -> HashSet<&'static str> {
     [
-        "act now", "immediate action", "urgent", "don't miss",
-        "last chance", "window closing", "time running out",
-        "before it's too late", "get in now", "exit immediately",
-        "move quickly", "right now", "asap", "hurry",
+        "act now",
+        "immediate action",
+        "urgent",
+        "don't miss",
+        "last chance",
+        "window closing",
+        "time running out",
+        "before it's too late",
+        "get in now",
+        "exit immediately",
+        "move quickly",
+        "right now",
+        "asap",
+        "hurry",
     ]
     .iter()
     .copied()
@@ -144,11 +208,22 @@ fn timing_urgency_terms() -> HashSet<&'static str> {
 /// Forbidden terms for performance promises
 fn performance_promise_terms() -> HashSet<&'static str> {
     [
-        "guaranteed return", "expected return", "assured profit",
-        "risk-free", "no downside", "safe bet", "can't lose",
-        "will beat market", "outperform", "alpha generation",
-        "expected gain", "projected returns", "guaranteed profit",
-        "performance warranty", "promised outcome", "assured returns",
+        "guaranteed return",
+        "expected return",
+        "assured profit",
+        "risk-free",
+        "no downside",
+        "safe bet",
+        "can't lose",
+        "will beat market",
+        "outperform",
+        "alpha generation",
+        "expected gain",
+        "projected returns",
+        "guaranteed profit",
+        "performance warranty",
+        "promised outcome",
+        "assured returns",
     ]
     .iter()
     .copied()
@@ -158,10 +233,19 @@ fn performance_promise_terms() -> HashSet<&'static str> {
 /// Forbidden terms for personalized advice
 fn personalized_advice_terms() -> HashSet<&'static str> {
     [
-        "you should", "we recommend", "best for you", "right for you",
-        "ideal for you", "suited to you", "matches your",
-        "your portfolio", "your risk profile", "your situation",
-        "based on your", "for your", "your holdings",
+        "you should",
+        "we recommend",
+        "best for you",
+        "right for you",
+        "ideal for you",
+        "suited to you",
+        "matches your",
+        "your portfolio",
+        "your risk profile",
+        "your situation",
+        "based on your",
+        "for your",
+        "your holdings",
     ]
     .iter()
     .copied()
@@ -173,7 +257,7 @@ fn extract_context(text: &str, position: usize, term_len: usize) -> String {
     let start = position.saturating_sub(50);
     let end = (position + term_len + 50).min(text.len());
     let context = &text[start..end];
-    
+
     if start > 0 {
         format!("...{}", context)
     } else {
@@ -188,14 +272,14 @@ fn check_forbidden_terms(
     error_constructor: impl Fn(String, String) -> ValidationError,
 ) -> Result<(), ValidationError> {
     let text_lower = text.to_lowercase();
-    
+
     for term in terms {
         if let Some(pos) = text_lower.find(term) {
             let context = extract_context(&text_lower, pos, term.len());
             return Err(error_constructor(term.to_string(), context));
         }
     }
-    
+
     Ok(())
 }
 
@@ -225,54 +309,44 @@ fn check_forbidden_terms(
 /// ```
 pub fn validate_output(output: &str) -> Result<(), ValidationError> {
     // Check for trading instructions
-    check_forbidden_terms(
-        output,
-        &trading_instruction_terms(),
-        |term, context| ValidationError::TradingInstruction { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &trading_instruction_terms(), |term, context| {
+        ValidationError::TradingInstruction { term, context }
+    })?;
+
     // Check for price targets
-    check_forbidden_terms(
-        output,
-        &price_target_terms(),
-        |term, context| ValidationError::PriceTarget { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &price_target_terms(), |term, context| {
+        ValidationError::PriceTarget { term, context }
+    })?;
+
     // Check for position sizing
-    check_forbidden_terms(
-        output,
-        &position_sizing_terms(),
-        |term, context| ValidationError::PositionSizing { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &position_sizing_terms(), |term, context| {
+        ValidationError::PositionSizing { term, context }
+    })?;
+
     // Check for timing/urgency
-    check_forbidden_terms(
-        output,
-        &timing_urgency_terms(),
-        |term, context| ValidationError::TimingUrgency { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &timing_urgency_terms(), |term, context| {
+        ValidationError::TimingUrgency { term, context }
+    })?;
+
     // Check for performance promises
-    check_forbidden_terms(
-        output,
-        &performance_promise_terms(),
-        |term, context| ValidationError::PerformancePromise { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &performance_promise_terms(), |term, context| {
+        ValidationError::PerformancePromise { term, context }
+    })?;
+
     // Check for personalized advice
-    check_forbidden_terms(
-        output,
-        &personalized_advice_terms(),
-        |term, context| ValidationError::PersonalizedAdvice { term, context },
-    )?;
-    
+    check_forbidden_terms(output, &personalized_advice_terms(), |term, context| {
+        ValidationError::PersonalizedAdvice { term, context }
+    })?;
+
     Ok(())
 }
 
 /// Validate structured metadata fields
 ///
 /// Validates HashMap string values for forbidden content
-pub fn validate_metadata(metadata: &std::collections::HashMap<String, String>) -> Result<(), ValidationError> {
+pub fn validate_metadata(
+    metadata: &std::collections::HashMap<String, String>,
+) -> Result<(), ValidationError> {
     for (key, value) in metadata {
         // Validate both key and value
         validate_output(key)?;
@@ -313,7 +387,10 @@ mod tests {
         let output = "Strong BUY SIGNAL detected";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::TradingInstruction { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::TradingInstruction { .. }
+        ));
     }
 
     #[test]
@@ -321,7 +398,10 @@ mod tests {
         let output = "Strong SELL SIGNAL at current levels";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::TradingInstruction { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::TradingInstruction { .. }
+        ));
     }
 
     #[test]
@@ -329,7 +409,10 @@ mod tests {
         let output = "Target price of 250 rupees";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::PriceTarget { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::PriceTarget { .. }
+        ));
     }
 
     #[test]
@@ -337,7 +420,10 @@ mod tests {
         let output = "Allocate 10% of portfolio to this position";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::PositionSizing { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::PositionSizing { .. }
+        ));
     }
 
     #[test]
@@ -345,7 +431,10 @@ mod tests {
         let output = "Act now before the window closes";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::TimingUrgency { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::TimingUrgency { .. }
+        ));
     }
 
     #[test]
@@ -353,7 +442,10 @@ mod tests {
         let output = "Guaranteed return of 25%";
         let result = validate_output(output);
         assert!(result.is_err());
-        assert!(matches!(result.unwrap_err(), ValidationError::PerformancePromise { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::PerformancePromise { .. }
+        ));
     }
 
     #[test]
@@ -362,7 +454,10 @@ mod tests {
         let result = validate_output(output);
         assert!(result.is_err());
         // This will catch "you should" which is personalized advice
-        assert!(matches!(result.unwrap_err(), ValidationError::PersonalizedAdvice { .. }));
+        assert!(matches!(
+            result.unwrap_err(),
+            ValidationError::PersonalizedAdvice { .. }
+        ));
     }
 
     #[test]
@@ -373,7 +468,7 @@ mod tests {
             "buy signal detected",
             "BuY sIgNaL detected",
         ];
-        
+
         for output in outputs {
             assert!(validate_output(output).is_err());
         }
@@ -381,10 +476,11 @@ mod tests {
 
     #[test]
     fn test_context_extraction() {
-        let output = "This is a long sentence with a BUY SIGNAL instruction hidden in the middle of it";
+        let output =
+            "This is a long sentence with a BUY SIGNAL instruction hidden in the middle of it";
         let result = validate_output(output);
         assert!(result.is_err());
-        
+
         if let Err(ValidationError::TradingInstruction { term, context }) = result {
             assert_eq!(term, "buy signal");
             assert!(context.contains("buy signal"));
@@ -396,15 +492,18 @@ mod tests {
         let mut metadata = std::collections::HashMap::new();
         metadata.insert("signal_type".to_string(), "structural_pressure".to_string());
         metadata.insert("regime".to_string(), "high_pressure".to_string());
-        
+
         assert!(validate_metadata(&metadata).is_ok());
     }
 
     #[test]
     fn test_forbidden_metadata() {
         let mut metadata = std::collections::HashMap::new();
-        metadata.insert("recommendation".to_string(), "buy signal detected".to_string());
-        
+        metadata.insert(
+            "recommendation".to_string(),
+            "buy signal detected".to_string(),
+        );
+
         assert!(validate_metadata(&metadata).is_err());
     }
 
