@@ -459,7 +459,7 @@ Request a limit increase if:
 
 ```bash
 # Submit rate limit increase request
-galactus-cli support request-limit-increase \
+galactus-cli limits request-increase \
   --client-id your-client-id \
   --current-limit 100 \
   --requested-limit 500 \
