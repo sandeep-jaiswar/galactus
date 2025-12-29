@@ -621,6 +621,7 @@ tolerance, and factors outside this system's scope.
 
 - [`language-guidelines.md`](language-guidelines.md) — Comprehensive language rules
 - [`disclaimer-standards.md`](disclaimer-standards.md) — Required disclaimer formats
+- [`sebi-regulatory-boundaries.md`](sebi-regulatory-boundaries.md) — SEBI compliance and regulatory safe harbor
 - [`explicit-non-goals.md`](../00-vision-and-non-goals/explicit-non-goals.md) — System-level non-goals
 - [`forbidden-metrics.md`](../04-signal-and-metrics/forbidden-metrics.md) — Forbidden measurement types
 - [`kill-switch.md`](../08-risk-and-failure-modes/kill-switch.md) — Automatic shutdown criteria

@@ -118,7 +118,7 @@ The complete documentation is organized in **[`docs/`](docs/)**:
 
 ### 🛡️ Risk and Compliance
 - **[`08-risk-and-failure-modes/`](docs/08-risk-and-failure-modes/)** — Known risks and kill-switch criteria
-- **[`09-compliance-and-language/`](docs/09-compliance-and-language/)** — Language guidelines and output restrictions
+- **[`09-compliance-and-language/`](docs/09-compliance-and-language/)** — SEBI regulatory boundaries, language guidelines, and output restrictions
 
 ### 📋 Operations and Evolution
 - **[`10-operational-playbooks/`](docs/10-operational-playbooks/)** — Operational procedures
