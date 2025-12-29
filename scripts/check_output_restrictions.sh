@@ -91,19 +91,22 @@ echo ""
 VIOLATIONS=0
 WARNINGS=0
 
-# Function to check a file for forbidden terms
-check_file() {
-    local file=$1
-    local terms=("${@:2}")
-    local category=$2
-    
-    for term in "${terms[@]}"; do
-        # Use grep with case-insensitive search and show line numbers
-        if grep -inH "$term" "$file" 2>/dev/null; then
-            echo -e "${RED}❌ VIOLATION: Found '$term' in $file${NC}"
-            VIOLATIONS=$((VIOLATIONS + 1))
+# Allowed terms in specific contexts (exceptions to forbidden terms)
+ALLOWED_EXCEPTIONS=(
+    "buying pressure"
+    "selling pressure"
+    "risk-free rate"
+)
+
+# Function to check if line contains allowed exceptions
+is_allowed_exception() {
+    local line="$1"
+    for exception in "${ALLOWED_EXCEPTIONS[@]}"; do
+        if echo "$line" | grep -qi "$exception"; then
+            return 0  # Found exception, line is allowed
         fi
     done
+    return 1  # No exception found
 }
 
 # Function to check all relevant files
@@ -114,7 +117,7 @@ check_category() {
     
     echo -e "${BLUE}Checking category: $category${NC}"
     
-    # Check Rust source files (excluding test files and comments with "buying/selling pressure")
+    # Check Rust source files (excluding test files and the output_validation module)
     while IFS= read -r -d '' file; do
         # Skip the output_validation module itself (contains terms for validation purposes)
         if [[ "$file" == *"output_validation.rs" ]]; then
@@ -122,15 +125,16 @@ check_category() {
         fi
         
         for term in "${terms[@]}"; do
-            # Skip if the term is part of allowed structural language
-            # e.g., "buying pressure" and "selling pressure" are allowed
-            # "risk-free rate" in financial calculation context is allowed
-            if grep -inH "$term" "$file" 2>/dev/null | grep -v "buying pressure" | grep -v "selling pressure" | grep -v "risk-free rate" | grep -q .; then
-                echo -e "${RED}❌ VIOLATION in $file: '$term'${NC}"
-                grep -inH --color=always "$term" "$file" | grep -v "buying pressure" | grep -v "selling pressure" | grep -v "risk-free rate" | head -3
-                echo ""
-                VIOLATIONS=$((VIOLATIONS + 1))
-            fi
+            # Check each line for violations, excluding allowed exceptions
+            while IFS= read -r line; do
+                if ! is_allowed_exception "$line"; then
+                    echo -e "${RED}❌ VIOLATION in $file: '$term'${NC}"
+                    echo "$line"
+                    echo ""
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                    break  # Only report first occurrence per term
+                fi
+            done < <(grep -inH "$term" "$file" 2>/dev/null)
         done
     done < <(find core/rust/src -name "*.rs" -not -path "*/tests/*" -print0)
     
@@ -142,12 +146,16 @@ check_category() {
         fi
         
         for term in "${terms[@]}"; do
-            if grep -inH "$term" "$file" 2>/dev/null | grep -v "buying pressure" | grep -v "selling pressure" | grep -v "risk-free rate" | grep -q .; then
-                echo -e "${RED}❌ CRITICAL VIOLATION in API code $file: '$term'${NC}"
-                grep -inH --color=always "$term" "$file" | grep -v "buying pressure" | grep -v "selling pressure" | grep -v "risk-free rate" | head -3
-                echo ""
-                VIOLATIONS=$((VIOLATIONS + 1))
-            fi
+            # Check each line for violations, excluding allowed exceptions
+            while IFS= read -r line; do
+                if ! is_allowed_exception "$line"; then
+                    echo -e "${RED}❌ CRITICAL VIOLATION in API code $file: '$term'${NC}"
+                    echo "$line"
+                    echo ""
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                    break  # Only report first occurrence per term
+                fi
+            done < <(grep -inH "$term" "$file" 2>/dev/null)
         done
     done < <(find core/rust/src/api -name "*.rs" -print0 2>/dev/null || true)
 }
