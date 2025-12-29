@@ -1,5 +1,10 @@
 name: Backtest Regression Tests
 
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
 # Run on pull requests that modify core inference logic or backtesting code
 on:
   pull_request:
@@ -136,17 +141,6 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
-        continue-on-error: true
-
-      - name: Save metrics as baseline
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          cp backtest_results/metrics.json backtest_results/baseline_metrics.json
-          git config --global user.email "backtest@galactus.local"
-          git config --global user.name "Backtest Bot"
-          git add backtest_results/baseline_metrics.json
-          git commit -m "chore: update backtest baseline metrics [skip ci]" || true
-          git push
         continue-on-error: true
 
   failure-analysis:

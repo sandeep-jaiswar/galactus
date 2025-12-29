@@ -401,10 +401,7 @@ class BacktestEvaluator:
             if snapshot.capital_pressure.detected:
                 total_detections += 1
 
-                if snapshot.regime.confidence < 0.7:
-                    false_positives += 1
-
-                if snapshot.stability_indicator > 0.85:
+                if snapshot.regime.confidence < 0.7 or snapshot.stability_indicator > 0.85:
                     false_positives += 1
 
         return false_positives / total_detections if total_detections > 0 else 0.0

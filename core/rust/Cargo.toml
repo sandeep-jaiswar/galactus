@@ -12,12 +12,12 @@ license = "TBD"
 [dependencies]
 # Core functionality (to be added as needed after promotion)
 chrono = { version = "0.4", features = ["serde"] }  # Date/time handling for events
-ordered-float = "4.0"  # Ordered floating point comparisons
+ordered-float = { version = "4.0", features = ["serde"] }  # Ordered floating point comparisons
 
 serde = { version = "1.0", features = ["derive"] }  # Serialization for data structures (enable when needed)
 serde_json = "1.0"  # JSON serialization for persistence
 tokio = { version = "1", features = ["full"] }      # Async runtime
-reqwest = { version = "0.11", features = ["json", "blocking", "rustls-tls"] }
+reqwest = { version = "0.11", features = ["json", "blocking", "rustls-tls"] }  # HTTP client for research data provider backfill
 # polars = "0.35"                                      # Data processing
 
 # API dependencies

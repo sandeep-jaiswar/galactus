@@ -103,7 +103,8 @@ class BasisDivergenceDetector:
             )
         )
 
-        divergence_bps = abs(actual_basis_bps - fair_basis_bps)
+        raw_divergence = actual_basis_bps - fair_basis_bps
+        divergence_bps = abs(raw_divergence)
 
         if divergence_bps > BasisDivergenceDetector.STRESS_THRESHOLD_BPS:
             # Divergence detected
@@ -122,7 +123,7 @@ class BasisDivergenceDetector:
                 strength=strength,
                 implied_regime=(
                     "Expiry Compression"
-                    if divergence_bps > 0
+                    if raw_divergence > 0
                     else "Elevated Volatility"
                 ),
                 confidence=confidence,

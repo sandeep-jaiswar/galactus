@@ -6,6 +6,7 @@
 use crate::backtesting::types::BacktestFailure;
 use crate::failure_analysis::{FailureCategory, FailureRecord};
 use chrono::{DateTime, Utc};
+use ordered_float::OrderedFloat;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -83,11 +84,12 @@ impl BacktestFailureLedger {
 
     /// Get high-confidence failures (worst case)
     pub fn get_high_confidence_failures(&self, threshold: f64) -> Vec<BacktestFailure> {
+        let threshold_ordered = OrderedFloat(threshold);
         self.failures
             .lock()
             .unwrap()
             .iter()
-            .filter(|f| f.confidence_at_failure > threshold)
+            .filter(|f| f.confidence_at_failure > threshold_ordered)
             .cloned()
             .collect()
     }
@@ -149,7 +151,7 @@ impl BacktestFailureLedger {
 
         let high_confidence = failures
             .iter()
-            .filter(|f| f.confidence_at_failure > 0.8)
+            .filter(|f| f.confidence_at_failure > OrderedFloat(0.8))
             .count();
 
         let while_silenced = failures.iter().filter(|f| f.was_silenced).count();

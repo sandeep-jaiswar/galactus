@@ -5,6 +5,7 @@
 
 use crate::backtesting::types::*;
 use chrono::{DateTime, Utc};
+use ordered_float::OrderedFloat;
 use std::sync::Arc;
 use std::sync::Mutex;
 
