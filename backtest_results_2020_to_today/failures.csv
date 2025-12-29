@@ -1,3 +1,0 @@
-timestamp,event_sequence,instrument,regime,confidence,was_silenced,category,description,root_cause
-2022-03-29T20:47:48.645176+00:00,818,NIFTY,Normal Derivatives Dominance,0.7911329431692529,False,regime_lag,regime_lag in Normal Derivatives Dominance regime,To be determined
-2023-03-19T20:47:48.645176+00:00,1173,NIFTY,Normal Derivatives Dominance,0.7897884411767161,False,regime_lag,regime_lag in Normal Derivatives Dominance regime,To be determined

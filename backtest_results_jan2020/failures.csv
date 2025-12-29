@@ -1,7 +1,0 @@
-timestamp,event_sequence,instrument,regime,confidence,was_silenced,category,description,root_cause
-2020-01-08T09:15:00,300,NIFTY,Elevated Volatility,0.8430819703427499,False,regime_lag,regime_lag in Elevated Volatility regime,To be determined
-2020-01-09T09:15:00,375,NIFTY,Normal Derivatives Dominance,0.8948950081461128,False,regime_lag,regime_lag in Normal Derivatives Dominance regime,To be determined
-2020-01-14T09:15:00,600,NIFTY,Expiry Compression,0.9134482189716632,False,regime_lag,regime_lag in Expiry Compression regime,To be determined
-2020-01-15T09:15:00,675,NIFTY,Normal Derivatives Dominance,0.8956698729810778,False,regime_lag,regime_lag in Normal Derivatives Dominance regime,To be determined
-2020-01-21T09:15:00,975,NIFTY,Expiry Compression,0.9134062617532551,False,regime_lag,regime_lag in Expiry Compression regime,To be determined
-2020-01-22T09:15:00,1050,NIFTY,Normal Derivatives Dominance,0.8969800139765466,False,regime_lag,regime_lag in Normal Derivatives Dominance regime,To be determined
