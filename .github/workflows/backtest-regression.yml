@@ -95,6 +95,12 @@ jobs:
             --fail-on-regression
         continue-on-error: false
 
+      - name: Ensure results directory exists
+        if: always()
+        run: |
+          mkdir -p backtest_results
+          touch backtest_results/README.log
+
       - name: Upload backtest results
         if: always()
         uses: actions/upload-artifact@v4
