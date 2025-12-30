@@ -1,0 +1,203 @@
+name: Backtest Regression Tests
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+# Run on pull requests that modify core inference logic or backtesting code
+on:
+  pull_request:
+    paths:
+      - 'core/rust/src/regime/**'
+      - 'core/rust/src/features/**'
+      - 'core/rust/src/confidence/**'
+      - 'core/rust/src/backtesting/**'
+      - 'research/python/src/backtesting/**'
+      - '.github/workflows/backtest-regression.yml'
+
+  # Manual trigger for on-demand backtest runs
+  workflow_dispatch:
+    inputs:
+      backtest_period:
+        description: 'Period to backtest (days)'
+        required: false
+        default: '90'
+
+jobs:
+  backtest-regression:
+    name: Backtest Historical Period
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            core/rust/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build Rust harness
+        run: |
+          cd core/rust
+          cargo build --release --package galactus-core
+        continue-on-error: false
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Download historical backtest data
+        run: |
+          mkdir -p data/backtest
+          # Placeholder: In production, download from data source
+          echo "Backtest data would be downloaded here"
+          touch data/backtest/events.jsonl
+        continue-on-error: true
+
+      - name: Run backtest evaluation
+        run: |
+          PYTHONPATH=research/python/src python research/python/src/backtesting/example.py
+        continue-on-error: false
+
+      - name: Load baseline metrics
+        id: baseline
+        run: |
+          if [ -f backtest_results/baseline_metrics.json ]; then
+            cat backtest_results/baseline_metrics.json
+          else
+            echo "No baseline metrics found"
+          fi
+        continue-on-error: true
+
+      - name: Check regression
+        run: |
+          python scripts/check_backtest_regression.py \
+            --baseline=${{ github.workspace }}/backtest_results/baseline_metrics.json \
+            --current=${{ github.workspace }}/backtest_results/metrics.json \
+            --fail-on-regression
+        continue-on-error: false
+
+      - name: Ensure results directory exists
+        if: always()
+        run: |
+          mkdir -p backtest_results
+          touch backtest_results/README.log
+
+      - name: Upload backtest results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backtest-results-${{ github.run_id }}
+          path: backtest_results/
+          retention-days: 30
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const metrics = JSON.parse(
+              fs.readFileSync('backtest_results/metrics.json', 'utf8')
+            );
+            
+            const comment = `## Backtest Regression Analysis
+
+            ### Key Metrics
+            - **Total Snapshots**: ${metrics.metrics.total_snapshots}
+            - **Total Failures**: ${metrics.metrics.total_failures}
+            - **High-Confidence Failure Rate**: ${(metrics.metrics.high_confidence_failure_rate * 100).toFixed(2)}%
+            - **False Pressure Rate**: ${(metrics.metrics.false_pressure_rate * 100).toFixed(2)}%
+            - **Regime Lag (avg)**: ${metrics.metrics.average_regime_lag_days.toFixed(2)} days
+            - **Silence Correctness**: ${(metrics.metrics.silence_correctness_rate * 100).toFixed(2)}%
+            - **Kill-Switch Anticipation**: ${(metrics.metrics.kill_switch_anticipation * 100).toFixed(2)}%
+            - **Confidence Calibration Error**: ${metrics.metrics.confidence_calibration_error.toFixed(3)}
+
+            ### Status
+            ✅ Regression check passed
+            
+            📊 [View detailed results](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+        continue-on-error: true
+
+  failure-analysis:
+    name: Analyze Failure Ledger
+    runs-on: ubuntu-latest
+    needs: backtest-regression
+    if: always()
+
+    steps:
+      - name: Download results
+        uses: actions/download-artifact@v4
+        with:
+          name: backtest-results-${{ github.run_id }}
+          path: backtest_results/
+
+      - name: Analyze patterns
+        run: |
+          echo "## Failure Analysis"
+          if [ -f backtest_results/failures.csv ]; then
+            echo "Total failures: $(wc -l < backtest_results/failures.csv)"
+            echo ""
+            echo "Top failure categories:"
+            cut -d',' -f7 backtest_results/failures.csv | sort | uniq -c | sort -rn || true
+          fi
+        continue-on-error: true
+
+      - name: Post analysis
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let analysis = '## Failure Ledger Analysis\n\n';
+            
+            if (fs.existsSync('backtest_results/failures.json')) {
+              const failures = JSON.parse(
+                fs.readFileSync('backtest_results/failures.json', 'utf8')
+              );
+              
+              const byCategory = {};
+              failures.forEach(f => {
+                byCategory[f.category] = (byCategory[f.category] || 0) + 1;
+              });
+              
+              analysis += '### Failures by Category\n';
+              Object.entries(byCategory).forEach(([cat, count]) => {
+                analysis += `- **${cat}**: ${count}\n`;
+              });
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: analysis
+            });
+        continue-on-error: true

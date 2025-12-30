@@ -20,6 +20,7 @@ Validation Requirements:
 """
 
 import warnings
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
@@ -296,6 +297,7 @@ def generate_synthetic_hedge_data(
     spot_price: float,
     hedge_pressure: float,
     noise_factor: float = 0.05,
+    allow_synthetic: bool = False,
 ) -> Tuple[Dict[float, int], Dict[float, int]]:
     """
     Generate synthetic call/put OI data for testing hedge pressure.
@@ -310,6 +312,18 @@ def generate_synthetic_hedge_data(
     Returns:
         Tuple of (synthetic_calls, synthetic_puts)
     """
+    if not allow_synthetic and os.environ.get(
+        "GALACTUS_ALLOW_SYNTHETIC", ""
+    ).lower() not in (
+        "1",
+        "true",
+        "yes",
+    ):
+        raise RuntimeError(
+            "Synthetic hedge data generation is disabled by default. "
+            "Enable only for tests by passing allow_synthetic=True or set the "
+            "environment variable GALACTUS_ALLOW_SYNTHETIC=true."
+        )
     synthetic_calls = {}
     synthetic_puts = {}
 

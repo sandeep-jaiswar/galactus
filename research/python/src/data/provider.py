@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+import os
 import pandas as pd
 from jugaad_data.bse import BSELive
 from jugaad_data.nse import NSELive
@@ -744,7 +745,11 @@ class GalactusDataProvider:
             return None
 
     def get_historical_data(
-        self, symbol: str, days: int = 30, use_cache: bool = True
+        self,
+        symbol: str,
+        days: int = 30,
+        use_cache: bool = True,
+        allow_synthetic: bool = False,
     ) -> Optional[pd.DataFrame]:
         """
         Get historical price data for backtesting.
@@ -767,80 +772,212 @@ class GalactusDataProvider:
             if cached is not None:
                 return cached
 
-        try:
-            # For now, generate synthetic historical data for backtesting
-            # In production, this would use NSEArchive or other historical data sources
-            print(f"Generating synthetic historical data for {symbol} ({days} days)")
+        # First, attempt to fetch real historical data from the data provider
+        # (jugaad-data). Method names vary across versions; try common candidates.
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
 
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=days)
+        historical_fetch_methods = [
+            "historical_ohlc",
+            "historical",
+            "get_history",
+            "history",
+            "ohlc_history",
+        ]
 
-            # Generate date range
-            dates = pd.date_range(start=start_date, end=end_date, freq="D")
+        for method_name in historical_fetch_methods:
+            method = getattr(self.nse, method_name, None)
+            if method is None:
+                continue
+            try:
+                # Try common call signatures
+                try:
+                    raw = self._retry_operation(method, symbol, start_date, end_date)
+                except TypeError:
+                    try:
+                        raw = self._retry_operation(method, symbol, days)
+                    except TypeError:
+                        raw = self._retry_operation(method, symbol)
 
-            # Get current price as base
-            current_price = (
-                self.get_spot_price(symbol)
-                if symbol != "NIFTY"
-                else self.get_nifty_index()
-            )
+                # Convert raw result to DataFrame if possible
+                if isinstance(raw, pd.DataFrame):
+                    df = raw.copy()
+                elif isinstance(raw, dict):
+                    # try common keys
+                    if "data" in raw and isinstance(raw["data"], list):
+                        df = pd.DataFrame(raw["data"])
+                    else:
+                        df = pd.DataFrame(raw)
+                elif isinstance(raw, list):
+                    df = pd.DataFrame(raw)
+                else:
+                    df = None
 
-            if not current_price:
+                if df is not None and not df.empty:
+                    # Normalize index to datetime if needed
+                    if "Date" in df.columns:
+                        df["Date"] = pd.to_datetime(df["Date"])
+                        df.set_index("Date", inplace=True)
+
+                    # Add metadata
+                    df.attrs["data_source"] = method_name
+                    df.attrs["symbol"] = symbol
+                    if use_cache:
+                        self._cache_data(cache_key, df)
+                    return df
+
+            except Exception:
+                # try next available method
+                continue
+
+        # If we reach here, no real historical data was available.
+        # Only generate synthetic data when explicitly allowed (tests only).
+        allow_env = os.getenv("GALACTUS_ALLOW_SYNTHETIC", "false").lower() == "true"
+        if allow_synthetic or allow_env:
+            try:
+                df = self._generate_synthetic_historical_data(symbol, days)
+                if use_cache and df is not None:
+                    self._cache_data(cache_key, df)
+                return df
+            except Exception as e:
+                print(f"Error generating synthetic historical data for {symbol}: {e}")
                 return None
 
-            # Generate synthetic OHLC data with realistic volatility
-            np.random.seed(42)  # For reproducible results
+        # Otherwise, prefer returning None so production paths must provide real history
+        print(
+            f"No real historical data available for {symbol}; synthetic generation is disabled."
+        )
+        return None
 
-            # Simulate price series with random walk
-            returns = np.random.normal(
-                0.0001, 0.02, len(dates)
-            )  # Small drift, 2% daily vol
-            price_series = current_price * np.exp(np.cumsum(returns))
+    def _generate_synthetic_historical_data(
+        self, symbol: str, days: int = 30
+    ) -> pd.DataFrame:
+        """
+        Generate synthetic historical OHLC data (test-only helper).
 
-            # Generate OHLC from price series
-            high_mult = 1 + np.abs(np.random.normal(0, 0.01, len(dates)))
-            low_mult = 1 - np.abs(np.random.normal(0, 0.01, len(dates)))
+        This should only be used in unit tests or when `GALACTUS_ALLOW_SYNTHETIC=true`.
+        """
+        print(f"Generating synthetic historical data for {symbol} ({days} days)")
 
-            df = pd.DataFrame(
-                {
-                    "Date": dates,
-                    "Open": price_series * (1 + np.random.normal(0, 0.005, len(dates))),
-                    "High": price_series * high_mult,
-                    "Low": price_series * low_mult,
-                    "Close": price_series,
-                    "Volume": np.random.randint(10000, 1000000, len(dates)),
-                }
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days)
+
+        # Generate date range
+        dates = pd.date_range(start=start_date, end=end_date, freq="D")
+
+        # Get current price as base
+        current_price = (
+            self.get_spot_price(symbol) if symbol != "NIFTY" else self.get_nifty_index()
+        )
+
+        if not current_price:
+            raise RuntimeError(
+                "Cannot derive synthetic data without a base current price"
             )
 
-            # Ensure OHLC relationships are correct
-            df["High"] = df[["Open", "Close", "High"]].max(axis=1)
-            df["Low"] = df[["Open", "Close", "Low"]].min(axis=1)
+        # Generate synthetic OHLC data with realistic volatility
+        rng = np.random.default_rng(42)  # reproducible but local RNG
 
-            df.set_index("Date", inplace=True)
+        # Simulate price series with random walk + crisis periods
+        base_vol = 0.02  # 2% base daily volatility
+        returns = rng.normal(0.0001, base_vol, len(dates))
 
-            # Add data quality metadata
-            df.attrs["data_quality"] = DataQualityMetrics(
-                completeness=0.6,  # Synthetic data
-                freshness=0.5,  # Historical
-                consistency=0.8,  # Well-structured
-                accuracy=0.4,  # Simulated
-                overall_score=0.55,
+        # Inject crisis periods with 5-10% daily volatility
+        # COVID crash (March 2020)
+        covid_start = (datetime(2020, 3, 1) - start_date).days
+        covid_end = (datetime(2020, 4, 15) - start_date).days
+        if 0 <= covid_start < len(dates):
+            crisis_len = min(covid_end - covid_start, len(dates) - covid_start)
+            returns[covid_start : covid_start + crisis_len] = rng.normal(
+                -0.02, 0.08, crisis_len
             )
 
-            df.attrs["data_source"] = "synthetic"
-            df.attrs["symbol"] = symbol
-            df.attrs["note"] = (
-                "Synthetic data for backtesting - replace with real historical data"
+        # Ukraine war volatility (Feb-Mar 2022)
+        ukraine_start = (datetime(2022, 2, 20) - start_date).days
+        ukraine_end = (datetime(2022, 3, 31) - start_date).days
+        if 0 <= ukraine_start < len(dates):
+            crisis_len = min(ukraine_end - ukraine_start, len(dates) - ukraine_start)
+            returns[ukraine_start : ukraine_start + crisis_len] = rng.normal(
+                -0.01, 0.05, crisis_len
             )
 
-            if use_cache:
-                self._cache_data(cache_key, df)
+        # SVB banking crisis (March 2023)
+        svb_start = (datetime(2023, 3, 8) - start_date).days
+        svb_end = (datetime(2023, 3, 20) - start_date).days
+        if 0 <= svb_start < len(dates):
+            crisis_len = min(svb_end - svb_start, len(dates) - svb_start)
+            returns[svb_start : svb_start + crisis_len] = rng.normal(
+                -0.015, 0.06, crisis_len
+            )
 
-            return df
+        price_series = current_price * np.exp(np.cumsum(returns))
 
-        except Exception as e:
-            print(f"Error generating historical data for {symbol}: {e}")
-            return None
+        # Generate OHLC from price series with crisis-aware volatility
+        base_hl_vol = 0.01  # Base 1% high-low spread
+        hl_volatility = np.full(len(dates), base_hl_vol)
+
+        # Inject higher H-L spreads during crisis periods
+        # COVID crash (March 2020)
+        covid_start = (datetime(2020, 3, 1) - start_date).days
+        covid_end = (datetime(2020, 4, 15) - start_date).days
+        if 0 <= covid_start < len(dates):
+            crisis_len = min(covid_end - covid_start, len(dates) - covid_start)
+            hl_volatility[covid_start : covid_start + crisis_len] = (
+                0.08  # 8% H-L spread
+            )
+
+        # Ukraine war volatility (Feb-Mar 2022)
+        ukraine_start = (datetime(2022, 2, 20) - start_date).days
+        ukraine_end = (datetime(2022, 3, 31) - start_date).days
+        if 0 <= ukraine_start < len(dates):
+            crisis_len = min(ukraine_end - ukraine_start, len(dates) - ukraine_start)
+            hl_volatility[ukraine_start : ukraine_start + crisis_len] = (
+                0.05  # 5% H-L spread
+            )
+
+        # SVB banking crisis (March 2023)
+        svb_start = (datetime(2023, 3, 8) - start_date).days
+        svb_end = (datetime(2023, 3, 20) - start_date).days
+        if 0 <= svb_start < len(dates):
+            crisis_len = min(svb_end - svb_start, len(dates) - svb_start)
+            hl_volatility[svb_start : svb_start + crisis_len] = 0.06  # 6% H-L spread
+
+        high_mult = 1 + np.abs(rng.normal(0, hl_volatility, len(dates)))
+        low_mult = 1 - np.abs(rng.normal(0, hl_volatility, len(dates)))
+
+        df = pd.DataFrame(
+            {
+                "Date": dates,
+                "Open": price_series * (1 + rng.normal(0, 0.005, len(dates))),
+                "High": price_series * high_mult,
+                "Low": price_series * low_mult,
+                "Close": price_series,
+                "Volume": rng.integers(10000, 1000000, len(dates)),
+            }
+        )
+
+        # Ensure OHLC relationships are correct
+        df["High"] = df[["Open", "Close", "High"]].max(axis=1)
+        df["Low"] = df[["Open", "Close", "Low"]].min(axis=1)
+
+        df.set_index("Date", inplace=True)
+
+        # Add data quality metadata
+        df.attrs["data_quality"] = DataQualityMetrics(
+            completeness=0.6,  # Synthetic data
+            freshness=0.5,  # Historical
+            consistency=0.8,  # Well-structured
+            accuracy=0.4,  # Simulated
+            overall_score=0.55,
+        )
+
+        df.attrs["data_source"] = "synthetic"
+        df.attrs["symbol"] = symbol
+        df.attrs["note"] = (
+            "Synthetic data for backtesting - enabled by GALACTUS_ALLOW_SYNTHETIC or explicitly requested"
+        )
+
+        return df
 
     def get_risk_free_rate(self) -> float:
         """
@@ -1055,7 +1192,7 @@ if __name__ == "__main__":
 
     # Test historical data
     print("\nHistorical Data (NIFTY):")
-    historical = provider.get_historical_data("NIFTY", days=5)
+    historical = provider.get_historical_data("NIFTY", days=5, allow_synthetic=True)
     if historical is not None:
         print(f"  Historical data shape: {historical.shape}")
         print(f"  Date range: {historical.index.min()} to {historical.index.max()}")

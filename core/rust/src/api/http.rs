@@ -196,9 +196,58 @@ impl IntentApi {
         // Check rate limits
         self.check_rate_limit(&request.client_id)?;
 
-        // Create feature inputs from request data
+        // If no market_data provided, try to backfill from research HTTP adapter
+        let mut market_data = request.market_data;
+        if market_data.is_empty() {
+            if let Ok(base_url) = std::env::var("RESEARCH_PROVIDER_URL") {
+                // Use context 'symbols' if present (comma-separated), otherwise default to NIFTY
+                let symbols: Vec<String> = request
+                    .context
+                    .get("symbols")
+                    .map(|s| s.split(',').map(|p| p.trim().to_string()).collect())
+                    .unwrap_or_else(|| vec!["NIFTY".to_string()]);
+
+                let client = crate::data::research_client::ResearchClient::new(&base_url);
+                for sym in symbols {
+                    match client.fetch_historical(&sym, 1) {
+                        Ok(bars) => {
+                            if let Some(last) = bars.last() {
+                                let now_ts = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_secs() as i64;
+
+                                market_data.insert(
+                                    sym.clone(),
+                                    crate::features::MarketDataPoint {
+                                        symbol: sym.clone(),
+                                        price: last.close,
+                                        volume: last.volume,
+                                        timestamp: now_ts,
+                                        metadata: {
+                                            let mut m = std::collections::HashMap::new();
+                                            m.insert(
+                                                "data_source".to_string(),
+                                                "research_http".to_string(),
+                                            );
+                                            m.insert("research_url".to_string(), base_url.clone());
+                                            m
+                                        },
+                                    },
+                                );
+                            }
+                        }
+                        Err(_) => {
+                            // ignore fetch errors and proceed
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create feature inputs from request data (with possible backfilled market_data)
         let feature_inputs = crate::features::FeatureInputs {
-            market_data: request.market_data,
+            market_data,
             options_data: request.options_data,
             futures_data: request.futures_data,
             context: request.context,

@@ -274,6 +274,8 @@ Research may use:
 - Derived datasets (for validation)
 - Synthetic data (for testing)
 
+Note on synthetic data: Synthetic generators in `src/features` are intended for tests and experiments only. Synthetic data is disabled by default to avoid accidental use in research runs or production workflows. To enable synthetic data explicitly set the environment variable `GALACTUS_ALLOW_SYNTHETIC=true` or call generator helpers with `allow_synthetic=True`.
+
 Research must **not** use:
 - Live production data for experimentation
 - Personalized or private data
@@ -390,6 +392,35 @@ Focus on clarity and speed of iteration.
 ---
 
 ## Documentation in Research
+## Integration With Core
+
+This research layer can optionally serve historical OHLC data to the Rust core via a small HTTP adapter.
+
+- Start the adapter (in the activated research virtualenv):
+
+```bash
+source .venv/bin/activate
+PYTHONPATH=research/python/src uvicorn server:app --host 127.0.0.1 --port 8000
+```
+
+- Adapter endpoint: `GET /v1/historical/{SYMBOL}?days={N}&allow_synthetic={true|false}`
+
+- Environment flags:
+  - `GALACTUS_ALLOW_SYNTHETIC=true` — allow synthetic historical generation (research/test only).
+
+- How core consumes it:
+  - Set `RESEARCH_PROVIDER_URL` in the environment for the core process, for example:
+
+```bash
+export RESEARCH_PROVIDER_URL=http://127.0.0.1:8000
+```
+
+  - When `market_data` is missing from an intent request, the core will attempt to backfill the latest price for one or more symbols from the adapter (it looks for `context["symbols"]` as a comma-separated list; defaults to `NIFTY`).
+
+Security and usage notes:
+- The adapter is intended for research and integration testing. Do not expose it publicly without proper authentication and rate-limiting.
+- Synthetic data is disabled by default; only enable `GALACTUS_ALLOW_SYNTHETIC` for tests.
+
 
 ### What to Document
 

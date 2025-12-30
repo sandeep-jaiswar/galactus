@@ -1,51 +1,221 @@
 # Galactus — Git Ignore Rules
 
-# Build artifacts
-target/
-dist/
-build/
-*.egg-info/
+# ============================================
+# Environment and Secrets
+# ============================================
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+secrets/
+*.local
 
+# ============================================
 # Python
+# ============================================
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
 *.so
+
+# Distribution / packaging
 .Python
-.venv/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Virtual environments
 venv/
 ENV/
-.pytest_cache/
-.mypy_cache/
-.ipynb_checkpoints/
+env/
+.venv
 
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ============================================
 # Rust
+# ============================================
+# Build artifacts
+target/
 Cargo.lock
+*.rlib
+*.rmeta
+*.d
 **/*.rs.bk
 *.pdb
 
-# IDE
+# ============================================
+# IDEs and Editors
+# ============================================
+# VSCode
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# IntelliJ IDEA
 .idea/
+*.iml
+*.iws
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Vim
 *.swp
 *.swo
-*~
+*.swn
 
-# OS
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
 Thumbs.db
 
-# Logs
-logs/*.log
-*.log
+# ============================================
+# Docker
+# ============================================
+docker-compose.override.yml
 
-# Temporary files
+# ============================================
+# Data and Results (CRITICAL)
+# ============================================
+# Backtest results - should NOT be in git
+backtest_results*/
+backtest_output*/
+live_canary_results/
+
+# Large data files
+*.csv
+*.parquet
+*.feather
+*.hdf5
+*.h5
+data/raw/
+data/processed/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary data
 tmp/
 temp/
+cache/
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+
+# ============================================
+# Generated Documentation
+# ============================================
+# Keep Markdown, ignore generated HTML/PDF
+docs/_build/
+docs/.doctrees/
+site/
+
+# ============================================
+# Temporary Files
+# ============================================
 *.tmp
+*.temp
+*.bak
+*.orig
+*.rej
 
-# Research notebooks (if they contain sensitive data)
-# research/notebooks/*_private.ipynb
+# ============================================
+# Galactus-Specific
+# ============================================
+# Session summaries and temporary docs (should be in issues/)
+*_SUMMARY.md
+*_IMPLEMENTATION.md
+*_ASSESSMENT.md
+*_RESULTS_*.md
+SESSION_*.md
+IMMEDIATE_*.md
 
-# Local configuration
-*.local
-.env
+# Archive directory (for moved files)
+archive/
+
+# Archived promotion checklists (keep active ones only)
+research/python/promotions/archive/
+
+# Local experiment outputs
+research/python/notebooks/**/*.csv
+research/python/notebooks/**/*.pkl
+research/python/notebooks/**/*.joblib
+
+# Monitoring and metrics data
+monitoring/data/
+monitoring/logs/
+
+# ============================================
+# Allow Exceptions
+# ============================================
+# Keep template files
+!*TEMPLATE*.yml
+!*TEMPLATE*.md
+!.env.example
+
+# Keep example data (small, for testing)
+!examples/**/*.csv
+
