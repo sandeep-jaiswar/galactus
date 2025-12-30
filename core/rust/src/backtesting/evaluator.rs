@@ -323,9 +323,7 @@ impl BacktestEvaluator {
             }
 
             // Check for false pressure
-            if snapshot.capital_pressure.detected
-                && snapshot.regime.confidence < 0.6
-            {
+            if snapshot.capital_pressure.detected && snapshot.regime.confidence < 0.6 {
                 failure_categories.push(BacktestFailureCategory::FalsePressure);
             }
 
@@ -340,9 +338,7 @@ impl BacktestEvaluator {
             }
 
             // Check for kill-switch timing
-            if snapshot.kill_switch_status.is_triggered()
-                && idx + 30 < snapshots.len()
-            {
+            if snapshot.kill_switch_status.is_triggered() && idx + 30 < snapshots.len() {
                 let mut instability_after = false;
                 for future in snapshots.iter().skip(idx + 1).take(30) {
                     if future.stability_indicator < 0.3 {
