@@ -109,7 +109,7 @@ impl EventReplayEngine {
     /// Returns the new current time
     pub fn advance_time(&mut self, interval_seconds: u64) -> DateTime<Utc> {
         let multiplied_seconds = (interval_seconds as f64 * self.speed.multiplier()) as u64;
-        self.current_time = self.current_time + chrono::Duration::seconds(multiplied_seconds as i64);
+        self.current_time += chrono::Duration::seconds(multiplied_seconds as i64);
         self.current_time
     }
 
@@ -173,15 +173,13 @@ impl EventReplayEngine {
     /// Get a window of recent events (up to N most recent)
     pub fn recent_events(&self, count: usize) -> Vec<&CanonicalEvent> {
         let start_index = self.current_index.saturating_sub(count);
-        self.events[start_index..self.current_index].iter().collect()
+        self.events[start_index..self.current_index]
+            .iter()
+            .collect()
     }
 
     /// Get the number of events between two timestamps
-    pub fn event_count_between(
-        &self,
-        start: DateTime<Utc>,
-        end: DateTime<Utc>,
-    ) -> usize {
+    pub fn event_count_between(&self, start: DateTime<Utc>, end: DateTime<Utc>) -> usize {
         self.events
             .iter()
             .filter(|e| e.event_time > start && e.event_time <= end)

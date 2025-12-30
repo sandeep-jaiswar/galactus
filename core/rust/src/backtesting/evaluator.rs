@@ -26,14 +26,14 @@ impl BacktestEvaluator {
 
         // Track regime transitions
         let mut current_regime: Option<String> = None;
-        let mut regime_change_count = 0;
+        let mut _regime_change_count = 0;
 
         for snapshot in snapshots {
             let regime = &snapshot.regime.classification;
 
             if let Some(ref prev) = current_regime {
                 if prev != regime {
-                    regime_change_count += 1;
+                    _regime_change_count += 1;
                 }
             }
 
@@ -50,8 +50,7 @@ impl BacktestEvaluator {
         }
 
         // Evaluate confidence calibration
-        let (high_confidence_failure_rate, _) =
-            Self::evaluate_confidence_calibration(snapshots);
+        let (high_confidence_failure_rate, _) = Self::evaluate_confidence_calibration(snapshots);
 
         // Build failure ledger to get categorized failures
         let all_failures = Self::build_failure_ledger(snapshots);
@@ -78,8 +77,7 @@ impl BacktestEvaluator {
         let kill_switch_anticipation = Self::evaluate_kill_switch_anticipation(snapshots);
 
         // Evaluate confidence calibration error
-        let confidence_calibration_error =
-            Self::evaluate_confidence_calibration_error(snapshots);
+        let confidence_calibration_error = Self::evaluate_confidence_calibration_error(snapshots);
 
         BacktestMetrics {
             total_snapshots,
@@ -144,7 +142,7 @@ impl BacktestEvaluator {
                     failures.push(ConfidenceFailure {
                         timestamp: snapshot.event_timestamp,
                         event_sequence: snapshot.event_sequence,
-                        confidence: confidence,
+                        confidence,
                         regime: snapshot.regime.classification.clone(),
                     });
                 }
@@ -201,8 +199,8 @@ impl BacktestEvaluator {
                     // Regime changed - estimate the lag
                     // Lag = time since last significant market move to regime change
                     if idx > regime_start_idx {
-                        let time_diff = snapshot.event_timestamp
-                            - snapshots[regime_start_idx].event_timestamp;
+                        let time_diff =
+                            snapshot.event_timestamp - snapshots[regime_start_idx].event_timestamp;
                         let days = time_diff.num_days() as f64;
                         lags.push(days);
                     }
@@ -317,24 +315,22 @@ impl BacktestEvaluator {
             // Check for regime lag
             if idx > 0 {
                 let prev_regime = &snapshots[idx - 1].regime.classification;
-                if prev_regime != &snapshot.regime.classification {
-                    if snapshot.overall_confidence > 0.7 {
-                        failure_categories.push(BacktestFailureCategory::RegimeLag);
-                    }
+                if prev_regime != &snapshot.regime.classification
+                    && snapshot.overall_confidence > 0.7
+                {
+                    failure_categories.push(BacktestFailureCategory::RegimeLag);
                 }
             }
 
             // Check for false pressure
-            if snapshot.capital_pressure.detected {
-                if snapshot.regime.confidence < 0.6 {
-                    failure_categories.push(BacktestFailureCategory::FalsePressure);
-                }
+            if snapshot.capital_pressure.detected
+                && snapshot.regime.confidence < 0.6
+            {
+                failure_categories.push(BacktestFailureCategory::FalsePressure);
             }
 
             // Check for overconfidence
-            if snapshot.kill_switch_status.is_triggered()
-                && snapshot.overall_confidence > 0.7
-            {
+            if snapshot.kill_switch_status.is_triggered() && snapshot.overall_confidence > 0.7 {
                 failure_categories.push(BacktestFailureCategory::Overconfidence);
             }
 
@@ -344,19 +340,18 @@ impl BacktestEvaluator {
             }
 
             // Check for kill-switch timing
-            if snapshot.kill_switch_status.is_triggered() {
-                if idx + 30 < snapshots.len() {
-                    let mut instability_after = false;
-                    for future in snapshots.iter().skip(idx + 1).take(30) {
-                        if future.stability_indicator < 0.3 {
-                            instability_after = true;
-                            break;
-                        }
+            if snapshot.kill_switch_status.is_triggered()
+                && idx + 30 < snapshots.len()
+            {
+                let mut instability_after = false;
+                for future in snapshots.iter().skip(idx + 1).take(30) {
+                    if future.stability_indicator < 0.3 {
+                        instability_after = true;
+                        break;
                     }
-                    if !instability_after {
-                        failure_categories
-                            .push(BacktestFailureCategory::KillSwitchEarly);
-                    }
+                }
+                if !instability_after {
+                    failure_categories.push(BacktestFailureCategory::KillSwitchEarly);
                 }
             }
 
@@ -388,6 +383,7 @@ impl BacktestEvaluator {
 
 /// A confidence failure for analysis
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct ConfidenceFailure {
     timestamp: chrono::DateTime<chrono::Utc>,
     event_sequence: EventSequenceNumber,

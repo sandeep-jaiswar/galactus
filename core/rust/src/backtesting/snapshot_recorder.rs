@@ -5,7 +5,6 @@
 
 use crate::backtesting::types::*;
 use chrono::{DateTime, Utc};
-use ordered_float::OrderedFloat;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -42,7 +41,10 @@ impl SnapshotRecorder {
         let mut snapshots = self.snapshots.lock().unwrap();
 
         // Verify uniqueness
-        if snapshots.iter().any(|s| s.snapshot_id == snapshot.snapshot_id) {
+        if snapshots
+            .iter()
+            .any(|s| s.snapshot_id == snapshot.snapshot_id)
+        {
             panic!(
                 "Duplicate snapshot ID: {}. Snapshots must be immutable.",
                 snapshot.snapshot_id
@@ -84,8 +86,7 @@ impl SnapshotRecorder {
             .lock()
             .unwrap()
             .iter()
-            .filter(|s| s.instrument == instrument)
-            .last()
+            .rfind(|s| s.instrument == instrument)
             .cloned()
     }
 
@@ -171,10 +172,7 @@ impl SnapshotRecorder {
     /// Export snapshots as JSONL (one per line, for streaming)
     pub fn export_as_jsonl(&self) -> Result<String, serde_json::Error> {
         let snapshots = self.snapshots.lock().unwrap();
-        let lines: Result<Vec<_>, _> = snapshots
-            .iter()
-            .map(serde_json::to_string)
-            .collect();
+        let lines: Result<Vec<_>, _> = snapshots.iter().map(serde_json::to_string).collect();
 
         Ok(lines?.join("\n"))
     }
@@ -191,11 +189,7 @@ impl SnapshotRecorder {
             .count() as u64;
 
         let avg_confidence = if !snapshots.is_empty() {
-            snapshots
-                .iter()
-                .map(|s| s.overall_confidence)
-                .sum::<f64>()
-                / snapshots.len() as f64
+            snapshots.iter().map(|s| s.overall_confidence).sum::<f64>() / snapshots.len() as f64
         } else {
             0.0
         };
@@ -282,7 +276,6 @@ pub struct RegimeTransition {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     fn create_test_snapshot(id: &str, instrument: &str, regime: &str) -> InferenceSnapshot {
         InferenceSnapshot {

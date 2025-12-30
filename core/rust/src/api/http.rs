@@ -222,11 +222,14 @@ impl IntentApi {
                                     crate::features::MarketDataPoint {
                                         symbol: sym.clone(),
                                         price: last.close,
-                                        volume: last.volume as u64,
+                                        volume: last.volume,
                                         timestamp: now_ts,
                                         metadata: {
                                             let mut m = std::collections::HashMap::new();
-                                            m.insert("data_source".to_string(), "research_http".to_string());
+                                            m.insert(
+                                                "data_source".to_string(),
+                                                "research_http".to_string(),
+                                            );
                                             m.insert("research_url".to_string(), base_url.clone());
                                             m
                                         },

@@ -57,7 +57,10 @@ impl BacktestFailureLedger {
     }
 
     /// Get failures by category
-    pub fn get_failures_by_category(&self, category: &super::types::BacktestFailureCategory) -> Vec<BacktestFailure> {
+    pub fn get_failures_by_category(
+        &self,
+        category: &super::types::BacktestFailureCategory,
+    ) -> Vec<BacktestFailure> {
         self.failures
             .lock()
             .unwrap()
@@ -287,9 +290,7 @@ pub struct FailurePatterns {
 // Helper functions
 use std::collections::BTreeMap;
 
-fn count_by_category(
-    failures: &[BacktestFailure],
-) -> BTreeMap<String, usize> {
+fn count_by_category(failures: &[BacktestFailure]) -> BTreeMap<String, usize> {
     let mut counts = BTreeMap::new();
     for failure in failures {
         let entry = counts
@@ -300,14 +301,10 @@ fn count_by_category(
     counts
 }
 
-fn count_by_instrument(
-    failures: &[BacktestFailure],
-) -> BTreeMap<String, usize> {
+fn count_by_instrument(failures: &[BacktestFailure]) -> BTreeMap<String, usize> {
     let mut counts = BTreeMap::new();
     for failure in failures {
-        let entry = counts
-            .entry(failure.instrument.clone())
-            .or_insert(0);
+        let entry = counts.entry(failure.instrument.clone()).or_insert(0);
         *entry += 1;
     }
     counts
@@ -317,9 +314,11 @@ fn count_by_instrument(
 mod tests {
     use super::*;
     use chrono::Utc;
-    
 
-    fn create_test_failure(timestamp: DateTime<Utc>, category: super::super::types::BacktestFailureCategory) -> BacktestFailure {
+    fn create_test_failure(
+        timestamp: DateTime<Utc>,
+        category: super::super::types::BacktestFailureCategory,
+    ) -> BacktestFailure {
         BacktestFailure {
             timestamp,
             event_sequence: 0,
@@ -339,10 +338,16 @@ mod tests {
         let ledger = BacktestFailureLedger::new();
         let now = Utc::now();
 
-        ledger.record_failure(create_test_failure(now, super::super::types::BacktestFailureCategory::RegimeLag));
+        ledger.record_failure(create_test_failure(
+            now,
+            super::super::types::BacktestFailureCategory::RegimeLag,
+        ));
         assert_eq!(ledger.failure_count(), 1);
 
-        ledger.record_failure(create_test_failure(now + chrono::Duration::seconds(10), super::super::types::BacktestFailureCategory::Overconfidence));
+        ledger.record_failure(create_test_failure(
+            now + chrono::Duration::seconds(10),
+            super::super::types::BacktestFailureCategory::Overconfidence,
+        ));
         assert_eq!(ledger.failure_count(), 2);
     }
 
@@ -351,9 +356,13 @@ mod tests {
         let ledger = BacktestFailureLedger::new();
         let now = Utc::now();
 
-        ledger.record_failure(create_test_failure(now, super::super::types::BacktestFailureCategory::RegimeLag));
+        ledger.record_failure(create_test_failure(
+            now,
+            super::super::types::BacktestFailureCategory::RegimeLag,
+        ));
 
-        let filtered = ledger.get_failures_by_category(&super::super::types::BacktestFailureCategory::RegimeLag);
+        let filtered = ledger
+            .get_failures_by_category(&super::super::types::BacktestFailureCategory::RegimeLag);
         assert_eq!(filtered.len(), 1);
     }
 }

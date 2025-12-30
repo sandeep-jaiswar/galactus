@@ -20,14 +20,14 @@
 //! 5. **Failure-first evaluation** — Study failures, not wins
 //! 6. **Confidence honesty** — Did Galactus suppress when uncertain?
 
-pub mod event_replay;
 pub mod evaluator;
+pub mod event_replay;
 pub mod failure_ledger;
 pub mod snapshot_recorder;
 pub mod types;
 
-pub use event_replay::*;
 pub use evaluator::*;
+pub use event_replay::*;
 pub use failure_ledger::*;
 pub use snapshot_recorder::*;
 pub use types::*;

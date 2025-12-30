@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn test_client_builds_url() {
         let c = ResearchClient::new("http://localhost:8000/");
-        let res = c.fetch_historical("NIFTY","30".parse().unwrap());
+        let res = c.fetch_historical("NIFTY", "30".parse().unwrap());
         // We can't assert on response in unit test environment; ensure method exists and errors gracefully
         assert!(res.is_err());
     }
