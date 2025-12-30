@@ -26,7 +26,7 @@ import pandas as pd
 import numpy as np
 
 # Add research module to path
-sys.path.insert(0, str(Path(__file__).parent / "research" / "python" / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from backtesting import (
     BacktestEvaluator,
@@ -371,7 +371,7 @@ def run_jan2020_backtest():
     )
 
     logger.info("\nRunning backtest evaluation...")
-    metrics = harness.run_backtest(snapshots)
+    harness.run_backtest(snapshots)
 
     # Print results
     logger.info("\n" + "=" * 70)

@@ -1,6 +1,7 @@
 //! Backtesting Harness Types
 
 use chrono::{DateTime, Utc};
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -235,7 +236,7 @@ pub struct BacktestFailure {
     pub regime: String,
 
     /// Overall confidence at time of failure
-    pub confidence_at_failure: f64,
+    pub confidence_at_failure: OrderedFloat<f64>,
 
     /// Was the system silenced at failure time?
     pub was_silenced: bool,

@@ -10,7 +10,7 @@ This example demonstrates how to:
 import logging
 from datetime import datetime, timedelta, timezone
 
-from galactus.backtesting import (
+from backtesting import (
     BacktestHarness,
     DataQualitySnapshot,
     ForcedFlowSnapshot,
@@ -108,7 +108,7 @@ def main():
     )
 
     logger.info("Running backtest...")
-    metrics = harness.run_backtest(snapshots)
+    harness.run_backtest(snapshots)
 
     # Print summary
     logger.info("\n" + "=" * 60)
@@ -179,6 +179,11 @@ def main():
 
     logger.info("")
     logger.info("=" * 60)
+
+    # Export results for CI/CD
+    logger.info("\nExporting results to backtest_results/...")
+    harness.export_results("./backtest_results")
+    logger.info("Export complete!")
 
 
 if __name__ == "__main__":

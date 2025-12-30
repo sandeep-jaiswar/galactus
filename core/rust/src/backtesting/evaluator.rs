@@ -9,6 +9,7 @@
 //! - Kill-switch accuracy
 
 use crate::backtesting::types::*;
+use ordered_float::OrderedFloat;
 use std::collections::BTreeMap;
 
 /// Evaluates the quality of inferences without outcome awareness
@@ -172,11 +173,8 @@ impl BacktestEvaluator {
                 // - Pressure detected but market was stable
                 // - Pressure detected far from expiry/rebalance
                 // - Pressure detected with low confidence in regime
-                if snapshot.regime.confidence < 0.7 {
-                    false_positives += 1;
-                }
-
-                if snapshot.stability_indicator > 0.85 {
+                // Count as false positive if EITHER condition is met (not both)
+                if snapshot.regime.confidence < 0.7 || snapshot.stability_indicator > 0.85 {
                     false_positives += 1;
                 }
             }
@@ -369,7 +367,7 @@ impl BacktestEvaluator {
                     event_sequence: snapshot.event_sequence,
                     instrument: snapshot.instrument.clone(),
                     regime: snapshot.regime.classification.clone(),
-                    confidence_at_failure: snapshot.overall_confidence,
+                    confidence_at_failure: OrderedFloat(snapshot.overall_confidence),
                     was_silenced: snapshot.silenced,
                     category,
                     description: format!(

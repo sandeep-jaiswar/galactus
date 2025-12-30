@@ -116,13 +116,8 @@ impl EventReplayEngine {
     /// Manually inject a late event (e.g., from a data source with latency)
     /// Queues it for processing when the clock advances to its timestamp
     pub fn inject_late_event(&mut self, event: CanonicalEvent) {
-        if event.event_time <= self.current_time {
-            // Event is already old enough, process immediately
-            self.late_events.push_back(event);
-        } else {
-            // Event is from the future, queue it
-            self.late_events.push_back(event);
-        }
+        // Queue late event for processing when clock advances to its timestamp
+        self.late_events.push_back(event);
     }
 
     /// Check if there are late events pending recomputation
@@ -207,34 +202,34 @@ mod tests {
         // Create events in reverse order
         let mut events = vec![
             CanonicalEvent {
-                event_id: "e3".to_string(),
-                event_type: crate::data::EventType::Price,
+                event_id: crate::data::EventId("e3".to_string()),
+                event_type: crate::data::EventType::System,
                 event_time: t3,
-                source: crate::data::DataSource::Realtime,
-                instruments: vec!["NIFTY".to_string()],
-                payload: crate::data::EventPayload::PriceUpdate(Default::default()),
+                source: crate::data::DataSource("Realtime".to_string()),
+                instruments: vec![crate::data::Instrument("NIFTY".to_string())],
+                payload: crate::data::EventPayload::NoOp,
                 completeness: crate::data::Completeness::Complete,
-                schema_version: 1,
+                schema_version: crate::data::SchemaVersion("1".to_string()),
             },
             CanonicalEvent {
-                event_id: "e1".to_string(),
-                event_type: crate::data::EventType::Price,
+                event_id: crate::data::EventId("e1".to_string()),
+                event_type: crate::data::EventType::System,
                 event_time: t1,
-                source: crate::data::DataSource::Realtime,
-                instruments: vec!["NIFTY".to_string()],
-                payload: crate::data::EventPayload::PriceUpdate(Default::default()),
+                source: crate::data::DataSource("Realtime".to_string()),
+                instruments: vec![crate::data::Instrument("NIFTY".to_string())],
+                payload: crate::data::EventPayload::NoOp,
                 completeness: crate::data::Completeness::Complete,
-                schema_version: 1,
+                schema_version: crate::data::SchemaVersion("1".to_string()),
             },
             CanonicalEvent {
-                event_id: "e2".to_string(),
-                event_type: crate::data::EventType::Price,
+                event_id: crate::data::EventId("e2".to_string()),
+                event_type: crate::data::EventType::System,
                 event_time: t2,
-                source: crate::data::DataSource::Realtime,
-                instruments: vec!["NIFTY".to_string()],
-                payload: crate::data::EventPayload::PriceUpdate(Default::default()),
+                source: crate::data::DataSource("Realtime".to_string()),
+                instruments: vec![crate::data::Instrument("NIFTY".to_string())],
+                payload: crate::data::EventPayload::NoOp,
                 completeness: crate::data::Completeness::Complete,
-                schema_version: 1,
+                schema_version: crate::data::SchemaVersion("1".to_string()),
             },
         ];
 
@@ -251,24 +246,24 @@ mod tests {
         let t1 = Utc::now();
         let events = vec![
             CanonicalEvent {
-                event_id: "e1".to_string(),
-                event_type: crate::data::EventType::Price,
+                event_id: crate::data::EventId("e1".to_string()),
+                event_type: crate::data::EventType::System,
                 event_time: t1,
-                source: crate::data::DataSource::Realtime,
-                instruments: vec!["NIFTY".to_string()],
-                payload: crate::data::EventPayload::PriceUpdate(Default::default()),
+                source: crate::data::DataSource("Realtime".to_string()),
+                instruments: vec![crate::data::Instrument("NIFTY".to_string())],
+                payload: crate::data::EventPayload::NoOp,
                 completeness: crate::data::Completeness::Complete,
-                schema_version: 1,
+                schema_version: crate::data::SchemaVersion("1".to_string()),
             },
             CanonicalEvent {
-                event_id: "e2".to_string(),
-                event_type: crate::data::EventType::Price,
+                event_id: crate::data::EventId("e2".to_string()),
+                event_type: crate::data::EventType::System,
                 event_time: t1 + chrono::Duration::seconds(10),
-                source: crate::data::DataSource::Realtime,
-                instruments: vec!["NIFTY".to_string()],
-                payload: crate::data::EventPayload::PriceUpdate(Default::default()),
+                source: crate::data::DataSource("Realtime".to_string()),
+                instruments: vec![crate::data::Instrument("NIFTY".to_string())],
+                payload: crate::data::EventPayload::NoOp,
                 completeness: crate::data::Completeness::Complete,
-                schema_version: 1,
+                schema_version: crate::data::SchemaVersion("1".to_string()),
             },
         ];
 
