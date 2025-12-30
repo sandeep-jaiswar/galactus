@@ -180,6 +180,11 @@ def main():
     logger.info("")
     logger.info("=" * 60)
 
+    # Export results for CI/CD
+    logger.info("\nExporting results to backtest_results/...")
+    harness.export_results("./backtest_results")
+    logger.info("Export complete!")
+
 
 if __name__ == "__main__":
     main()

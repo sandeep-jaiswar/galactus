@@ -62,7 +62,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas pyyaml
+          pip install pyyaml
 
       - name: Download historical backtest data
         run: |
@@ -74,7 +74,7 @@ jobs:
 
       - name: Run backtest evaluation
         run: |
-          python research/python/scripts/run_backtest_jan2020.py
+          PYTHONPATH=research/python/src python research/python/src/backtesting/example.py
         continue-on-error: false
 
       - name: Load baseline metrics
