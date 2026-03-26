@@ -15,7 +15,7 @@ python = "^3.10"
 jugaad-data = "^0.29"
 pandas = "^2.0"
 numpy = "^1.24"
-requests = "^2.31"
+requests = "^2.33"
 
 # Data science stack (to be added as needed)
 # matplotlib = "^3.7"
